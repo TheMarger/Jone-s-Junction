@@ -5,9 +5,6 @@ public class game {
 		System.out.println("Welcome to the Game!");
 		// Additional game logic would go here
 		
-		int f;
-		
-
 	}
 
 }
