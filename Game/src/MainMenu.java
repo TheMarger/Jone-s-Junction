@@ -15,6 +15,7 @@ import javax.swing.BoxLayout;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.Color;
 
 public class MainMenu extends JFrame {
 
@@ -25,6 +26,9 @@ public class MainMenu extends JFrame {
 	JPanel characterPanel = new JPanel();
 	JPanel playPanel = new JPanel();
 	JPanel loadGamePanel = new JPanel();
+	JPanel keybindsPanel = new JPanel();
+	private JTextField txtfldNewKeybind;
+	private JTable keybindsTable;
 
 	/**
 	 * Launch the application.
@@ -45,19 +49,17 @@ public class MainMenu extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	
-	private void setPanel(JPanel panel) {
-		mainMenuPanel.setVisible(false);
-		characterPanel.setVisible(false);
-		playPanel.setVisible(false);
-		loadGamePanel.setVisible(false);
-		panel.setVisible(true);
-	}
 	private void setPanel() {
 		mainMenuPanel.setVisible(false);
 		characterPanel.setVisible(false);
 		playPanel.setVisible(false);
 		loadGamePanel.setVisible(false);
+		keybindsPanel.setVisible(false);
+	}
+	
+	private void setPanel(JPanel panel) {
+		setPanel();
+		panel.setVisible(true);
 	}
 	
 	public MainMenu() {
@@ -68,46 +70,12 @@ public class MainMenu extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		playPanel.setBounds(0, 0, 436, 262);
-		contentPane.add(playPanel);
-		playPanel.setLayout(null);
-		
-		JButton btnNewGame = new JButton("New Game");
-		btnNewGame.setBounds(165, 47, 88, 22);
-		playPanel.add(btnNewGame);
-		
-		JButton btnLoadGame = new JButton("Load Game");
-		btnLoadGame.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				setPanel(loadGamePanel);
-			}
-		});
-		btnLoadGame.setBounds(165, 97, 88, 22);
-		playPanel.add(btnLoadGame);
-		
-		JButton btnPlayBack = new JButton("<--");
-		btnPlayBack.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				setPanel(mainMenuPanel);
-			}
-		});
-		btnPlayBack.setBounds(10, 229, 55, 22);
-		playPanel.add(btnPlayBack);
-		
-		characterPanel.setBounds(0, 0, 436, 263);
-		contentPane.add(characterPanel);
-		characterPanel.setLayout(null);
-		
-		JLabel lblNewLabel = new JLabel("New label");
-		lblNewLabel.setBounds(182, 103, 48, 14);
-		characterPanel.add(lblNewLabel);
-		
 		loadGamePanel.setLayout(null);
 		loadGamePanel.setBounds(0, 0, 436, 262);
 		contentPane.add(loadGamePanel);
 		
 		JButton btnLoad = new JButton("Load Game");
-		btnLoad.setBounds(171, 214, 88, 22);
+		btnLoad.setBounds(171, 214, 102, 22);
 		loadGamePanel.add(btnLoad);
 		
 		JScrollPane loadScrollPane = new JScrollPane();
@@ -126,6 +94,63 @@ public class MainMenu extends JFrame {
 		btnLoadBack.setBounds(10, 229, 49, 22);
 		loadGamePanel.add(btnLoadBack);
 		
+		characterPanel.setBounds(0, 0, 436, 263);
+		contentPane.add(characterPanel);
+		characterPanel.setLayout(null);
+		
+		JLabel skinImgPanel = new JLabel("Insert Skin 1");
+		skinImgPanel.setBackground(new Color(0, 128, 255));
+		skinImgPanel.setBounds(138, 62, 158, 121);
+		characterPanel.add(skinImgPanel);
+		
+		JButton btnNextSkin = new JButton("-->");
+		btnNextSkin.setBounds(306, 73, 52, 95);
+		characterPanel.add(btnNextSkin);
+		
+		JButton btnPrevSkin = new JButton("<--");
+		btnPrevSkin.setBounds(76, 73, 52, 95);
+		characterPanel.add(btnPrevSkin);
+		
+		JButton btnCharacterBack = new JButton("<--");
+		btnCharacterBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setPanel(mainMenuPanel);
+			}
+		});
+		btnCharacterBack.setBounds(10, 240, 52, 23);
+		characterPanel.add(btnCharacterBack);
+		
+		JLabel skinLockStatus = new JLabel("Locked");
+		skinLockStatus.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		skinLockStatus.setBounds(180, 39, 80, 23);
+		characterPanel.add(skinLockStatus);
+		
+		playPanel.setBounds(0, 0, 436, 262);
+		contentPane.add(playPanel);
+		playPanel.setLayout(null);
+		
+		JButton btnNewGame = new JButton("New Game");
+		btnNewGame.setBounds(165, 47, 105, 22);
+		playPanel.add(btnNewGame);
+		
+		JButton btnLoadGame = new JButton("Load Game");
+		btnLoadGame.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setPanel(loadGamePanel);
+			}
+		});
+		btnLoadGame.setBounds(165, 97, 105, 22);
+		playPanel.add(btnLoadGame);
+		
+		JButton btnPlayBack = new JButton("<--");
+		btnPlayBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setPanel(mainMenuPanel);
+			}
+		});
+		btnPlayBack.setBounds(10, 229, 55, 22);
+		playPanel.add(btnPlayBack);
+		
 		mainMenuPanel.setBounds(0, 0, 436, 263);
 		contentPane.add(mainMenuPanel);
 		mainMenuPanel.setLayout(null);
@@ -137,7 +162,7 @@ public class MainMenu extends JFrame {
 				setPanel(playPanel);
 			}
 		});
-		btnPlay.setBounds(175, 76, 81, 23);
+		btnPlay.setBounds(160, 76, 113, 23);
 		mainMenuPanel.add(btnPlay);
 		
 		JButton btnCharacter = new JButton("Character");
@@ -146,16 +171,16 @@ public class MainMenu extends JFrame {
 				setPanel(characterPanel);
 			}
 		});
-		btnCharacter.setBounds(175, 110, 81, 23);
+		btnCharacter.setBounds(160, 110, 113, 23);
 		mainMenuPanel.add(btnCharacter);
 		
 		JButton btnKeybinds = new JButton("Keybinds");
 		btnKeybinds.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setPanel();
+				setPanel(keybindsPanel);
 			}
 		});
-		btnKeybinds.setBounds(175, 144, 81, 23);
+		btnKeybinds.setBounds(160, 144, 113, 23);
 		mainMenuPanel.add(btnKeybinds);
 		
 		JLabel lblGameName = new JLabel("Jone's Junction");
@@ -169,8 +194,41 @@ public class MainMenu extends JFrame {
 				System.exit(0); 
 			}
 		});
-		btnExit.setBounds(175, 178, 81, 23);
+		btnExit.setBounds(160, 178, 113, 23);
 		mainMenuPanel.add(btnExit);
+		
+		keybindsPanel.setBounds(0, 0, 436, 263);
+		contentPane.add(keybindsPanel);
+		keybindsPanel.setLayout(null);
+		
+		JScrollPane keybindScrollPane = new JScrollPane();
+		keybindScrollPane.setBounds(10, 11, 235, 225);
+		keybindsPanel.add(keybindScrollPane);
+		
+		keybindsTable = new JTable();
+		keybindScrollPane.setViewportView(keybindsTable);
+		
+		JButton btnSwapKeybind = new JButton("Swap");
+		btnSwapKeybind.setBounds(255, 55, 88, 22);
+		keybindsPanel.add(btnSwapKeybind);
+		
+		txtfldNewKeybind = new JTextField();
+		txtfldNewKeybind.setBounds(255, 24, 96, 20);
+		keybindsPanel.add(txtfldNewKeybind);
+		txtfldNewKeybind.setColumns(10);
+		
+		JLabel lblKeybind = new JLabel("Insert new keybind");
+		lblKeybind.setBounds(255, 11, 130, 14);
+		keybindsPanel.add(lblKeybind);
+		
+		JButton btnKeybindsBack = new JButton("<--");
+		btnKeybindsBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setPanel(mainMenuPanel);
+			}
+		});
+		btnKeybindsBack.setBounds(0, 240, 59, 22);
+		keybindsPanel.add(btnKeybindsBack);
 
 	}
 }
