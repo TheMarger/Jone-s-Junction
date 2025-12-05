@@ -1,4 +1,6 @@
+public class ProteinBar extends Food {
 
-public class ProteinBar {
-
+public ProteinBar() {
+super("Protein Bar", 5.0, "rare");
+}
 }

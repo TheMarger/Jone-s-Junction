@@ -1,4 +1,6 @@
+public class Apple extends Food {
 
-public class Apple {
-
+public Apple() {
+super("Apple", 2.5, "uncommon");
+}
 }
