@@ -16,6 +16,11 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 
 public class MainMenu extends JFrame {
 
@@ -29,6 +34,8 @@ public class MainMenu extends JFrame {
 	JPanel keybindsPanel = new JPanel();
 	private JTextField txtfldNewKeybind;
 	private JTable keybindsTable;
+	private DefaultTableModel keybindsModel;
+ 
 
 	/**
 	 * Launch the application.
@@ -207,10 +214,69 @@ public class MainMenu extends JFrame {
 		
 		keybindsTable = new JTable();
 		keybindScrollPane.setViewportView(keybindsTable);
+		String[] columnNames = {"Action", "Key"};
+		Object[][] data = {
+		    {"Move Forward", "W"},
+		    {"Move Backward", "S"},
+		    {"Move Left", "A"},
+		    {"Move Right", "D"},
+		    {"Sprint", "Shift"},
+		    {"Crouch", "Ctrl"},
+		    {"Interact", "E"},
+		    {"Throw Item", "Q"},
+		    {"Drop Item", "R"}
+		};
+
+		keybindsModel = new DefaultTableModel(data, columnNames) {
+		    @Override
+		    public boolean isCellEditable(int row, int column) {
+		        return false; // user can’t directly edit cells
+		    }
+		};
+
+		keybindsTable.setModel(keybindsModel);
 		
 		JButton btnSwapKeybind = new JButton("Swap");
 		btnSwapKeybind.setBounds(255, 55, 88, 22);
 		keybindsPanel.add(btnSwapKeybind);
+		
+		btnSwapKeybind.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+
+		        int row = keybindsTable.getSelectedRow();
+		        if (row == -1) {
+		            JOptionPane.showMessageDialog(MainMenu.this, "Please select an action in the table first.");
+		            return;
+		        }
+
+		        JOptionPane.showMessageDialog(MainMenu.this, "Press the new key now.");
+
+		        // Small invisible window to capture exactly one key press
+		        JFrame keyCapture = new JFrame();
+		        keyCapture.setUndecorated(true);
+		        keyCapture.setSize(200, 100);
+		        keyCapture.setLocationRelativeTo(null);
+
+		        keyCapture.addKeyListener(new KeyAdapter() {
+		            @Override
+		            public void keyPressed(KeyEvent ke) {
+
+		                String newKey = KeyEvent.getKeyText(ke.getKeyCode());
+
+		                // show it in the textbox
+		                txtfldNewKeybind.setText(newKey);
+
+		                // update table
+		                keybindsModel.setValueAt(newKey, row, 1);
+
+		                keyCapture.dispose();
+		            }
+		        });
+
+		        keyCapture.setVisible(true);
+		        keyCapture.requestFocus();
+		    }
+		});
 		
 		txtfldNewKeybind = new JTextField();
 		txtfldNewKeybind.setBounds(255, 24, 96, 20);
