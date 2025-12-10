@@ -248,33 +248,29 @@ public class MainMenu extends JFrame {
 		            JOptionPane.showMessageDialog(MainMenu.this, "Please select an action in the table first.");
 		            return;
 		        }
-
-		        JOptionPane.showMessageDialog(MainMenu.this, "Press the new key now.");
-
-		        // Small invisible window to capture exactly one key press
-		        JFrame keyCapture = new JFrame();
-		        keyCapture.setUndecorated(true);
-		        keyCapture.setSize(200, 100);
-		        keyCapture.setLocationRelativeTo(null);
-
-		        keyCapture.addKeyListener(new KeyAdapter() {
-		            @Override
-		            public void keyPressed(KeyEvent ke) {
-
-		                String newKey = KeyEvent.getKeyText(ke.getKeyCode());
-
-		                // show it in the textbox
-		                txtfldNewKeybind.setText(newKey);
-
-		                // update table
-		                keybindsModel.setValueAt(newKey, row, 1);
-
-		                keyCapture.dispose();
-		            }
-		        });
-
-		        keyCapture.setVisible(true);
-		        keyCapture.requestFocus();
+		        
+		        if (txtfldNewKeybind.getText().trim().isEmpty()) {
+		            JOptionPane.showMessageDialog(MainMenu.this, "Please enter a new keybind.");
+		            return;
+		        }
+		        else if (txtfldNewKeybind.getText().trim().length() > 1) {
+		            JOptionPane.showMessageDialog(MainMenu.this, "Please enter a single character for the keybind.");
+		            return;
+		        }
+		        else if (!Character.isLetterOrDigit(txtfldNewKeybind.getText().trim().charAt(0))) {
+		            JOptionPane.showMessageDialog(MainMenu.this, "Please enter a valid alphanumeric character for the keybind.");
+		            return;
+		        }
+		        else if (keybindsModel.getDataVector().stream()
+		        		.anyMatch(rowData -> ((String) rowData.get(1)).equalsIgnoreCase(txtfldNewKeybind.getText().trim()))) {
+		            JOptionPane.showMessageDialog(MainMenu.this, "This keybind is already assigned to another action.");
+		            return;
+		        }
+		        else {
+		            // All validations passed, proceed to update the keybind
+		            keybindsModel.setValueAt(txtfldNewKeybind.getText().trim(), row, 1);
+		            JOptionPane.showMessageDialog(MainMenu.this, "Keybind updated successfully.");
+		        }		        
 		    }
 		});
 		
