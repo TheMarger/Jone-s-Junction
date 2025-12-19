@@ -11,7 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-
+/////ahhhhhhhhhhhhhhhhhhhhhhhhhhh
 public class CookingTask extends JFrame {
 
 	private static final long serialVersionUID = 1L;
@@ -198,30 +198,30 @@ private void checkAnswer(String chosenAnswer, JCheckBox checkBox) {
 }
 
 private void loadQuestion(JLabel lblQuestion, JButton btnA, JButton btnB, JButton btnC, JButton btnD, JCheckBox chckbxNewCheckBox) {
-    // reset UI
+    //Resets UI
     chckbxNewCheckBox.setSelected(false);
     lblResult.setText("");
 
-    // pick random question
+    //Picks random question
     currentQuestion = (int)(Math.random() * CookingQuestions.length);
     lblQuestion.setText(CookingQuestions[currentQuestion]);
 
-    // correct answer
+    //Correct answer
     String correct = answersArray[currentQuestion];
 
-    // randomly shuffle answers and assign them to buttons
+    //Randomly shuffle answers and assign them to buttons
     String[] options = { "100°C", "Yeast", "Avocado", "30–32°C" }; // example options
     String correctAnswer = options[(int) (Math.random() * options.length)];
 
-    // Set correct answer to one random button
+    //Set correct answer to one random button
     String[] allButtons = { btnA.getText(), btnB.getText(), btnC.getText(), btnD.getText() };
 
     for (int i = 0; i < allButtons.length; i++) {
         if (allButtons[i].equals(correctAnswer)) {
-            // assign the correct answer to button
+            //Assigns the correct answer to button
         } else {
-            // assign wrong options to other buttons
+            //Assigns wrong options to other buttons
         }
-    }
+    }//testttingggggg
 }
 }
