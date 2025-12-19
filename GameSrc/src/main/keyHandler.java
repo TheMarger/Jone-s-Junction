@@ -1,7 +1,7 @@
 package main;
 
 public class keyHandler implements java.awt.event.KeyListener {
-	public boolean upPressed, downPressed, leftPressed, rightPressed;
+	public boolean upPressed, downPressed, leftPressed, rightPressed, sprintPressed, crouchPressed;
 
 	@Override
 	public void keyTyped(java.awt.event.KeyEvent e) {
@@ -13,20 +13,22 @@ public class keyHandler implements java.awt.event.KeyListener {
 		// Handle key pressed event
 		int code = e.getKeyCode();
 		if (code == java.awt.event.KeyEvent.VK_W) {
-			System.out.println("Up key pressed");
 			upPressed = true;
 		}
 		if (code == java.awt.event.KeyEvent.VK_S) {
-			System.out.println("Down key pressed");
 			downPressed = true;
 		}
 		if (code == java.awt.event.KeyEvent.VK_A) {
-			System.out.println("Left key pressed");
 			leftPressed = true;
 		}
 		if (code == java.awt.event.KeyEvent.VK_D) {
-			System.out.println("Right key pressed");
 			rightPressed = true;
+		}
+		if (code == java.awt.event.KeyEvent.VK_SHIFT) {
+			sprintPressed = true;
+		}
+		if (code == java.awt.event.KeyEvent.VK_CONTROL) {
+			crouchPressed = true;
 		}
 	}
 
@@ -35,20 +37,22 @@ public class keyHandler implements java.awt.event.KeyListener {
 		// Handle key released event
 		int code = e.getKeyCode();
 		if (code == java.awt.event.KeyEvent.VK_W) {
-			System.out.println("Up key pressed");
 			upPressed = false;
 		}
 		if (code == java.awt.event.KeyEvent.VK_S) {
-			System.out.println("Down key pressed");
 			downPressed = false;
 		}
 		if (code == java.awt.event.KeyEvent.VK_A) {
-			System.out.println("Left key pressed");
 			leftPressed = false;
 		}
 		if (code == java.awt.event.KeyEvent.VK_D) {
-			System.out.println("Right key pressed");
 			rightPressed = false;
+		}
+		if (code == java.awt.event.KeyEvent.VK_SHIFT) {
+			sprintPressed = false;
+		}
+		if (code == java.awt.event.KeyEvent.VK_CONTROL) {
+			crouchPressed = false;
 		}
 		
 	}
