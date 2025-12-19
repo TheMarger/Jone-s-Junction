@@ -21,13 +21,13 @@ public class TileManager {
 		tile = new tile[232];
 		mapTileNum = new int[gp.maxScreenCol][gp.maxScreenCol];
 		getTileImage();
-		loadMap("/maps/Level1Map.txt");
+		loadMap("/maps/FinalLevel1Map.txt");
 	}
 	
 	public void getTileImage() {
 		try {
             
-            InputStream is = getClass().getResourceAsStream("/Tiledata.txt");
+            InputStream is = getClass().getResourceAsStream("/FinalTileData.txt");
 
             if (is == null) {
                 System.out.println("errorr: Tiledata.txt not found on classpath");

@@ -12,13 +12,13 @@ import java.awt.image.BufferedImage;
 
 public class tile {
 
-    private int x;  // tile column
-    private int y;  // tile row
+    private int x;  //tile column
+    private int y;  //tile row
 
     private boolean collision = false; //tile solidity
     private BufferedImage image; //tile image
 
-    // Constructor used by TileManager, for the looks and solidity
+    //Constructor used by TileManager, for the looks and solidity
     public tile(BufferedImage image, boolean collision) {
         this.image = image;
         this.collision = collision;
@@ -26,7 +26,7 @@ public class tile {
         this.y = -1;  
     }
 
-    // Constructor used, for the placing of the tiles
+    //Constructor used, for the placing of the tiles
     public tile(int x, int y, BufferedImage image, boolean collision) {
         this.x = x;
         this.y = y;

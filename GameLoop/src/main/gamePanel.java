@@ -12,16 +12,16 @@ import tile.TileManager;
 
 public class gamePanel extends JPanel implements Runnable {
 
-	// Screen settings
-	public final int originalTileSize = 16; // 16x16 tile
-	public final int scale = 1; // scale tiles by 3 
-	public final int tileSize = originalTileSize * scale; // 48x48 tile
+	//Screen settings
+	public final int originalTileSize = 16; //zoom in out scale
+	public final int scale = 1; //scale tiles by 3 
+	public final int tileSize = originalTileSize * scale; 
 	public final int maxScreenCol = 50;
 	public final int maxScreenRow = 50;
-	public final int screenWidth = tileSize * maxScreenCol; // 768 pixels
-	public final int screenHeight = tileSize * maxScreenRow; // 576 pixels
+	public final int screenWidth = tileSize * maxScreenCol; 
+	public final int screenHeight = tileSize * maxScreenRow;
 	
-	// FPS
+	//FPS
 	final int FPS = 60;
 	
 	TileManager tileM = new TileManager(this);
@@ -52,16 +52,15 @@ public class gamePanel extends JPanel implements Runnable {
 		long timer = 0;
 		int drawCount = 0;
 		
-		// TODO Auto-generated method stub
 		while (gameThread != null) {
 			currentTime = System.nanoTime();
 			delta += (currentTime - lastTime) / drawInterval;
 			timer += (currentTime - lastTime);
 			lastTime = currentTime;
 			if (delta >= 1) {
-				// Update: update information such as character positions
+				//Update: update info such as character positions
 				update();
-				// Draw: draw the screen with the updated information
+				//Draw: draw the screen with the updated information
 				repaint();
 				delta--;
 				drawCount++;
