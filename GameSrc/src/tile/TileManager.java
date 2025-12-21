@@ -13,13 +13,13 @@ import main.gamePanel;
 
 public class TileManager {
 	gamePanel gp;
-	tile[] tile;
-	int mapTileNum[][];
+	public static tile[] tile;
+	public int mapTileNum[][];
 	
 	public TileManager(gamePanel gp) {
 		this.gp = gp;
 		tile = new tile[232];
-		mapTileNum = new int[gp.maxScreenCol][gp.maxScreenCol];
+		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
 		loadMap("/maps/Level1Map.txt");
 	}
@@ -27,7 +27,7 @@ public class TileManager {
 	public void getTileImage() {
 		try {
             
-            InputStream is = getClass().getResourceAsStream("/Tiledata.txt");
+            InputStream is = getClass().getResourceAsStream("/tiles/Tiledata.txt");
 
             if (is == null) {
                 System.out.println("errorr: Tiledata.txt not found on classpath");
@@ -63,6 +63,17 @@ public class TileManager {
         }
 	}
 	
+	public static void unlockTile(int tileIndex) {
+	    if (tileIndex >= 0 && tileIndex < tile.length) {
+	        try {
+				tile[tileIndex].collision = false;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    }
+	}
+	
 	public void loadMap(String filePath) {
 		try {
 			InputStream is = getClass().getResourceAsStream(filePath);
@@ -71,15 +82,15 @@ public class TileManager {
 			int col = 0;
 			int row = 0;
 			
-			while (col < gp.maxScreenCol && row < gp.maxScreenRow) {
+			while (col < gp.maxWorldCol && row < gp.maxWorldRow) {
 				String line = br.readLine();
-				while (col < gp.maxScreenCol) {
+				while (col < gp.maxWorldCol) {
 					String numbers[] = line.split(" ");
 					int num = Integer.parseInt(numbers[col]);
 					mapTileNum[col][row] = num;
 					col++;
 				}
-				if (col == gp.maxScreenCol) {
+				if (col == gp.maxWorldCol) {
 					col = 0;
 					row++;
 				}
@@ -91,29 +102,48 @@ public class TileManager {
 	}
 	
 	public void draw(Graphics2D g2) {
-		int col = 0;
-		int row = 0;
-		int x = 0;
-		int y = 0;
-		
-		while (col < gp.maxScreenCol && row < gp.maxScreenRow) {
-			int tileNum = mapTileNum[col][row];
-			if (tile[tileNum] != null && tile[tileNum].getImage() != null) {
-			    g2.drawImage(tile[tileNum].getImage(), x, y, gp.tileSize, gp.tileSize, null);
-			} else {
-			    // draw a placeholder so you can see missing tiles
-			    g2.setColor(Color.MAGENTA);
-			    g2.fillRect(x, y, gp.tileSize, gp.tileSize);
-			}
+	    int worldCol = 0;
+	    int worldRow = 0;
 
-			col++;
-			x += gp.tileSize;
-			if (col == gp.maxScreenCol) {
-				col = 0;
-				x = 0;
-				row++;
-				y += gp.tileSize;
-			}
-		}
+	    while (worldCol < gp.maxWorldCol && worldRow < gp.maxWorldRow) {
+
+	        int tileNum = mapTileNum[worldCol][worldRow];
+
+	        int worldX = worldCol * gp.tileSize;
+	        int worldY = worldRow * gp.tileSize;
+
+	        int screenX = worldX - gp.player.worldX + gp.player.getScreenX();
+	        int screenY = worldY - gp.player.worldY + gp.player.getScreenY();
+	        
+	        if (worldX + gp.tileSize > gp.player.worldX - gp.player.getScreenX() &&
+	            worldX - gp.tileSize < gp.player.worldX + gp.player.getScreenX() &&
+	            worldY + gp.tileSize > gp.player.worldY - gp.player.getScreenY() &&
+	            worldY - gp.tileSize < gp.player.worldY + gp.player.getScreenY()) {
+	        	// Draw the tile
+	        	g2.drawImage(tile[tileNum].getImage(), screenX, screenY, gp.tileSize, gp.tileSize, null);
+
+	        	// --- DEBUG: draw tile number on top ---
+	        	g2.setColor(new Color(0, 0, 0, 150)); // semi-transparent background
+	        	g2.fillRect(screenX, screenY, 24, 16);
+
+	        	g2.setColor(Color.WHITE);
+	        	g2.drawString(
+	        	    String.valueOf(tileNum),
+	        	    screenX + 4,
+	        	    screenY + 12
+	        	);
+
+	        }
+
+
+	        worldCol++;
+
+	        if (worldCol == gp.maxWorldCol) {
+	            worldCol = 0;
+	            worldRow++;
+	        }
+	    }
+
 	}
+
 }
