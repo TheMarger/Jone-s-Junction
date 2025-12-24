@@ -6,7 +6,7 @@ import java.awt.event.KeyListener;
 public class keyHandler implements KeyListener {
     // gameplay flags (consumed by game code)
     public boolean upPressed, downPressed, leftPressed, rightPressed;
-    public boolean sprintPressed, crouchPressed, interactPressed;
+    public boolean sprintPressed, crouchPressed, interactPressed, escapePressed;
 
     gamePanel gp;
 
@@ -78,6 +78,9 @@ public class keyHandler implements KeyListener {
             if (code == gp.keybinds[6]) {
             	interactPressed = true;
             }
+            if (code == gp.keybinds[7]) {
+            	escapePressed = true;
+            }
 
             // allow ESC -> pause (game logic still happens in UI or gamePanel)
             if (code == KeyEvent.VK_ESCAPE) {
@@ -106,6 +109,15 @@ public class keyHandler implements KeyListener {
                 gp.gameState = gp.playState;
             }
         }
+        if (gp.gameState == gp.deathState) {
+			if (code == KeyEvent.VK_ENTER) {
+				gp.resetGame(false);
+			}
+			if (code == KeyEvent.VK_ESCAPE) {
+				gp.resetGame(true);
+			}
+			
+		}
     }
 
     @Override
@@ -134,6 +146,9 @@ public class keyHandler implements KeyListener {
         if (code == gp.keybinds[6]) {
         	interactPressed = false;
         }
+        if (code == gp.keybinds[7]) {
+			escapePressed = false;
+		}
 
     }
 }

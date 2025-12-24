@@ -44,13 +44,15 @@ public class gamePanel extends JPanel implements Runnable {
 	Sound music = new Sound();
 	Sound soundEffect = new Sound();
 	public UserInterface ui = new UserInterface(this);
+	public EventHandler eHandler = new EventHandler(this);
+	public UtilityTool uTool = new UtilityTool(this);
 	Thread gameThread;
 
 
 	// keybinds: 0=forward,1=back,2=left,3=right,4=sprint,5=crouch,6=interact,7=throw,8=drop
 	public int[] keybinds = new int[] {
 	    KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D,
-	    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R
+	    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_ESCAPE
 	};
 	
 	// basic character/skin storage used by the title character screen
@@ -72,6 +74,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public final int playState = 1;
 	public final int pauseState = 2;
 	public final int dialogueState = 3;
+	public final int deathState = 4;
 	
 	
 	public gamePanel() {
@@ -138,6 +141,25 @@ public class gamePanel extends JPanel implements Runnable {
 			}
 		}
 		if (gameState == pauseState) {
+	
+		}
+		if (gameState == dialogueState) {
+			
+		}
+		if (gameState == deathState) {
+			
+		}
+	}
+	
+	public void resetGame(boolean restartFromTitle) {
+		player.setDefaultValues();
+		aSetter.setNPC();
+		aSetter.setItem();
+		tileM.resetMap();
+		if (restartFromTitle) {
+			gameState = titleState;
+		} else {
+			gameState = playState;
 		}
 	}
 	
@@ -171,6 +193,8 @@ public class gamePanel extends JPanel implements Runnable {
 			
 			//UI
 			ui.draw(g2);
+			
+			uTool.draw(g2);
 			
 		}
 		g2.dispose();

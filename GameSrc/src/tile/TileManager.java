@@ -25,6 +25,24 @@ public class TileManager {
 		loadMap("/maps/Level1Map.txt");
 	}
 	
+	public void resetMap () {
+		tile = new tile[232];
+		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
+		getTileImage();
+		loadMap("/maps/Level1Map.txt");
+	}
+	
+	public static void lockTile(int tileIndex) {
+	    if (tileIndex >= 0 && tileIndex < tile.length) {
+	        try {
+				tile[tileIndex].collision = true;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    }
+	}
+	
 	public void getTileImage() {
 		UtilityTool uTool = new UtilityTool();
 		try {
@@ -146,7 +164,18 @@ public class TileManager {
 	            worldRow++;
 	        }
 	    }
-
+	    
+	    // highlight tile at certain position for testing
+	    
+	    int testCol = 6;
+	    int testRow = 19;
+	    int testWorldX = testCol * gp.tileSize;
+	    int testWorldY = testRow * gp.tileSize;
+	    int testScreenX = testWorldX - gp.player.worldX + gp.player.getScreenX();
+	    int testScreenY = testWorldY - gp.player.worldY + gp.player.getScreenY();
+	    g2.setColor(new Color(255, 0, 0, 100));
+	    g2.fillRect(testScreenX, testScreenY, gp.tileSize, gp.tileSize);
+	    
 	}
 	
 	public static tile[] getTileArray() {

@@ -18,15 +18,17 @@ public class player extends entity {
     private final int screenX;
     private final int screenY;
 
-    public static boolean hasKey = false;
-    public static boolean hasBlueKey = false;
-    public static boolean hasRedKey = false;
-    public static boolean hasGreenKey = false;
+    public static boolean hasKey;
+    public static boolean hasBlueKey;
+    public static boolean hasRedKey;
+    public static boolean hasGreenKey;
     int standCounter = 0;
     // torch ownership + last lit tile position
     public static boolean hasTorch = false;          // set true when player picks up a Torch item
     int lastPlayerCol = -1;            // column of the tile that was last used to light
     int lastPlayerRow = -1;            // row of the tile that was last used to light
+    
+    public boolean isAlive;
 
     public int getScreenX() {
         return screenX;
@@ -51,6 +53,8 @@ public class player extends entity {
         solidAreaDefaultY = solidArea.y;
         solidArea.width = 18;
         solidArea.height = 18;
+        
+        isAlive = true;
 
         setDefaultValues();
         getPlayerImage();
@@ -64,6 +68,11 @@ public class player extends entity {
         crouchSpeed = 2;
         speed = walkSpeed;
         direction = "down";
+        hasKey = false;
+        hasBlueKey = false;
+        hasRedKey = false;
+        hasGreenKey = false;
+        hasTorch = false;
     }
 
     public void getPlayerImage() {
@@ -185,6 +194,10 @@ public class player extends entity {
 
             int itemIndex = gp.cChecker.checkItem(this, true);
             pickUpItem(itemIndex);
+            
+            // Check events
+            gp.eHandler.checkEvent();
+            
 
             spriteCounter++;
             if (spriteCounter > 19 - (1.5 * speed)) {

@@ -174,6 +174,9 @@ public class UserInterface { // UI class that draws HUD and title screens
         if (gp.gameState == gp.dialogueState) {
             drawDialogueScreen();
         }
+        if (gp.gameState == gp.deathState) {
+			drawDeathScreen();
+		}
 
         // KEYS: draw small inventory icons in the HUD area if player has them
         if (player.hasKey) {
@@ -512,6 +515,34 @@ public class UserInterface { // UI class that draws HUD and title screens
             }
         }
     }
+    
+    public void drawDeathScreen() {
+    	// create a semi-transparent black overlay
+		Color c = new Color(0, 0, 0, 200); // RGBA
+		g2.setColor(c);
+		g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight); // fill entire screen
+
+		// Draw "YOU DIED" text in the center
+		String text = "YOU DIED";
+		int x = gp.screenWidth / 2 - g2.getFontMetrics().stringWidth(text);
+		int y = gp.screenHeight / 2;
+
+		g2.setFont(g2.getFont().deriveFont(Font.BOLD, 80F)); // large bold font
+		g2.setColor(Color.red); // red color for death message
+		g2.drawString(text, x, y); // draw death text
+		
+		// Draw "ENTER to Restart  ESCAPE to exit" prompt below 
+		
+		String prompt = "ENTER to Restart  ESCAPE to exit";
+		x = gp.screenWidth / 2 - g2.getFontMetrics().stringWidth(prompt) / 5 + 15;
+		y += gp.tileSize * 1;
+		g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F)); // smaller font for prompt
+		g2.setColor(Color.white); // white color for prompt
+		g2.drawString(prompt, x, y); // draw prompt
+		
+		
+		
+    }
 
     // Draw the large "PAUSED" screen in the center
     public void drawPauseScreen() {
@@ -541,7 +572,7 @@ public class UserInterface { // UI class that draws HUD and title screens
             y += 40; // line spacing
         }
     }
-
+    
     // drawSubWindow: helper that renders a rounded black translucent panel with white border
     public void drawSubWindow(int x, int y, int width, int height) {
         Color c = new Color(0, 0, 0, 210); // semi-transparent black
