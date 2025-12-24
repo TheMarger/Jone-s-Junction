@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+
+import entity.entity;
 import entity.player;
 import tile.TileManager;
 
@@ -31,14 +34,44 @@ public class gamePanel extends JPanel implements Runnable {
 	// FPS
 	final int FPS = 60;
 	
-	TileManager tileM = new TileManager(this);
-	keyHandler keyH = new keyHandler();
-	Thread gameThread;
+	public TileManager tileM = new TileManager(this);
+	keyHandler keyH = new keyHandler(this);
 	public CollisionChecker cChecker = new CollisionChecker(this);
 	public AssetSetter aSetter = new AssetSetter(this);
 	public player player = new player(this, keyH);
 	public Item items[] = new Item[10]; // max objects on map
+	public entity npc[] = new entity[10];
+	Sound music = new Sound();
+	Sound soundEffect = new Sound();
+	public UserInterface ui = new UserInterface(this);
+	Thread gameThread;
+
+
+	// keybinds: 0=forward,1=back,2=left,3=right,4=sprint,5=crouch,6=interact,7=throw,8=drop
+	public int[] keybinds = new int[] {
+	    KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D,
+	    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R
+	};
 	
+	// basic character/skin storage used by the title character screen
+	public boolean[] unlockedSkins;
+	public int equippedSkinIndex = 0;
+	public int currentSkinIndex = 0;
+	public final String[] skinNames = { "Rabbit","OldTimer","Froseph","Lifer","BillyGoat","Marv" };
+	public final String[] skinPaths = {
+	    "/assets/character1.png",
+	    "/assets/character2.png",
+	    "/assets/character3.png",
+	    "/assets/character4.png",
+	    "/assets/character5.png",
+	    "/assets/character6.png"
+	};
+
+	public int gameState;
+	public final int titleState = 0;
+	public final int playState = 1;
+	public final int pauseState = 2;
+	public final int dialogueState = 3;
 	
 	
 	public gamePanel() {
@@ -51,6 +84,11 @@ public class gamePanel extends JPanel implements Runnable {
 	
 	public void setupGame() {
 		aSetter.setItem();
+		aSetter.setNPC();
+		//playMusic(0);
+		unlockedSkins = new boolean[skinNames.length];
+		unlockedSkins[0] = true; // default unlocked
+		gameState = titleState; 
 	}
 	
 	public void startGameThread() {
@@ -89,7 +127,18 @@ public class gamePanel extends JPanel implements Runnable {
 	}
 	
 	public void update() {
-		player.update();
+		if (gameState == playState) {
+			// Player
+			player.update();
+			// NPCs
+			for (int i = 0; i < npc.length; i++) {
+				if (npc[i] != null) {
+					npc[i].update();
+				}
+			}
+		}
+		if (gameState == pauseState) {
+		}
 	}
 	
 	public void paintComponent(Graphics g) {
@@ -97,19 +146,49 @@ public class gamePanel extends JPanel implements Runnable {
 		
 		Graphics2D g2 = (Graphics2D) g;
 		
-		// Draw tiles
-		tileM.draw(g2);
-		
-		// Draw items
-		for (int i = 0; i < items.length; i++) {
-			if (items[i] != null) {
-				items[i].draw(g2, this);
+		//Title screen
+		if (gameState == titleState) {
+			ui.draw(g2);
+		} else {
+			// Draw tiles
+			tileM.draw(g2);
+			
+			// Draw items
+			for (int i = 0; i < items.length; i++) {
+				if (items[i] != null) {
+					items[i].draw(g2, this);
+				}
 			}
+			
+			// Draw NPCs
+			for (int i = 0; i < npc.length; i++) {
+				if (npc[i] != null) {
+					npc[i].draw(g2);
+				}
+			}
+			// Draw player
+			player.draw(g2);
+			
+			//UI
+			ui.draw(g2);
+			
 		}
-		
-		// Draw player
-		player.draw(g2);
-		
 		g2.dispose();
+	}
+	
+	public void playMusic(int i) {
+		music.setFile(i);
+		music.setVolume(0.6f);
+		music.play();
+		music.loop();
+	}
+	
+	public void stopMusic() {
+		music.stop();
+	}
+	public void playSoundEffect(int i) {
+		soundEffect.setFile(i);
+		soundEffect.setVolume(0.65f);
+		soundEffect.play();
 	}
 }

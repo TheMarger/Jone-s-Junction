@@ -4,11 +4,13 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
+import main.UtilityTool;
 import main.gamePanel;
 
 public class Item {
 	
 	public BufferedImage image;
+	UtilityTool uTool = new UtilityTool();
 	public String name;
 	public boolean collision = false;
 	public int worldX, worldY;

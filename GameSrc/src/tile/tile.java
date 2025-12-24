@@ -17,11 +17,13 @@ public class tile {
 
     public boolean collision = false; //tile solidity
     private BufferedImage image; //tile image
+    private int num; 
 
     // Constructor used by TileManager, for the looks and solidity
-    public tile(BufferedImage image, boolean collision) {
+    public tile(int num, BufferedImage image, boolean collision) {
         this.image = image;
         this.collision = collision;
+        this.num = num;
         this.x = -1;   
         this.y = -1;  
     }
@@ -48,6 +50,9 @@ public class tile {
     public BufferedImage getImage() { 
     	return image; 
     	}
+    public int getNum() {
+		return num;
+	}
 
 }
 

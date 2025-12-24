@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 
 import javax.imageio.ImageIO;
 
+import main.UtilityTool;
 import main.gamePanel;
 
 public class TileManager {
@@ -25,6 +26,7 @@ public class TileManager {
 	}
 	
 	public void getTileImage() {
+		UtilityTool uTool = new UtilityTool();
 		try {
             
             InputStream is = getClass().getResourceAsStream("/tiles/Tiledata.txt");
@@ -53,15 +55,17 @@ public class TileManager {
                     continue;
                 }
                 BufferedImage img = ImageIO.read(imgStream);
+                int num = index;
 
                 // *** IMPORTANT: store into the tile array so draw() can use it ***
-                tile[index] = new tile(img, collision);
+                tile[index] = new tile(num, img, collision);
             }
             reader.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
 	}
+	
 	
 	public static void unlockTile(int tileIndex) {
 	    if (tileIndex >= 0 && tileIndex < tile.length) {
@@ -135,7 +139,6 @@ public class TileManager {
 
 	        }
 
-
 	        worldCol++;
 
 	        if (worldCol == gp.maxWorldCol) {
@@ -145,5 +148,19 @@ public class TileManager {
 	    }
 
 	}
+	
+	public static tile[] getTileArray() {
+	    return tile;
+	}
+	
+	public static tile getTile(int index) {
+	    return tile[index];
+	}
+	
+	public static int getTileCount() {
+	    return tile.length;
+	}
+	
+	
 
 }

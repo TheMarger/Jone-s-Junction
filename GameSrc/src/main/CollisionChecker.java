@@ -16,47 +16,47 @@ public class CollisionChecker {
      *
      * dx, dy are in WORLD PIXELS (for our usage they will be -1, 0 or 1 per step).
      */
-    public boolean willCollide(entity entity, int dx, int dy) {
+    /**
+     * Returns the tile index of the first solid tile the entity would collide with
+     * if it moves by (dx, dy), or -1 if no collision.
+     * -2 if the movement goes outside the world bounds.
+     */
+    public int getCollidingTile(entity entity, int dx, int dy) {
 
-        // guard: if no solidArea defined, assume no collision
-        if (entity.solidArea == null) return false;
+        if (entity.solidArea == null) return -1;
 
-        // compute hitbox in world coords after the proposed move
         int leftX   = entity.worldX + entity.solidArea.x + dx;
         int rightX  = leftX + entity.solidArea.width - 1;
         int topY    = entity.worldY + entity.solidArea.y + dy;
         int bottomY = topY + entity.solidArea.height - 1;
 
-        // tile indices
         int leftCol   = leftX / gp.tileSize;
         int rightCol  = rightX / gp.tileSize;
         int topRow    = topY / gp.tileSize;
         int bottomRow = bottomY / gp.tileSize;
 
-        // if any of those indices are outside the world, treat as collision
+        // world bounds check
         if (leftCol < 0 || rightCol >= gp.maxWorldCol || topRow < 0 || bottomRow >= gp.maxWorldRow) {
-            return true;
+            return -2; // out of bounds
         }
 
-        // Check every tile the hitbox would overlap (covers wide/thin hitboxes)
         for (int col = leftCol; col <= rightCol; col++) {
             for (int row = topRow; row <= bottomRow; row++) {
                 int tileNum = gp.tileM.mapTileNum[col][row];
 
-                // guard: if tile array not set or tile is null -> treat as non-solid
                 if (gp.tileM.tile == null) continue;
                 if (tileNum < 0 || tileNum >= gp.tileM.tile.length) continue;
 
                 tile.tile t = gp.tileM.tile[tileNum];
                 if (t != null && t.collision) {
-                    return true;
+                    return tileNum; // return the index of the tile collided with
                 }
             }
         }
 
-        // no solid tile overlapped
-        return false;
+        return -1; // no collision
     }
+
     
     public int checkItem(entity entity, boolean player) {
 		int index = 999;
@@ -128,4 +128,83 @@ public class CollisionChecker {
 		
 		return index;
 	}
+    
+ // Check collision between an entity and a list of target entities
+    public int checkEntity(entity entity, entity[] target, int dx, int dy) {
+
+        if (entity.solidArea == null) return 999;
+
+        // Future hitbox of the moving entity
+        Rectangle futureArea = new Rectangle(
+            entity.worldX + entity.solidArea.x + dx,
+            entity.worldY + entity.solidArea.y + dy,
+            entity.solidArea.width,
+            entity.solidArea.height
+        );
+
+        for (int i = 0; i < target.length; i++) {
+            if (target[i] == null || target[i].solidArea == null) continue;
+
+            // Target entity hitbox
+            Rectangle targetArea = new Rectangle(
+                target[i].worldX + target[i].solidArea.x,
+                target[i].worldY + target[i].solidArea.y,
+                target[i].solidArea.width,
+                target[i].solidArea.height
+            );
+
+            if (futureArea.intersects(targetArea)) {
+                return i; // collided with this entity
+            }
+        }
+
+        return 999; // no collision
+    }
+    
+    public void checkPlayer(entity entity) {
+				// Get entity's solid area position
+				entity.solidArea.x = entity.worldX + entity.solidArea.x;
+				entity.solidArea.y = entity.worldY + entity.solidArea.y;
+				// Get item's solid area position
+				gp.player.solidArea.x = gp.player.worldX + gp.player.solidArea.x;
+				gp.player.solidArea.y = gp.player.worldY + gp.player.solidArea.y;
+				
+				switch(entity.direction) {
+					case "up":
+						entity.solidArea.y -= entity.speed;
+						if (entity.solidArea.intersects(gp.player.solidArea)) {
+							entity.collisionOn = true;
+						}
+						break;
+					case "down":
+						entity.solidArea.y += entity.speed;
+						if (entity.solidArea.intersects(gp.player.solidArea)) {
+							entity.collisionOn = true;
+							
+						}
+						break;
+					case "left":
+						entity.solidArea.x -= entity.speed;
+						if (entity.solidArea.intersects(gp.player.solidArea)) {
+							entity.collisionOn = true;
+						}
+						break;
+					case "right":
+						entity.solidArea.x += entity.speed;
+						if (entity.solidArea.intersects(gp.player.solidArea)) {
+							entity.collisionOn = true;
+							
+						}
+						break;
+				
+				}
+				
+				// Reset solid area position
+				entity.solidArea.x = entity.solidAreaDefaultX;
+				entity.solidArea.y = entity.solidAreaDefaultY;
+				gp.player.solidArea.x = gp.player.solidAreaDefaultX;
+				gp.player.solidArea.y = gp.player.solidAreaDefaultY;
+		
+	}
+    
 }
