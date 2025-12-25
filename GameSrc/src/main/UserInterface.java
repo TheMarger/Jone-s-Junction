@@ -270,6 +270,7 @@ public class UserInterface { // UI class that draws HUD and title screens
                 switch (commandNum) {
                     case 0: // NEW GAME: switch to play state
                         gp.gameState = gp.playState;
+                        gp.playMusic(0);
                         break;
                     case 1: // LOAD GAME: show load sub-screen
                         titleScreenState = 1;

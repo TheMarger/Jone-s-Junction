@@ -9,9 +9,11 @@ import main.gamePanel;
 
 public class Item {
 	
+	gamePanel gp;
+	
 	public BufferedImage image;
-	UtilityTool uTool = new UtilityTool();
 	public String name;
+	public UtilityTool uTool = new UtilityTool(gp);
 	public boolean collision = false;
 	public int worldX, worldY;
 	public Rectangle solidArea = new Rectangle(0, 0, 48, 48);
@@ -20,7 +22,11 @@ public class Item {
 	public int sizeX = 48;
 	public int sizeY = 48;
 	
-	public void draw(Graphics2D g2, gamePanel gp) {
+	public Item(gamePanel gp) {
+		this.gp = gp;
+	}
+	
+	public void draw(Graphics2D g2) {
 	    int screenX = worldX - gp.player.worldX + gp.player.getScreenX();
 	    int screenY = worldY - gp.player.worldY + gp.player.getScreenY();
 	    

@@ -7,6 +7,7 @@ public class Key extends Item {
 	gamePanel gp;
 	
 	public Key(gamePanel gp) {
+		super(gp);
 		name = "Key";
 		sizeX = 24;
 		sizeY = 24;

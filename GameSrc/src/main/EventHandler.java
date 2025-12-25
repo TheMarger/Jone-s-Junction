@@ -41,9 +41,9 @@ public class EventHandler {
 	public void checkEvent() {
 
 	    // Tile event
-	    if (hitTile(6, 19, "any")) {
+	    /*if (hitTile(6, 19, "any")) {
 	        playerDied();
-	    }
+	    }*/
 	}
 
 	
@@ -76,6 +76,8 @@ public class EventHandler {
 	public void playerDied() {
 		gp.gameState = gp.deathState;
 		System.out.println("You Died!");
+		gp.playSoundEffect(4);
+		gp.stopMusic();
 	}
 	
 

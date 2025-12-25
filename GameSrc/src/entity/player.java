@@ -17,6 +17,8 @@ public class player extends entity {
 
     private final int screenX;
     private final int screenY;
+    int row;
+    int col;
 
     public static boolean hasKey;
     public static boolean hasBlueKey;
@@ -63,6 +65,8 @@ public class player extends entity {
     public void setDefaultValues() {
         worldX = gp.tileSize * 6;
         worldY = gp.tileSize * 16;
+        row = worldY / gp.tileSize;
+        col = worldX / gp.tileSize;
         walkSpeed = 4;
         sprintSpeed = 16;
         crouchSpeed = 2;
@@ -115,7 +119,7 @@ public class player extends entity {
         } else {
             speed = walkSpeed;
         }
-        
+
         // INTERACT KEY -> only while holding E AND player owns a torch
         if (keyH.interactPressed && hasTorch) {
             interact("torch");
@@ -137,19 +141,24 @@ public class player extends entity {
             }
         }
 
-     // MOVEMENT
+        // Always clear the interact prompt at the start of the frame;
+        // we'll show it again if we detect something to interact with.
+        gp.ui.hideInteract();
+
+        // MOVEMENT
         if (dx != 0 || dy != 0) {
 
             for (int step = 0; step < speed; step++) {
-                gp.ui.hideInteract();
 
                 // X movement
                 if (dx != 0) {
                     int collidedTile = gp.cChecker.getCollidingTile(this, dx, 0);
                     int npcIndex = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
+                    int gaurdIndex = gp.cChecker.checkEntity(this, gp.gaurds, dx, 0);
 
-                    if (collidedTile == -1 && npcIndex == 999) {
+                    if (collidedTile == -1 && npcIndex == 999 && gaurdIndex == 999) {
                         worldX += dx;
+                        col = worldX / gp.tileSize;
                     }
                     else if (npcIndex != 999) {
                         gp.ui.showInteract();
@@ -165,15 +174,21 @@ public class player extends entity {
                         }
                         break;
                     }
+                    else if (gaurdIndex != 999) {
+                        interactGaurd();
+                        break;
+                    }
                 }
 
                 // Y movement
                 if (dy != 0) {
                     int collidedTile = gp.cChecker.getCollidingTile(this, 0, dy);
                     int npcIndex = gp.cChecker.checkEntity(this, gp.npc, 0, dy);
+                    int gaurdIndex = gp.cChecker.checkEntity(this, gp.gaurds, 0, dy);
 
-                    if (collidedTile == -1 && npcIndex == 999) {
+                    if (collidedTile == -1 && npcIndex == 999 && gaurdIndex == 999) {
                         worldY += dy;
+                        row = worldY / gp.tileSize;
                     }
                     else if (npcIndex != 999) {
                         gp.ui.showInteract();
@@ -189,15 +204,18 @@ public class player extends entity {
                         }
                         break;
                     }
+                    else if (gaurdIndex != 999) {
+                        interactGaurd();
+                        break;
+                    }
                 }
             }
 
             int itemIndex = gp.cChecker.checkItem(this, true);
             pickUpItem(itemIndex);
-            
+
             // Check events
             gp.eHandler.checkEvent();
-            
 
             spriteCounter++;
             if (spriteCounter > 19 - (1.5 * speed)) {
@@ -205,13 +223,51 @@ public class player extends entity {
                 spriteCounter = 0;
             }
         } else {
-			standCounter++;
-			if (standCounter == 20) {
-				spriteNum = 1;
-				standCounter = 0;
-			}
-		}
+            // --- STATIONARY: check one tile in facing direction for NPCs / guards / exit tile ---
+            int checkX = 0;
+            int checkY = 0;
+
+            switch (direction) {
+                case "up":    checkY = -gp.tileSize; break;
+                case "down":  checkY = gp.tileSize;  break;
+                case "left":  checkX = -gp.tileSize; break;
+                case "right": checkX = gp.tileSize;  break;
+            }
+
+            int collidedTile = gp.cChecker.getCollidingTile(this, checkX, checkY);
+            int npcIndex = gp.cChecker.checkEntity(this, gp.npc, checkX, checkY);
+            int gaurdIndex = gp.cChecker.checkEntity(this, gp.gaurds, checkX, checkY);
+
+            if (npcIndex != 999) {
+                gp.ui.showInteract();
+                if (keyH.interactPressed) {
+                    interactNPC(npcIndex);
+                }
+            } else if (collidedTile == 212 || collidedTile == 211) {
+                gp.ui.showInteract();
+                if (keyH.interactPressed) {
+                    interact("exitVan");
+                }
+            } else if (gaurdIndex != 999) {
+                // Optionally show an interact prompt for guards or directly handle.
+                gp.ui.showInteract();
+                if (keyH.interactPressed) {
+                    interactGaurd();
+                }
+            }
+
+            // allow picking up items while standing (optional; mirrors movement behavior)
+            int itemIndex = gp.cChecker.checkItem(this, true);
+            pickUpItem(itemIndex);
+
+            standCounter++;
+            if (standCounter == 20) {
+                spriteNum = 1;
+                standCounter = 0;
+            }
+        }
     }
+
 
     // modular interact method - only handles "torch" here
     public void interact(String item) {
@@ -290,6 +346,10 @@ public class player extends entity {
 			gp.npc[index].speak();
 		}
 	}
+    
+    public void interactGaurd() {
+    	gp.eHandler.playerDied();
+    }
 
     public void pickUpItem(int index) {
 
@@ -371,5 +431,7 @@ public class player extends entity {
             solidArea.width,
             solidArea.height
         );
+        
+        gp.uTool.showPlayerPosition(g2, worldX, worldY, row, col);
     }
 }

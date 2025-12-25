@@ -143,7 +143,7 @@ public class CollisionChecker {
         );
 
         for (int i = 0; i < target.length; i++) {
-            if (target[i] == null || target[i].solidArea == null) continue;
+            if (target[i] == null || target[i].solidArea == null || target[i] == entity) continue;
 
             // Target entity hitbox
             Rectangle targetArea = new Rectangle(
@@ -161,50 +161,29 @@ public class CollisionChecker {
         return 999; // no collision
     }
     
-    public void checkPlayer(entity entity) {
-				// Get entity's solid area position
-				entity.solidArea.x = entity.worldX + entity.solidArea.x;
-				entity.solidArea.y = entity.worldY + entity.solidArea.y;
-				// Get item's solid area position
-				gp.player.solidArea.x = gp.player.worldX + gp.player.solidArea.x;
-				gp.player.solidArea.y = gp.player.worldY + gp.player.solidArea.y;
-				
-				switch(entity.direction) {
-					case "up":
-						entity.solidArea.y -= entity.speed;
-						if (entity.solidArea.intersects(gp.player.solidArea)) {
-							entity.collisionOn = true;
-						}
-						break;
-					case "down":
-						entity.solidArea.y += entity.speed;
-						if (entity.solidArea.intersects(gp.player.solidArea)) {
-							entity.collisionOn = true;
-							
-						}
-						break;
-					case "left":
-						entity.solidArea.x -= entity.speed;
-						if (entity.solidArea.intersects(gp.player.solidArea)) {
-							entity.collisionOn = true;
-						}
-						break;
-					case "right":
-						entity.solidArea.x += entity.speed;
-						if (entity.solidArea.intersects(gp.player.solidArea)) {
-							entity.collisionOn = true;
-							
-						}
-						break;
-				
-				}
-				
-				// Reset solid area position
-				entity.solidArea.x = entity.solidAreaDefaultX;
-				entity.solidArea.y = entity.solidAreaDefaultY;
-				gp.player.solidArea.x = gp.player.solidAreaDefaultX;
-				gp.player.solidArea.y = gp.player.solidAreaDefaultY;
-		
-	}
+    public boolean checkPlayer(entity entity, int dx, int dy) {
+
+        if (entity.solidArea == null) return false;
+
+        // Future hitbox of entity
+        Rectangle futureArea = new Rectangle(
+            entity.worldX + entity.solidArea.x + dx,
+            entity.worldY + entity.solidArea.y + dy,
+            entity.solidArea.width,
+            entity.solidArea.height
+        );
+
+        // Player hitbox
+        Rectangle playerArea = new Rectangle(
+            gp.player.worldX + gp.player.solidArea.x,
+            gp.player.worldY + gp.player.solidArea.y,
+            gp.player.solidArea.width,
+            gp.player.solidArea.height
+        );
+
+        return futureArea.intersects(playerArea);
+    }
+
+
     
 }

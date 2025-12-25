@@ -19,6 +19,7 @@ public class TileManager {
 	
 	public TileManager(gamePanel gp) {
 		this.gp = gp;
+		UtilityTool uTool = new UtilityTool(gp);
 		tile = new tile[232];
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
@@ -44,7 +45,6 @@ public class TileManager {
 	}
 	
 	public void getTileImage() {
-		UtilityTool uTool = new UtilityTool();
 		try {
             
             InputStream is = getClass().getResourceAsStream("/tiles/Tiledata.txt");
@@ -144,17 +144,6 @@ public class TileManager {
 	        	// Draw the tile
 	        	g2.drawImage(tile[tileNum].getImage(), screenX, screenY, gp.tileSize, gp.tileSize, null);
 
-	        	// --- DEBUG: draw tile number on top ---
-	        	g2.setColor(new Color(0, 0, 0, 150)); // semi-transparent background
-	        	g2.fillRect(screenX, screenY, 24, 16);
-
-	        	g2.setColor(Color.WHITE);
-	        	g2.drawString(
-	        	    String.valueOf(tileNum),
-	        	    screenX + 4,
-	        	    screenY + 12
-	        	);
-
 	        }
 
 	        worldCol++;
@@ -165,18 +154,8 @@ public class TileManager {
 	        }
 	    }
 	    
-	    // highlight tile at certain position for testing
-	    
-	    int testCol = 6;
-	    int testRow = 19;
-	    int testWorldX = testCol * gp.tileSize;
-	    int testWorldY = testRow * gp.tileSize;
-	    int testScreenX = testWorldX - gp.player.worldX + gp.player.getScreenX();
-	    int testScreenY = testWorldY - gp.player.worldY + gp.player.getScreenY();
-	    g2.setColor(new Color(255, 0, 0, 100));
-	    g2.fillRect(testScreenX, testScreenY, gp.tileSize, gp.tileSize);
-	    
 	}
+	
 	
 	public static tile[] getTileArray() {
 	    return tile;

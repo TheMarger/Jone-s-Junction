@@ -12,12 +12,15 @@ import main.gamePanel;
 public class entity {
 	
 	gamePanel gp;
-	int actionCounter = 0;
+	
+	public String name;
+	public int actionCounter = 0;
 	public int worldX, worldY;
 	public int walkSpeed=2;
 	public int sprintSpeed;
 	public int crouchSpeed;
 	public int speed = walkSpeed;
+	public int level;
 	
 	public boolean isMoving;
 	public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
@@ -58,7 +61,6 @@ public class entity {
 		setAction();
 		collisionOn = false;
 		gp.cChecker.checkItem(this, false);
-		gp.cChecker.checkPlayer(this);
 		
 		if (isMoving == false) {
 			return;
@@ -88,18 +90,33 @@ public class entity {
 	
 	            for (int step = 0; step < speed; step++) {
 	                if (dx != 0) {
-	                	int collidedTile = gp.cChecker.getCollidingTile(this, dx, 0);
-	                    if (collidedTile == -1 && !collisionOn) {
+	                    boolean hitPlayerX = gp.cChecker.checkPlayer(this, dx, 0);
+	                    int collidedTileX = gp.cChecker.getCollidingTile(this, dx, 0);
+	                    int collidedNpcX = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
+	                    int collidedGuardX = gp.cChecker.checkEntity(this, gp.gaurds, dx, 0);
+
+	                    if (hitPlayerX) {
+	                        System.out.println("Player killed by guard");
+	                        gp.eHandler.playerDied();
+	                    } else if (collidedTileX == -1 && collidedNpcX == 999 && collidedGuardX == 999) {
 	                        worldX += dx;
 	                    }
 	                }
-	
+
 	                if (dy != 0) {
-	                    int collidedTile = gp.cChecker.getCollidingTile(this, 0, dy);
-						if (collidedTile == -1 && !collisionOn) {
-							worldY += dy;
-						}
+	                    boolean hitPlayerY = gp.cChecker.checkPlayer(this, 0, dy);
+	                    int collidedTileY = gp.cChecker.getCollidingTile(this, 0, dy);
+	                    int collidedNpcY = gp.cChecker.checkEntity(this, gp.npc, 0, dy);
+	                    int collidedGuardY = gp.cChecker.checkEntity(this, gp.gaurds, 0, dy);
+
+	                    if (hitPlayerY) {
+	                        System.out.println("Player killed by guard");
+	                        gp.eHandler.playerDied();
+	                    } else if (collidedTileY == -1 && collidedNpcY == 999 && collidedGuardY == 999) {
+	                        worldY += dy;
+	                    }
 	                }
+
 	            }
 	
 	            spriteCounter++;
@@ -111,7 +128,7 @@ public class entity {
 		}	
 	}
 	 public BufferedImage setup(String imagePath) {
-	    	UtilityTool uTool = new UtilityTool();
+	    	UtilityTool uTool = new UtilityTool(gp);
 	    	BufferedImage image = null;
 	    	
 	    	try {

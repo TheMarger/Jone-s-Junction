@@ -35,12 +35,13 @@ public class gamePanel extends JPanel implements Runnable {
 	final int FPS = 60;
 	
 	public TileManager tileM = new TileManager(this);
-	keyHandler keyH = new keyHandler(this);
+	public keyHandler keyH = new keyHandler(this);
 	public CollisionChecker cChecker = new CollisionChecker(this);
 	public AssetSetter aSetter = new AssetSetter(this);
 	public player player = new player(this, keyH);
 	public Item items[] = new Item[10]; // max objects on map
 	public entity npc[] = new entity[10];
+	public entity gaurds[] = new entity[20];
 	Sound music = new Sound();
 	Sound soundEffect = new Sound();
 	public UserInterface ui = new UserInterface(this);
@@ -88,6 +89,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public void setupGame() {
 		aSetter.setItem();
 		aSetter.setNPC();
+		aSetter.setGaurds();
 		//playMusic(0);
 		unlockedSkins = new boolean[skinNames.length];
 		unlockedSkins[0] = true; // default unlocked
@@ -139,6 +141,13 @@ public class gamePanel extends JPanel implements Runnable {
 					npc[i].update();
 				}
 			}
+			// Gaurds
+			for (int i = 0; i < gaurds.length; i++) {
+				if (gaurds[i] != null) {
+					gaurds[i].update();
+				}
+			}
+			
 		}
 		if (gameState == pauseState) {
 	
@@ -156,9 +165,11 @@ public class gamePanel extends JPanel implements Runnable {
 		aSetter.setNPC();
 		aSetter.setItem();
 		tileM.resetMap();
+		aSetter.setAll();
 		if (restartFromTitle) {
 			gameState = titleState;
 		} else {
+			playMusic(0);
 			gameState = playState;
 		}
 	}
@@ -178,7 +189,7 @@ public class gamePanel extends JPanel implements Runnable {
 			// Draw items
 			for (int i = 0; i < items.length; i++) {
 				if (items[i] != null) {
-					items[i].draw(g2, this);
+					items[i].draw(g2);
 				}
 			}
 			
@@ -188,13 +199,25 @@ public class gamePanel extends JPanel implements Runnable {
 					npc[i].draw(g2);
 				}
 			}
+			// Draw Gaurds
+			for (int i = 0; i < gaurds.length; i++) {
+				if (gaurds[i] != null) {
+					gaurds[i].draw(g2);
+				}
+			}
+			
 			// Draw player
 			player.draw(g2);
 			
+			// Draw gaurds
+			for (int i = 0; i < gaurds.length; i++) {
+			    if (gaurds[i] != null) {
+			    	gaurds[i].draw(g2);
+			    }
+			}
+			
 			//UI
 			ui.draw(g2);
-			
-			uTool.draw(g2);
 			
 		}
 		g2.dispose();

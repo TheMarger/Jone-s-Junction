@@ -5,6 +5,7 @@ import main.gamePanel;
 public class Chest extends Item {
 	gamePanel gp;
 	public Chest(gamePanel gp) {
+		super(gp);
 		name = "Chest";
 		collision = true;
 		try {

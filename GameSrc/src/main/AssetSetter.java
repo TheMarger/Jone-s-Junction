@@ -1,11 +1,19 @@
 package main;
 
+import gaurd.gaurd;
+
 public class AssetSetter {
 
 	gamePanel gp;
 	
 	public AssetSetter(gamePanel gp) {
 		this.gp = gp;
+	}
+	
+	public void setAll() {
+		setItem();
+		setNPC();
+		setGaurds();
 	}
 	
 	public void setItem() {
@@ -42,5 +50,16 @@ public class AssetSetter {
 		gp.npc[1] = new entity.BillyGoat(gp);
 		gp.npc[1].worldX = gp.tileSize * 6;
 		gp.npc[1].worldY = gp.tileSize * 15;
+	}
+	
+	public void setGaurds() {
+		gp.gaurds[0] = new gaurd(gp);
+		gp.gaurds[0].worldX = gp.tileSize * 8;
+		gp.gaurds[0].worldY = gp.tileSize * 19;
+		
+		gp.gaurds[1] = new gaurd(gp);
+		gp.gaurds[1].worldX = gp.tileSize * 8;
+		gp.gaurds[1].worldY = gp.tileSize * 21;
+		
 	}
 }
