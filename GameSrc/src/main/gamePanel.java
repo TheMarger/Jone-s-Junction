@@ -62,12 +62,12 @@ public class gamePanel extends JPanel implements Runnable {
 	public int currentSkinIndex = 0;
 	public final String[] skinNames = { "Rabbit","OldTimer","Froseph","Lifer","BillyGoat","Marv" };
 	public final String[] skinPaths = {
-	    "/assets/character1.png",
-	    "/assets/character2.png",
-	    "/assets/character3.png",
-	    "/assets/character4.png",
-	    "/assets/character5.png",
-	    "/assets/character6.png"
+	    "/assets/Rabbit.png",
+	    "/assets/OldTimer.png",
+	    "/assets/Froseph.png",
+	    "/assets/Lifer.png",
+	    "/assets/BillyGoat.png",
+	    "/assets/Marv.png"
 	};
 
 	public int gameState;

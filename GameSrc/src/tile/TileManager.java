@@ -20,14 +20,14 @@ public class TileManager {
 	public TileManager(gamePanel gp) {
 		this.gp = gp;
 		UtilityTool uTool = new UtilityTool(gp);
-		tile = new tile[232];
+		tile = new tile[398];
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
 		loadMap("/maps/Level1Map.txt");
 	}
 	
 	public void resetMap () {
-		tile = new tile[232];
+		tile = new tile[398];
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
 		loadMap("/maps/Level1Map.txt");
@@ -38,7 +38,7 @@ public class TileManager {
 	        try {
 				tile[tileIndex].collision = true;
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+			
 				e.printStackTrace();
 			}
 	    }
@@ -64,7 +64,7 @@ public class TileManager {
                 if (collisionLine == null) break;
                 boolean collision = Boolean.parseBoolean(collisionLine.trim());
 
-                int index = Integer.parseInt(filename.substring(0, 3)); // "000.png" -> 0
+                int index = Integer.parseInt(filename.substring(0, 3)); 
 
                 // load image from resources (use getResourceAsStream to avoid nulls)
                 InputStream imgStream = getClass().getResourceAsStream("/tiles/" + filename);
@@ -75,7 +75,7 @@ public class TileManager {
                 BufferedImage img = ImageIO.read(imgStream);
                 int num = index;
 
-                // *** IMPORTANT: store into the tile array so draw() can use it ***
+               
                 tile[index] = new tile(num, img, collision);
             }
             reader.close();
@@ -90,7 +90,7 @@ public class TileManager {
 	        try {
 				tile[tileIndex].collision = false;
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				
 				e.printStackTrace();
 			}
 	    }
@@ -142,6 +142,10 @@ public class TileManager {
 	            worldY + gp.tileSize > gp.player.worldY - gp.player.getScreenY() &&
 	            worldY - gp.tileSize < gp.player.worldY + gp.player.getScreenY()) {
 	        	// Draw the tile
+	        	
+	        	System.out.println("Trying to draw tile: " + tileNum);
+
+	        	
 	        	g2.drawImage(tile[tileNum].getImage(), screenX, screenY, gp.tileSize, gp.tileSize, null);
 
 	        }

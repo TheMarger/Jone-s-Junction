@@ -5,7 +5,10 @@ import java.awt.Font; // font handling
 import java.awt.Graphics2D; // drawing surface type used in paint
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage; // image type for sprites/icons
+import java.io.InputStream;
 import java.text.DecimalFormat; // formatting numbers (unused currently but present)
+
+import javax.imageio.ImageIO;
 
 import entity.player; // reference to player's static flags (hasKey, etc.)
 import Item.*; // import all Item classes (Key, Torch, etc.)
@@ -20,6 +23,11 @@ public class UserInterface { // UI class that draws HUD and title screens
     BufferedImage redKeyImage; // cached image for red key icon
     BufferedImage torchImage; // cached image for torch icon
     BufferedImage blueKeyImage; // cached image for blue key icon
+    
+    //////////____________________________________________________________________________
+    BufferedImage skinPreview;//This is for skins
+    ////////////////______________________________________________________________________
+  
     public boolean messageOn = false; // whether a temporary message is visible
     public boolean interactOn = false; // whether the "[E] to interact" hint is visible
     public String interactMessage = ""; // text for the interact hint
@@ -330,16 +338,25 @@ public class UserInterface { // UI class that draws HUD and title screens
 
         // CHARACTER SCREEN (titleScreenState == 2): cycle skins and equip
         if (titleScreenState == 2) {
+        	
+ 
+        	if (skinPreview == null) { //This loads the skin once
+                SkinPrev(gp.currentSkinIndex);
+        	}
+        	
             if (uiLeft) { // previous skin
                 gp.currentSkinIndex--;
-                if (gp.currentSkinIndex < 0) gp.currentSkinIndex = gp.skinNames.length - 1; // wrap
+                if (gp.currentSkinIndex < 0) { gp.currentSkinIndex = gp.skinNames.length - 1; } // wrap
+                SkinPrev(gp.currentSkinIndex);
                 uiLeft = false;
             }
             if (uiRight) { // next skin
                 gp.currentSkinIndex++;
-                if (gp.currentSkinIndex >= gp.skinNames.length) gp.currentSkinIndex = 0;
+                if (gp.currentSkinIndex >= gp.skinNames.length) { gp.currentSkinIndex = 0;}
+                SkinPrev(gp.currentSkinIndex);
                 uiRight = false;
             }
+            
             if (uiConfirm) { // equip current skin if unlocked
                 if (gp.unlockedSkins[gp.currentSkinIndex]) {
                     gp.equippedSkinIndex = gp.currentSkinIndex;
@@ -349,11 +366,14 @@ public class UserInterface { // UI class that draws HUD and title screens
                 }
                 uiConfirm = false;
             }
+            
             if (uiBack) { // return to main title
                 titleScreenState = 0;
                 commandNum = 0;
                 uiBack = false;
+                skinPreview = null; //Resets so it can load the next time
             }
+            
             return;
         }
 
@@ -475,6 +495,18 @@ public class UserInterface { // UI class that draws HUD and title screens
             y += gp.tileSize*4;
             // helper instructions
             g2.drawString("ESCAPE to go back.", gp.tileSize/2, y);
+            
+            ///////////////// Draws & centers the skin
+            if (skinPreview != null) {
+                g2.drawImage(
+                    skinPreview,
+                    gp.screenWidth / 2 - gp.tileSize * 2,//x-axis, with centering cause I can't estimate
+                    gp.tileSize * 8,//y-axis
+                    gp.tileSize * 4,//width
+                    gp.tileSize * 4,//height
+                    null
+                ); }
+            ////////////////////
 
         } else if (titleScreenState == 3) { // KEYBINDINGS screen
             g2.setColor(Color.black);
@@ -592,4 +624,23 @@ public class UserInterface { // UI class that draws HUD and title screens
         int x = gp.screenWidth / 2 - length / 2; // center formula
         return x;
     }
+    /////////////////////////////Uses
+    public void SkinPrev(int skinIndex) {
+        try {
+            InputStream skin = getClass().getResourceAsStream(gp.skinPaths[skinIndex]); //gets the image (skin)
+
+            if (skin == null) {
+                System.out.println("The skin preview has not been found I guess: " + gp.skinPaths[skinIndex]); //security
+                skinPreview = null;
+                return;
+            }
+
+            skinPreview = ImageIO.read(skin); //load image into character menu
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
