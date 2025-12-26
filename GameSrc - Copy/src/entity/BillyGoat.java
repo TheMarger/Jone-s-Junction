@@ -1,0 +1,32 @@
+package entity;
+
+import main.gamePanel;
+
+public class BillyGoat extends entity {
+	public BillyGoat(gamePanel gp) {
+		super(gp);
+
+		this.isMoving = false;
+		this.speed = walkSpeed;
+		this.direction = "down";
+
+		getImage();
+		setDialogues();
+	}
+	public void getImage() {
+        down1 = setup("/npcs/BillyGoat");
+    }
+	
+	public void setDialogues() {
+		dialogues[0] = "44444442444444444444444\n44444444444444444444444\n4444444444444444444444444444\n444444444444444444444444444444";
+		dialogues[1] = "44444444443444444444444\n44444444444444444444444\n4444444444444444444444444444\n444444444444444444444444444444";
+		dialogues[2] = "44444443444444444444444\n44444444444444444444444\n4444444444444444444444444444\n444444444444444444444444444444";
+		dialogues[3] = "44444441444444444444444\n44444444444444444444444\n4444444444444444444444444444\n444444444444444444444444444444";
+	}
+	
+	public void speak() {
+		super.speak();
+	}
+	
+	
+}

@@ -1,0 +1,54 @@
+package Item;
+
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+
+import main.UtilityTool;
+import main.gamePanel;
+
+public class Item {
+	
+	gamePanel gp;
+	
+	public BufferedImage image;
+	public String name;
+	public UtilityTool uTool = new UtilityTool(gp);
+	public boolean collision = false;
+	public int worldX, worldY;
+	public Rectangle solidArea = new Rectangle(0, 0, 48, 48);
+	public int solidAreaDefaultX = 0;
+	public int solidAreaDefaultY = 0;
+	public int sizeX = 48;
+	public int sizeY = 48;
+	public int pickupDelay = 0;
+
+	public Item(gamePanel gp) {
+		this.gp = gp;
+	}
+	
+	public void draw(Graphics2D g2) {
+	    int screenX = worldX - gp.player.worldX + gp.player.getScreenX();
+	    int screenY = worldY - gp.player.worldY + gp.player.getScreenY();
+	    
+	    if (worldX + gp.tileSize > gp.player.worldX - gp.player.getScreenX() &&
+	        worldX - gp.tileSize < gp.player.worldX + gp.player.getScreenX() &&
+	        worldY + gp.tileSize > gp.player.worldY - gp.player.getScreenY() &&
+	        worldY - gp.tileSize < gp.player.worldY + gp.player.getScreenY()) {
+	        
+	        g2.drawImage(image, screenX, screenY, sizeX, sizeY, null);
+	    }
+	}
+	
+	public void update() {
+	    if (pickupDelay > 0) {
+	        pickupDelay--;
+	    }
+	}
+
+	public String getName() {
+		// TODO Auto-generated method stub
+		return name;
+	}
+
+}
