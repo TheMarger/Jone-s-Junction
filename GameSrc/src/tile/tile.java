@@ -16,7 +16,7 @@ public class tile {
     private int y;  // tile row
 
     public boolean collision = false; //tile solidity
-    private BufferedImage image; //tile image
+    public BufferedImage image; //tile image
     private int num; 
 
     // Constructor used by TileManager, for the looks and solidity

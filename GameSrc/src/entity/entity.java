@@ -21,6 +21,10 @@ public class entity {
 	public int crouchSpeed;
 	public int speed = walkSpeed;
 	public int level;
+	public float maxStamina;
+	public float stamina;
+	public float staminaRegen;        // stamina points regenerated per second
+	public float sprintStaminaCost;   // stamina points lost per second
 	
 	public boolean isMoving;
 	public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
@@ -85,7 +89,7 @@ public class entity {
 				dy = 0;
 				break;
 		}
-			// MOVEMENT
+		// MOVEMENT
 	        if (dx != 0 || dy != 0) {
 	
 	            for (int step = 0; step < speed; step++) {
@@ -94,7 +98,7 @@ public class entity {
 	                    int collidedTileX = gp.cChecker.getCollidingTile(this, dx, 0);
 	                    int collidedNpcX = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
 	                    int collidedGuardX = gp.cChecker.checkEntity(this, gp.gaurds, dx, 0);
-
+	
 	                    if (hitPlayerX) {
 	                        System.out.println("Player killed by guard");
 	                        gp.eHandler.playerDied();
@@ -102,13 +106,13 @@ public class entity {
 	                        worldX += dx;
 	                    }
 	                }
-
+	
 	                if (dy != 0) {
 	                    boolean hitPlayerY = gp.cChecker.checkPlayer(this, 0, dy);
 	                    int collidedTileY = gp.cChecker.getCollidingTile(this, 0, dy);
 	                    int collidedNpcY = gp.cChecker.checkEntity(this, gp.npc, 0, dy);
 	                    int collidedGuardY = gp.cChecker.checkEntity(this, gp.gaurds, 0, dy);
-
+	
 	                    if (hitPlayerY) {
 	                        System.out.println("Player killed by guard");
 	                        gp.eHandler.playerDied();
@@ -116,7 +120,7 @@ public class entity {
 	                        worldY += dy;
 	                    }
 	                }
-
+	
 	            }
 	
 	            spriteCounter++;
@@ -140,9 +144,39 @@ public class entity {
 	    	return image;
 	    }
 	
-	public void sprint() {
-		speed = sprintSpeed;
-	}
+	// Sprint/walk/crouch implementations (frame-based, assume 60 FPS)
+	 public void sprint() {
+		    if (stamina > 0f) {
+		        speed = sprintSpeed;
+		        // subtract stamina per frame
+		        stamina -= sprintStaminaCost / 60f;
+		        if (stamina <= 0f) {
+		            stamina = 0f;
+		            speed = walkSpeed; // immediately fall back to walking
+		        }
+		    } else {
+		        speed = walkSpeed;
+		    }
+		}
+
+
+	 public void walk() {
+	     speed = walkSpeed;
+	     // regenerate per frame
+	     if (stamina < maxStamina) {
+	         stamina += staminaRegen / 60f;
+	         if (stamina > maxStamina) stamina = maxStamina;
+	     }
+	 }
+
+	 public void crouch() {
+	     speed = crouchSpeed;
+	     if (stamina < maxStamina) {
+	         stamina += staminaRegen / 60f;
+	         if (stamina > maxStamina) stamina = maxStamina;
+	     }
+	 }
+
 	
 	public int getWorldX() {
 		return worldX;

@@ -30,9 +30,10 @@ public class gamePanel extends JPanel implements Runnable {
 	public final int maxWorldRow = 50;
 	public final int worldWidth = tileSize * maxWorldCol;
 	public final int worldHeight = tileSize * maxWorldRow;
+	public int currentItemIndex = 0;
 	
 	// FPS
-	final int FPS = 60;
+	public final int FPS = 60;
 	
 	public TileManager tileM = new TileManager(this);
 	public keyHandler keyH = new keyHandler(this);
@@ -53,7 +54,7 @@ public class gamePanel extends JPanel implements Runnable {
 	// keybinds: 0=forward,1=back,2=left,3=right,4=sprint,5=crouch,6=interact,7=throw,8=drop
 	public int[] keybinds = new int[] {
 	    KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D,
-	    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_ESCAPE
+	    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_ESCAPE, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3
 	};
 	
 	// basic character/skin storage used by the title character screen
@@ -147,6 +148,12 @@ public class gamePanel extends JPanel implements Runnable {
 					gaurds[i].update();
 				}
 			}
+			// Items
+			for (int i = 0; i < items.length; i++) {
+				if (items[i] != null) {
+					items[i].update();
+				}
+			}
 			
 		}
 		if (gameState == pauseState) {
@@ -165,6 +172,7 @@ public class gamePanel extends JPanel implements Runnable {
 		aSetter.setNPC();
 		aSetter.setItem();
 		tileM.resetMap();
+		player.clearInventory();
 		aSetter.setAll();
 		if (restartFromTitle) {
 			gameState = titleState;
@@ -185,6 +193,7 @@ public class gamePanel extends JPanel implements Runnable {
 		} else {
 			// Draw tiles
 			tileM.draw(g2);
+			
 			
 			// Draw items
 			for (int i = 0; i < items.length; i++) {
@@ -213,6 +222,7 @@ public class gamePanel extends JPanel implements Runnable {
 			for (int i = 0; i < gaurds.length; i++) {
 			    if (gaurds[i] != null) {
 			    	gaurds[i].draw(g2);
+			    	uTool.drawEntityHitbox(g2, gaurds[i]);
 			    }
 			}
 			
@@ -228,6 +238,15 @@ public class gamePanel extends JPanel implements Runnable {
 		music.setVolume(0.6f);
 		music.play();
 		music.loop();
+	}
+	
+	public int getEmptyItemSlot() {
+		for (int i = 0; i < items.length; i++) {
+			if (items[i] == null) {
+				return i;
+			}
+		}
+		return -1; // no empty slot
 	}
 	
 	public void stopMusic() {

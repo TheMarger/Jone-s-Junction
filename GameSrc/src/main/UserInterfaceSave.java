@@ -95,7 +95,7 @@ public class UserInterfaceSave {
 		if (player.hasRedKey) {
 			g2.drawImage(redKeyImage, gp.tileSize/2 + 80, gp.tileSize/2, gp.tileSize, gp.tileSize, null);
 		}
-		if (player.hasTorch) {
+		if (player.hasFlashlight) {
 			g2.drawImage(torchImage, gp.tileSize/2 + 160, gp.tileSize/2, gp.tileSize, gp.tileSize, null);
 		}
 		if (player.hasBlueKey) {

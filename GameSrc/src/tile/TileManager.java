@@ -149,7 +149,7 @@ public class TileManager {
 	        	g2.drawImage(tile[tileNum].getImage(), screenX, screenY, gp.tileSize, gp.tileSize, null);
 
 	        }
-
+	        
 	        worldCol++;
 
 	        if (worldCol == gp.maxWorldCol) {
@@ -159,6 +159,7 @@ public class TileManager {
 	    }
 	    
 	}
+	
 	
 	
 	public static tile[] getTileArray() {

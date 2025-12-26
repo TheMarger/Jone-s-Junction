@@ -21,7 +21,8 @@ public class Item {
 	public int solidAreaDefaultY = 0;
 	public int sizeX = 48;
 	public int sizeY = 48;
-	
+	public int pickupDelay = 0;
+
 	public Item(gamePanel gp) {
 		this.gp = gp;
 	}
@@ -36,6 +37,12 @@ public class Item {
 	        worldY - gp.tileSize < gp.player.worldY + gp.player.getScreenY()) {
 	        
 	        g2.drawImage(image, screenX, screenY, sizeX, sizeY, null);
+	    }
+	}
+	
+	public void update() {
+	    if (pickupDelay > 0) {
+	        pickupDelay--;
 	    }
 	}
 

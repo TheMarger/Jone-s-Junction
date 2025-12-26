@@ -71,4 +71,8 @@ public class UtilityTool {
 	    g2.setColor(Color.WHITE);
 	    g2.drawString(positionText, 15, 25);
 	}
+	
+	public void refreshMap() {
+		gp.tileM.loadMap("/maps/Level1Map.txt");
+	}
 }

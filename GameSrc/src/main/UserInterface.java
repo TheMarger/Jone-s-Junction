@@ -1,6 +1,6 @@
 package main; // package this class belongs to
 
-import java.awt.Color; // color constants and creation
+import java.awt.*; // color constants and creation
 import java.awt.Font; // font handling
 import java.awt.Graphics2D; // drawing surface type used in paint
 import java.awt.event.KeyEvent;
@@ -29,10 +29,14 @@ public class UserInterface { // UI class that draws HUD and title screens
     ////////////////______________________________________________________________________
   
     public boolean messageOn = false; // whether a temporary message is visible
+    public boolean boxMessageOn = false; // whether a box message is visible
     public boolean interactOn = false; // whether the "[E] to interact" hint is visible
     public String interactMessage = ""; // text for the interact hint
     public String message = ""; // text for the temporary message
+    public String boxMessage = ""; // text for the box message`
     int messageCounter = 0; // simple counter to time how long temporary message shows
+    public int slotRow = 0; // current inventory slot row (not used in this snippet)
+    public String selectedItem = "";
 
     // Title/menu state -------------------------------------------------------
     public int commandNum = 0; // current selected item index in the main title menu
@@ -85,7 +89,7 @@ public class UserInterface { // UI class that draws HUD and title screens
         blueKeyImage = blueKey.image; // store blue key image
         messageX = gp.tileSize/2;
         messageY = gp.tileSize*5;
-        messageDuration = 120; // default message duration (frames)
+        messageDuration = 80; // default message duration (frames)
         colorName = "white";
     }
 
@@ -143,6 +147,12 @@ public class UserInterface { // UI class that draws HUD and title screens
     			messageY = y;
     			this.colorName = colorName;
     }
+    
+    public void showBoxMessage(String text) {
+    			boxMessage = text; // set box message text
+    			boxMessageOn = true; // enable box message rendering
+    			messageCounter = 0; // reset timer/counter
+    }
 
     // showInteract: enable the interact hint text
     public void showInteract() {
@@ -173,6 +183,9 @@ public class UserInterface { // UI class that draws HUD and title screens
         // If the game is in play state you could draw HUD elements here (not used)
         if (gp.gameState == gp.playState) {
             // (game HUD logic could go here)
+        	drawInventory();
+        	drawStaminaBar();
+        	
         }
         // If the game is paused, draw pause screen
         if (gp.gameState == gp.pauseState) {
@@ -185,23 +198,6 @@ public class UserInterface { // UI class that draws HUD and title screens
         if (gp.gameState == gp.deathState) {
 			drawDeathScreen();
 		}
-
-        // KEYS: draw small inventory icons in the HUD area if player has them
-        if (player.hasKey) {
-            g2.drawImage(keyImage, gp.tileSize/2, gp.tileSize/2, gp.tileSize, gp.tileSize, null); // draw main key
-        }
-        if (player.hasGreenKey) {
-            g2.drawImage(greenKeyImage, gp.tileSize/2 + 40, gp.tileSize/2, gp.tileSize, gp.tileSize, null); // green key
-        }
-        if (player.hasRedKey) {
-            g2.drawImage(redKeyImage, gp.tileSize/2 + 80, gp.tileSize/2, gp.tileSize, gp.tileSize, null); // red key
-        }
-        if (player.hasTorch) {
-            g2.drawImage(torchImage, gp.tileSize/2 + 160, gp.tileSize/2, gp.tileSize, gp.tileSize, null); // torch icon
-        }
-        if (player.hasBlueKey) {
-            g2.drawImage(blueKeyImage, gp.tileSize/2 + 120, gp.tileSize/2, gp.tileSize, gp.tileSize, null); // blue key
-        }
 
         // MESSAGES: draw temporary message if set, and auto-hide it after a counter
         if (messageOn) {
@@ -219,10 +215,70 @@ public class UserInterface { // UI class that draws HUD and title screens
                 messageOn = false; // hide message
             }
         }
+        if (boxMessageOn) {
+			g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller font for box message
+			int padding = 8;
+			int textWidth = g2.getFontMetrics().stringWidth(boxMessage);
+			int textHeight = g2.getFontMetrics().getHeight();
+			int frameX = gp.tileSize / 2 - padding;
+			int frameY = gp.tileSize * 6 + 20 - textHeight + 8; // adjust baseline
+			int frameWidth = textWidth + padding * 2;
+			int frameHeight = textHeight + padding / 2;
+			// draw semi-transparent background
+			g2.setColor(new Color(0, 0, 0, 160));
+			g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+			// draw border
+			g2.setColor(Color.white);
+			g2.setStroke(new java.awt.BasicStroke(2));
+			g2.drawRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+			// draw the box message text
+			g2.setColor(Color.white);
+			g2.drawString(boxMessage, gp.tileSize / 2, gp.tileSize * 6 + 20);
+			
+			messageCounter++; // increment message timer
+			if (messageCounter > messageDuration) { // if shown for enough frames
+			    messageCounter = 0; // reset
+			    boxMessageOn = false; // hide box message
+			}
+		}
         // INTERACT hint: draw "[E] to interact" if active
         if (interactOn) {
-            g2.drawString(interactMessage, gp.tileSize/2, gp.tileSize*6 + 20);
+        	if (gp.gameState == gp.playState) {
+	            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller font for hint
+	
+	            // calculate text width and height for the frame
+	            int padding = 8;
+	            int textWidth = g2.getFontMetrics().stringWidth(interactMessage);
+	            int textHeight = g2.getFontMetrics().getHeight();
+	
+	            int frameX = gp.tileSize / 2 - padding;
+	            int frameY = gp.tileSize * 6 + 20 - textHeight + 8; // adjust baseline
+	            int frameWidth = textWidth + padding * 2;
+	            int frameHeight = textHeight + padding / 2;
+	
+	            // draw semi-transparent background
+	            g2.setColor(new Color(0, 0, 0, 160));
+	            g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+	
+	            // draw border
+	            g2.setColor(Color.white);
+	            g2.setStroke(new java.awt.BasicStroke(2));
+	            g2.drawRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+	
+	            // draw the interact text
+	            g2.setColor(Color.white);
+	            g2.drawString(interactMessage, gp.tileSize / 2, gp.tileSize * 6 + 20);
+        
+        	}	
         }
+        
+        if (!selectedItem.equals("") && gp.gameState == gp.playState) {
+        	if (selectedItem.equals("Flashlight")) {
+        	    String[] options = { "[E] Use", "[Q] Drop" };
+        	    drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+        	}
+        }
+
     }
 
     // This method contains all UI logic and consumes UI flags from keyHandler.
@@ -406,7 +462,70 @@ public class UserInterface { // UI class that draws HUD and title screens
             return;
         }
     }
+    
+    public void drawInventory() {
 
+        // ===== CONFIG =====
+        final int slotSize = gp.tileSize; // 48x48
+        final int slots = 3;
+        final int padding = 12;
+        final int slotGap = 8;
+
+        // ===== FRAME SIZE =====
+        int frameWidth = padding * 2 + (slotSize * slots) + (slotGap * (slots - 1));
+
+        int frameHeight = padding * 2 + slotSize;
+
+        // ===== FRAME POSITION (TOP RIGHT) =====
+        int frameX = gp.screenWidth - frameWidth - gp.tileSize / 2;
+        int frameY = gp.tileSize / 2;
+
+        // ===== DRAW FRAME =====
+        g2.setColor(new Color(0, 0, 0, 200));
+        g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 25, 25);
+
+        g2.setColor(Color.white);
+        g2.drawRoundRect(frameX, frameY, frameWidth, frameHeight, 25, 25);
+
+        // ===== SLOT START POSITION =====
+        int slotXstart = frameX + padding;
+        int slotYstart = frameY + padding;
+
+        // ===== DRAW SLOTS =====
+        for (int i = 0; i < slots; i++) {
+            int slotX = slotXstart + i * (slotSize + slotGap);
+            int slotY = slotYstart;
+
+            g2.setColor(new Color(60, 60, 60, 200));
+            g2.fillRoundRect(slotX, slotY, slotSize, slotSize, 10, 10);
+
+            g2.setColor(Color.white);
+            g2.drawRoundRect(slotX, slotY, slotSize, slotSize, 10, 10);
+        }
+        
+        // draw items in slots
+        for (int i = 0; i < gp.player.inventory.size() && i < slots; i++) {
+			Item item = gp.player.inventory.get(i);
+			int slotX = slotXstart + i * (slotSize + slotGap);
+			int slotY = slotYstart;
+
+			g2.drawImage(item.image, slotX + 8, slotY + 8, slotSize - 16, slotSize - 16, null);
+		}
+
+        // draw cursor 
+        if (slotRow > -1) {
+	        int cursorX = slotXstart + slotRow * (slotSize + slotGap);
+	        int cursorY = slotYstart;
+	        g2.setColor(Color.yellow);
+	        g2.drawRoundRect(cursorX - 4, cursorY - 4, slotSize + 8, slotSize + 8, 12, 12);
+	        if (gp.player.inventory.size() > slotRow) {
+	        	selectedItem = gp.player.inventory.get(slotRow).getName();
+	        }
+        } else {
+			selectedItem = "";
+		}
+    }
+    
     // drawTitleScreen and other drawing methods (these render the visual UI)
     public void drawTitleScreen() {
         if (titleScreenState == 0) {
@@ -573,18 +692,65 @@ public class UserInterface { // UI class that draws HUD and title screens
 		g2.setColor(Color.white); // white color for prompt
 		g2.drawString(prompt, x, y); // draw prompt
 		
-		
-		
     }
+    
+    public void drawStaminaBar() {
+        int x =  gp.screenWidth - gp.tileSize * 3 - 40;
+        int y =  gp.tileSize + gp.tileSize + 15;
+        int width =  gp.tileSize * 3;
+        int height = 10;
 
+        // background
+        g2.setColor(new Color(0,0,0,160));
+        g2.fillRoundRect(x-4, y-4, width+8, height+8, 8, 8);
+
+        // border
+        g2.setColor(Color.white);
+        g2.drawRoundRect(x-4, y-4, width+8, height+8, 8, 8);
+
+        // fill
+        float ratio = 0f;
+        if (gp != null && gp.player != null && gp.player.maxStamina > 0f) {
+            ratio = gp.player.stamina / gp.player.maxStamina;
+            if (ratio < 0f) ratio = 0f;
+            if (ratio > 1f) ratio = 1f;
+        }
+        int innerWidth = (int) (width * ratio);
+
+        // color: green -> yellow -> red by ratio
+        if (ratio > 0.6f) {
+            g2.setColor(new Color(80,200,120));
+        } else if (ratio > 0.25f) {
+            g2.setColor(new Color(240,200,80));
+        } else {
+            g2.setColor(new Color(220,80,80));
+        }
+
+        g2.fillRoundRect(x, y, innerWidth, height, 6, 6);
+    }
+    
+
+    
     // Draw the large "PAUSED" screen in the center
     public void drawPauseScreen() {
-        String text = "PAUSED";
-        int x = getXforCenteredText(text); // center X
-        int y = gp.screenHeight / 2; // center Y
+        // draw frame
+    	g2.setColor(new Color(0, 0, 0, 150)); // semi-transparent black
+		g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight); // fill entire screen
 
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 80F)); // big font
-        g2.drawString(text, x, y); // draw paused text
+		String text = "PAUSED"; // paused text
+		g2.setFont(g2.getFont().deriveFont(Font.BOLD, 80F)); // large bold font
+		int x = getXforCenteredText(text); // center text
+		int y = gp.screenHeight / 2; // vertical center
+		g2.setColor(Color.white); // white color
+		g2.drawString(text, x, y); // draw paused text
+		
+		// Draw "ESCAPE to Resume" prompt below
+		String prompt = "ESCAPE to Resume";
+		g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F)); // smaller font for prompt
+		x = getXforCenteredText(prompt);
+		y += gp.tileSize * 1;
+		g2.drawString(prompt, x, y); // draw prompt
+    	
     }
 
     // Draw a dialogue window with multi-line text
@@ -617,6 +783,43 @@ public class UserInterface { // UI class that draws HUD and title screens
         g2.setStroke(new java.awt.BasicStroke(5)); // thicker stroke for border
         g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 25, 25); // draw border inside
     }
+    
+ // Draw a rounded black translucent panel with white border and multiple lines of text
+    public void drawSubWindow(int x, int y, String[] lines, int fontSize) {
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, fontSize));
+        FontMetrics fm = g2.getFontMetrics();
+
+        int padding = 10;
+
+        // Calculate width and height based on text
+        int textWidth = 0;
+        for (String line : lines) {
+            textWidth = Math.max(textWidth, fm.stringWidth(line));
+        }
+        int textHeight = fm.getHeight() * lines.length;
+
+        int boxWidth = textWidth + padding * 2;
+        int boxHeight = textHeight + padding * 2;
+
+        // Draw background
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRoundRect(x, y, boxWidth, boxHeight, 10, 10);
+
+        // Draw border
+        g2.setColor(Color.white);
+        g2.setStroke(new java.awt.BasicStroke(2));
+        g2.drawRoundRect(x, y, boxWidth, boxHeight, 10, 10);
+
+        // Draw text
+        g2.setColor(Color.white);
+        int textX = x + padding;
+        int textY = y + padding + fm.getAscent();
+        for (String line : lines) {
+            g2.drawString(line, textX, textY);
+            textY += fm.getHeight();
+        }
+    }
+
 
     // getXforCenteredText: compute X so given text is horizontally centered on screen
     public int getXforCenteredText(String text) {

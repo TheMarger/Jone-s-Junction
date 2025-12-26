@@ -6,7 +6,7 @@ public class Flashlight extends Item {
 	gamePanel gp;
 	public Flashlight(gamePanel gp) {
 		super(gp);
-		name = "Torch";
+		name = "Flashlight";
 		sizeX = 24;
 		sizeY = 24;
 		try {
