@@ -13,7 +13,7 @@ public class gaurd extends entity {
 		sprintSpeed = 4;
 		direction = "down";
 		
-		solidArea.x = 8;
+		solidArea.x = 14;
 		solidArea.y = 16;
 		solidArea.width = 32;
 		solidArea.height = 32;

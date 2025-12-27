@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 
 import entity.entity;
 import entity.player;
+import task.Task;
 import tile.TileManager;
 
 import javax.swing.JPanel;
@@ -19,7 +20,7 @@ public class gamePanel extends JPanel implements Runnable {
 
 	// Screen settings
 	public final int originalTileSize = 16; // 16x16 tile
-	public final int scale = 3; // scale tiles by 3 
+	public final int scale = 4; // scale tiles by 3 
 	public final int tileSize = originalTileSize * scale; // 48x48 tile
 	public final int maxScreenCol = 16;
 	public final int maxScreenRow = 12;
@@ -31,45 +32,84 @@ public class gamePanel extends JPanel implements Runnable {
 	public final int worldWidth = tileSize * maxWorldCol;
 	public final int worldHeight = tileSize * maxWorldRow;
 	public int currentItemIndex = 0;
+	public int equippedSkinIndex = 0; // default
+	public String equippedSkin; // optional, just for readability
+
 	
 	// FPS
 	public final int FPS = 60;
 	
+	public String tasks[] = {
+			"Math Task",
+			"Cooking Task",
+			"Riddle Task",
+			"Shopping Task",
+			"Exercise Task"
+		};
+				
+		
+		// keybinds: 0=forward,1=back,2=left,3=right,4=sprint,5=crouch,6=interact,7=throw,8=drop
+		public int[] keybinds = new int[] {
+		    KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D,
+		    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_ESCAPE, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3
+		};
+		
+		public final String[][][] skins = {
+		    {   // Rabbit
+		    	{"Rabbit"},
+		    	{"unlocked"},
+		        {"/assets/Rabbit.png", "/Rabbit/boy_up_1.png", "/Rabbit/boy_up_2.png", "/Rabbit/boy_down_1.png", "/Rabbit/boy_down_2.png", "/Rabbit/boy_right_1.png", "/Rabbit/boy_right_2.png", "/Rabbit/boy_left_1.png", "/Rabbit/boy_left_2.png"}
+		    },
+		    
+		    {
+		    	//Boy
+		    	{"Boy"},
+		    	{"unlocked"},
+		        {"/player/boy_up_1.png", "/player/boy_up_1.png", "/player/boy_up_2.png", "/player/boy_down_1.png", "/player/boy_down_2.png", "/player/boy_right_1.png", "/player/boy_right_2.png", "/player/boy_left_1.png", "/player/boy_left_2.png"}
+		    },
+		    
+		    {  
+		    	// Old Timer
+		    	{"Old Timer"},
+		    	{"locked"},
+		        {"/assets/OldTimer.png"},
+		    },
+		    {   // Froseph
+		    	{"Froseph"},
+		    	{"locked"},
+		        {"/assets/Froseph.png"},
+		    },
+		    {   // Lifer
+		    	{"Lifer"},
+		    	{"locked"},
+		        {"/assets/Lifer.png"},
+		    },
+		    {   // BillyGoat
+		    	{"Billy Goat"},
+		    	{"locked"},
+		        {"/assets/BillyGoat.png"},
+		    },
+		    {   // Marv
+		    	{"Marv"},
+		    	{"locked"},
+		        {"/assets/Marv.png"},
+		    }
+		};
+		
+	public UtilityTool uTool = new UtilityTool(this);
 	public TileManager tileM = new TileManager(this);
 	public keyHandler keyH = new keyHandler(this);
 	public CollisionChecker cChecker = new CollisionChecker(this);
 	public AssetSetter aSetter = new AssetSetter(this);
 	public player player = new player(this, keyH);
-	public Item items[] = new Item[10]; // max objects on map
+	public Item items[] = new Item[20]; // max objects on map
 	public entity npc[] = new entity[10];
 	public entity gaurds[] = new entity[20];
 	Sound music = new Sound();
 	Sound soundEffect = new Sound();
 	public UserInterface ui = new UserInterface(this);
 	public EventHandler eHandler = new EventHandler(this);
-	public UtilityTool uTool = new UtilityTool(this);
 	Thread gameThread;
-
-
-	// keybinds: 0=forward,1=back,2=left,3=right,4=sprint,5=crouch,6=interact,7=throw,8=drop
-	public int[] keybinds = new int[] {
-	    KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D,
-	    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_ESCAPE, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3
-	};
-	
-	// basic character/skin storage used by the title character screen
-	public boolean[] unlockedSkins;
-	public int equippedSkinIndex = 0;
-	public int currentSkinIndex = 0;
-	public final String[] skinNames = { "Rabbit","OldTimer","Froseph","Lifer","BillyGoat","Marv" };
-	public final String[] skinPaths = {
-	    "/assets/Rabbit.png",
-	    "/assets/OldTimer.png",
-	    "/assets/Froseph.png",
-	    "/assets/Lifer.png",
-	    "/assets/BillyGoat.png",
-	    "/assets/Marv.png"
-	};
 
 	public int gameState;
 	public final int titleState = 0;
@@ -91,9 +131,17 @@ public class gamePanel extends JPanel implements Runnable {
 		aSetter.setItem();
 		aSetter.setNPC();
 		aSetter.setGaurds();
-		//playMusic(0);
-		unlockedSkins = new boolean[skinNames.length];
-		unlockedSkins[0] = true; // default unlocked
+		
+		if (player.level == 1) {
+			tileM.loadMap("/maps/Level1Map.txt");
+		} else if (player.level == 2) {
+			tileM.loadMap("/maps/Level2Map.txt");
+		} else if (player.level == 3) {
+			tileM.loadMap("/maps/Level3Map.txt");
+		} else if (player.level == 4) {
+			tileM.loadMap("/maps/Level4Map.txt");
+		} 
+	
 		gameState = titleState; 
 	}
 	
@@ -168,18 +216,28 @@ public class gamePanel extends JPanel implements Runnable {
 	}
 	
 	public void resetGame(boolean restartFromTitle) {
-		player.setDefaultValues();
-		aSetter.setNPC();
-		aSetter.setItem();
-		tileM.resetMap();
-		player.clearInventory();
-		aSetter.setAll();
-		if (restartFromTitle) {
-			gameState = titleState;
-		} else {
-			playMusic(0);
-			gameState = playState;
-		}
+
+	    // --- CLEAR ALL WORLD STATE ---
+		for (int i = 0; i < items.length; i++) {
+	        items[i] = null;
+	    }        // removes dropped items
+	    player.clearInventory();     // clear inventory
+	    player.setDefaultValues();   // reset flags (keys, flashlight, etc.)
+
+	    tileM.resetMap();
+
+	    // --- RESPAWN CONTENT ---
+	    aSetter.setNPC();
+	    aSetter.setItem();
+	    aSetter.setGaurds();
+	    player.setDefaultValues();
+
+	    if (restartFromTitle) {
+	        gameState = titleState;
+	    } else {
+	        playMusic(0);
+	        gameState = playState;
+	    }
 	}
 	
 	public void paintComponent(Graphics g) {

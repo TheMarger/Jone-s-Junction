@@ -11,6 +11,7 @@ import java.text.DecimalFormat; // formatting numbers (unused currently but pres
 import javax.imageio.ImageIO;
 
 import entity.player; // reference to player's static flags (hasKey, etc.)
+import task.Task;
 import Item.*; // import all Item classes (Key, Torch, etc.)
 
 public class UserInterface { // UI class that draws HUD and title screens
@@ -185,6 +186,7 @@ public class UserInterface { // UI class that draws HUD and title screens
             // (game HUD logic could go here)
         	drawInventory();
         	drawStaminaBar();
+        	drawTasksList();
         	
         }
         // If the game is paused, draw pause screen
@@ -241,7 +243,7 @@ public class UserInterface { // UI class that draws HUD and title screens
 			    boxMessageOn = false; // hide box message
 			}
 		}
-        // INTERACT hint: draw "[E] to interact" if active
+        // INTERACT 
         if (interactOn) {
         	if (gp.gameState == gp.playState) {
 	            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller font for hint
@@ -343,7 +345,7 @@ public class UserInterface { // UI class that draws HUD and title screens
                     case 2: // CHARACTERS: show character selection sub-screen
                         titleScreenState = 2;
                         commandNum = 0;
-                        gp.currentSkinIndex = gp.equippedSkinIndex; // start on equipped skin
+                        gp.player.currentSkinIndex = gp.player.equippedSkinIndex; // start on equipped skin
                         break;
                     case 3: // KEYBINDINGS: show keybinds sub-screen
                         titleScreenState = 3;
@@ -397,31 +399,34 @@ public class UserInterface { // UI class that draws HUD and title screens
         	
  
         	if (skinPreview == null) { //This loads the skin once
-                SkinPrev(gp.currentSkinIndex);
+                SkinPrev(gp.player.currentSkinIndex);
         	}
         	
-            if (uiLeft) { // previous skin
-                gp.currentSkinIndex--;
-                if (gp.currentSkinIndex < 0) { gp.currentSkinIndex = gp.skinNames.length - 1; } // wrap
-                SkinPrev(gp.currentSkinIndex);
-                uiLeft = false;
-            }
-            if (uiRight) { // next skin
-                gp.currentSkinIndex++;
-                if (gp.currentSkinIndex >= gp.skinNames.length) { gp.currentSkinIndex = 0;}
-                SkinPrev(gp.currentSkinIndex);
-                uiRight = false;
-            }
-            
-            if (uiConfirm) { // equip current skin if unlocked
-                if (gp.unlockedSkins[gp.currentSkinIndex]) {
-                    gp.equippedSkinIndex = gp.currentSkinIndex;
-                    showMessage("Equipped " + gp.skinNames[gp.currentSkinIndex]); // feedback
-                } else {
-                    showMessage("Skin is locked");
-                }
-                uiConfirm = false;
-            }
+        	if (uiLeft) {
+        	    gp.player.currentSkinIndex--;
+        	    if (gp.player.currentSkinIndex < 0) gp.player.currentSkinIndex = gp.skins.length - 1;
+        	    SkinPrev(gp.player.currentSkinIndex);
+        	    uiLeft = false;
+        	}
+        	if (uiRight) {
+        	    gp.player.currentSkinIndex++;
+        	    if (gp.player.currentSkinIndex >= gp.skins.length) gp.player.currentSkinIndex = 0;
+        	    SkinPrev(gp.player.currentSkinIndex);
+        	    uiRight = false;
+        	}
+
+        	if (uiConfirm) {
+        	    if (gp.player.unlockedSkins[gp.player.currentSkinIndex]) {
+        	        gp.player.equipSkin(gp.player.currentSkinIndex); // centralised equip logic
+        	        String skinName = gp.skins[gp.player.currentSkinIndex][0][0];
+        	        showMessage("Equipped " + skinName);
+        	    } else {
+        	        showMessage("Skin is locked");
+        	    }
+        	    uiConfirm = false;
+        	}
+
+
             
             if (uiBack) { // return to main title
                 titleScreenState = 0;
@@ -589,45 +594,58 @@ public class UserInterface { // UI class that draws HUD and title screens
             g2.setColor(Color.black);
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
+            // --- Title ---
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
             String title = "CHARACTERS";
             int x = getXforCenteredText(title);
             int y = gp.tileSize * 2;
             g2.setColor(Color.white);
             g2.drawString(title, x, y);
-
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 36F));
-            String skinName = gp.skinNames[gp.currentSkinIndex]; // name of currently previewed skin
-            y += gp.tileSize*4;
-            x = getXforCenteredText(skinName);
-            g2.drawString("<", 234, y); // left arrow hint (visual only)
-            g2.drawString(">", 522, y); // right arrow hint
-            g2.drawString(skinName, x, y); // draw skin name
-
-            y += gp.tileSize+(gp.tileSize/1.5);
-            // compute status: Equipped / Unlocked / Locked
-            String status = gp.unlockedSkins[gp.currentSkinIndex] ?
-                    (gp.equippedSkinIndex == gp.currentSkinIndex ? "Equipped" : "Unlocked") : "Locked";
-            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F)); // smaller font for status
-            g2.drawString(status, 345, y);
-
-            y += gp.tileSize*4;
-            // helper instructions
-            g2.drawString("ESCAPE to go back.", gp.tileSize/2, y);
             
-            ///////////////// Draws & centers the skin
-            if (skinPreview != null) {
-                g2.drawImage(
-                    skinPreview,
-                    gp.screenWidth / 2 - gp.tileSize * 2,//x-axis, with centering cause I can't estimate
-                    gp.tileSize * 8,//y-axis
-                    gp.tileSize * 4,//width
-                    gp.tileSize * 4,//height
-                    null
-                ); }
-            ////////////////////
+            String status;
+            if (!gp.player.unlockedSkins[gp.player.currentSkinIndex]) {
+                status = "Locked";
+            } else if (gp.player.equippedSkinIndex == gp.player.currentSkinIndex) {
+                status = "Equipped";
+            } else {
+                status = "Unlocked";
+            }
 
-        } else if (titleScreenState == 3) { // KEYBINDINGS screen
+
+
+            // --- Status (above image) ---
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F));
+            int statusX = getXforCenteredText(status);
+            int statusY = gp.tileSize * 4; // vertical position above image
+            g2.drawString(status, statusX, statusY);
+
+            // --- Skin Preview Image ---
+            if (skinPreview != null) {
+                int imgWidth = gp.tileSize * 4;
+                int imgHeight = gp.tileSize * 4;
+                int imgX = gp.screenWidth / 2 - imgWidth / 2;
+                int imgY = statusY + gp.tileSize; // place image below status
+                g2.drawImage(skinPreview, imgX, imgY, imgWidth, imgHeight, null);
+
+                // --- Arrows (fixed beside image) ---
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
+                g2.drawString("<", imgX - gp.tileSize, imgY + imgHeight / 2 + 16); // left
+                g2.drawString(">", imgX + imgWidth + 10, imgY + imgHeight / 2 + 16); // right
+
+                // --- Skin Name (below image) ---
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, 36F));
+                String skinName = gp.skins[gp.player.currentSkinIndex][0][0];
+                int nameX = getXforCenteredText(skinName);
+                int nameY = imgY + imgHeight + gp.tileSize / 2;
+                g2.drawString(skinName, nameX, nameY);
+            }
+
+            // --- Instructions ---
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F));
+            g2.drawString("ESCAPE to go back.", gp.tileSize / 2, gp.screenHeight - gp.tileSize);
+        }
+
+        else if (titleScreenState == 3) { // KEYBINDINGS screen
             g2.setColor(Color.black);
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
@@ -729,6 +747,130 @@ public class UserInterface { // UI class that draws HUD and title screens
         g2.fillRoundRect(x, y, innerWidth, height, 6, 6);
     }
     
+    public void drawTasksList() {
+        if (gp == null || gp.player == null) return;
+        java.util.List<Task> list = gp.player.tasksList;
+        if (list == null || list.isEmpty()) return;
+
+        int panelX = gp.tileSize / 2;
+        int panelY = gp.tileSize / 2;
+        int padding = 10;          // inside padding
+        int gap = 12;              // space between tasks
+        int headerGap = 22;        // extra space after "Tasks"
+        int bulletSize = 12;
+        int titleGap = 16;         // space between bullet and title
+        int maxPanelWidth = Math.min(gp.screenWidth / 2, gp.tileSize * 5); // bigger box
+
+        // Fonts
+        Font headerFont = g2.getFont().deriveFont(Font.BOLD, 18f);
+        Font titleFont  = g2.getFont().deriveFont(Font.BOLD, 14f);
+        Font descFont   = g2.getFont().deriveFont(Font.PLAIN, 12f);
+
+        // compute inner width used for wrapping (reserve space for bullet+title offset)
+        int innerWidth = maxPanelWidth - padding * 2;
+
+        // Prepare wrapped desc for each task and compute panel height
+        java.util.List<java.util.List<String>> wrapped = new java.util.ArrayList<>();
+        int panelHeight = padding; // start with top padding
+
+        g2.setFont(headerFont);
+        FontMetrics fmHeader = g2.getFontMetrics();
+        panelHeight += fmHeader.getHeight() + headerGap; // header height + gap
+
+        for (Task t : list) {
+            String title = t.getName();
+            g2.setFont(titleFont);
+            FontMetrics fmTitle = g2.getFontMetrics();
+
+            g2.setFont(descFont);
+            FontMetrics fmDesc = g2.getFontMetrics();
+
+            // give available width for description lines (title area uses some width but desc can start under title)
+            int descMaxWidth = innerWidth - (bulletSize + titleGap);
+            if (descMaxWidth < 40) descMaxWidth = innerWidth; // fallback
+
+            java.util.List<String> lines = wrapText(t.getDescription(), fmDesc, descMaxWidth);
+            wrapped.add(lines);
+
+            panelHeight += fmTitle.getHeight();            // title
+            panelHeight += lines.size() * fmDesc.getHeight(); // desc lines
+            panelHeight += gap;                            // gap after each task
+        }
+
+        panelHeight += padding; // bottom padding
+
+        // DRAW PANEL
+        int panelWidth = maxPanelWidth;
+        g2.setColor(new Color(0, 0, 0, 200));
+        g2.fillRoundRect(panelX, panelY, panelWidth, panelHeight, 12, 12);
+        g2.setColor(Color.white);
+        g2.setStroke(new java.awt.BasicStroke(2));
+        g2.drawRoundRect(panelX, panelY, panelWidth, panelHeight, 12, 12);
+
+        // DRAW HEADER
+        int cursorX = panelX + padding;
+        int cursorY = panelY + padding;
+        g2.setFont(headerFont);
+        g2.setColor(Color.white);
+        cursorY += g2.getFontMetrics().getAscent();
+        g2.drawString("Tasks", cursorX, cursorY);
+
+        // move down for tasks
+        cursorY += headerGap;
+
+        // DRAW TASKS
+        g2.setFont(titleFont);
+        for (int i = 0; i < list.size(); i++) {
+            Task t = list.get(i);
+            boolean complete = t.isCompleted();
+            java.util.List<String> lines = wrapped.get(i);
+
+            // bullet
+            int bulletX = cursorX;
+            int bulletY = cursorY - g2.getFontMetrics(titleFont).getAscent()/2;
+            g2.setColor(complete ? Color.green : Color.darkGray);
+            g2.fillOval(bulletX, bulletY, bulletSize, bulletSize);
+
+            // title
+            int titleX = bulletX + bulletSize + titleGap;
+            g2.setFont(titleFont);
+            g2.setColor(complete ? Color.green : Color.white);
+            g2.drawString(t.getName(), titleX, cursorY);
+
+            // description lines (start under title)
+            g2.setFont(descFont);
+            g2.setColor(new Color(200,200,200));
+            int descY = cursorY + g2.getFontMetrics(descFont).getAscent() + 4;
+            for (String line : lines) {
+                g2.drawString(line, titleX, descY);
+                descY += g2.getFontMetrics(descFont).getHeight();
+            }
+
+            // advance cursor for next task
+            cursorY = descY + gap;
+            g2.setFont(titleFont);
+        }
+    }
+
+    // very small wrap function that fits text into maxWidth using FontMetrics
+    private java.util.List<String> wrapText(String text, FontMetrics fm, int maxWidth) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (text == null || text.isEmpty()) return out;
+        String[] words = text.split("\\s+");
+        StringBuilder line = new StringBuilder();
+        for (String w : words) {
+            String candidate = (line.length() == 0) ? w : line + " " + w;
+            if (fm.stringWidth(candidate) <= maxWidth) {
+                if (line.length() == 0) line.append(w); else line.append(" ").append(w);
+            } else {
+                if (line.length() > 0) { out.add(line.toString()); line.setLength(0); }
+                if (fm.stringWidth(w) > maxWidth) out.add(w); else line.append(w);
+            }
+        }
+        if (line.length() > 0) out.add(line.toString());
+        return out;
+    }
+
 
     
     // Draw the large "PAUSED" screen in the center
@@ -830,20 +972,22 @@ public class UserInterface { // UI class that draws HUD and title screens
     /////////////////////////////Uses
     public void SkinPrev(int skinIndex) {
         try {
-            InputStream skin = getClass().getResourceAsStream(gp.skinPaths[skinIndex]); //gets the image (skin)
+            // Use the main image path from the skin array: skins[skinIndex][2][0]
+            String imagePath = gp.skins[skinIndex][2][0]; 
+            InputStream skin = getClass().getResourceAsStream(imagePath);
 
             if (skin == null) {
-                System.out.println("The skin preview has not been found I guess: " + gp.skinPaths[skinIndex]); //security
+                System.out.println("Skin preview not found: " + imagePath);
                 skinPreview = null;
                 return;
             }
 
-            skinPreview = ImageIO.read(skin); //load image into character menu
-
+            skinPreview = ImageIO.read(skin);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
 
 }

@@ -85,23 +85,6 @@ public class UserInterfaceSave {
 			drawDialogueScreen();
 		}
 		
-		//KEYS
-		if (player.hasKey) {
-			g2.drawImage(keyImage, gp.tileSize/2, gp.tileSize/2, gp.tileSize, gp.tileSize, null);
-		}
-		if (player.hasGreenKey) {
-			g2.drawImage(greenKeyImage, gp.tileSize/2 + 40, gp.tileSize/2, gp.tileSize, gp.tileSize, null);
-		}
-		if (player.hasRedKey) {
-			g2.drawImage(redKeyImage, gp.tileSize/2 + 80, gp.tileSize/2, gp.tileSize, gp.tileSize, null);
-		}
-		if (player.hasFlashlight) {
-			g2.drawImage(torchImage, gp.tileSize/2 + 160, gp.tileSize/2, gp.tileSize, gp.tileSize, null);
-		}
-		if (player.hasBlueKey) {
-			g2.drawImage(blueKeyImage, gp.tileSize/2 + 120, gp.tileSize/2, gp.tileSize, gp.tileSize, null);
-		}
-		
 		//MESSAGES
 		if (messageOn == true) {
 			g2.drawString(message, gp.tileSize/2, gp.tileSize*5 + 20);

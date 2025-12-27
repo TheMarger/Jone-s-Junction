@@ -23,7 +23,6 @@ public class TileManager {
 		tile = new tile[398];
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
-		loadMap("/maps/Level1Map.txt");
 	}
 	
 	public void resetMap () {
@@ -142,9 +141,6 @@ public class TileManager {
 	            worldY + gp.tileSize > gp.player.worldY - gp.player.getScreenY() &&
 	            worldY - gp.tileSize < gp.player.worldY + gp.player.getScreenY()) {
 	        	// Draw the tile
-	        	
-	        	System.out.println("Trying to draw tile: " + tileNum);
-
 	        	
 	        	g2.drawImage(tile[tileNum].getImage(), screenX, screenY, gp.tileSize, gp.tileSize, null);
 

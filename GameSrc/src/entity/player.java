@@ -3,6 +3,7 @@ package entity;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -11,6 +12,7 @@ import Item.*;
 import main.UtilityTool;
 import main.gamePanel;
 import main.keyHandler;
+import task.*;
 import tile.TileManager;
 
 public class player extends entity {
@@ -23,12 +25,20 @@ public class player extends entity {
     int col;
 
     public ArrayList<Item> inventory = new ArrayList<>();
+	public ArrayList<Task> tasksList = new ArrayList<>(); 
     public final int INVENTORY_SIZE = 3;
+    public String equppedSkin;
+ // basic character/skin storage used by the title character screen
+    public boolean[] unlockedSkins;
+    public int equippedSkinIndex = 0;
+    public int currentSkinIndex = 0;
+    public String equippedSkin;
 
-    public static boolean hasKey;
-    public static boolean hasBlueKey;
-    public static boolean hasRedKey;
-    public static boolean hasGreenKey;
+ 	
+    public boolean hasKey;
+    public boolean hasBlueKey;
+    public boolean hasRedKey;
+    public boolean hasGreenKey;
     int standCounter = 0;
     // torch ownership + last lit tile position
     public static boolean hasFlashlight = false;          // set true when player picks up a Torch item
@@ -54,32 +64,93 @@ public class player extends entity {
         screenY = gp.screenHeight / 2 - (gp.tileSize / 2);
 
         solidArea = new Rectangle();
-        solidArea.x = 14;
-        solidArea.y = 18;
+        solidArea.x = gp.tileSize / 3;
+        solidArea.y = gp.tileSize / 3;
         solidAreaDefaultX = solidArea.x;
         solidAreaDefaultY = solidArea.y;
-        solidArea.width = 18;
-        solidArea.height = 18;
+        solidArea.width = 22;
+        solidArea.height = 22;
         maxStamina = 100f;
         stamina = maxStamina;
         staminaRegen = 5f;       // e.g. 5 stamina per second
         sprintStaminaCost = 20f; // 10 stamina per second while sprinting
+        equippedSkinIndex = gp.equippedSkinIndex;
+        equippedSkin = gp.equippedSkin;
+
         
         isAlive = true;
 
         setDefaultValues();
         getPlayerImage();
         setItems();
+        setTasks();
     }
     
     public void setItems() {
     	//inventory.add(new Flashlight(gp));
     }
     
+    public void setTasks() {
+
+        tasksList.clear();
+
+        int tasksToAdd = 2;
+
+        if (level == 1) tasksToAdd = 2;
+        else if (level == 2) tasksToAdd = 4;
+        else if (level == 3) tasksToAdd = 6;
+        else if (level >= 4) tasksToAdd = 8;
+
+        java.util.Random random = new java.util.Random();
+
+        for (int i = 0; i < tasksToAdd; i++) {
+
+            int choice = random.nextInt(3); // number of task types
+
+            Task task = null;
+
+            if (choice == 0) {
+                task = new MathTask("Complete the math challenge.");
+            }
+            else if (choice == 1) {
+                task = new Task("Solve the riddle.");
+            }
+            else if (choice == 2) {
+                task = new CookingTask("Finish the cooking task.");
+            }
+
+            if (task != null) {
+                tasksList.add(task);
+            }
+        }
+    }
+
+    
     public void clearInventory() {
     	inventory.clear();
     			
     }
+    
+    public void equipSkin(int index) {
+        if (index < 0 || index >= gp.skins.length) return;
+        if (!unlockedSkins[index]) return;
+
+        gp.equippedSkinIndex = index;
+        gp.equippedSkin = gp.skins[index][0][0]; // optional, just store name
+
+        equippedSkinIndex = index;
+        equippedSkin = gp.equippedSkin;
+
+        getPlayerImage();
+    }
+
+
+    public void unlockSkin(int index) {
+        if (index < 0 || index >= unlockedSkins.length) return;
+        unlockedSkins[index] = true;
+    }
+
+
     
     public void addItem(Item item) {
 		if (inventory.size() < INVENTORY_SIZE) {
@@ -98,29 +169,57 @@ public class player extends entity {
         worldY = gp.tileSize * 16;
         row = worldY / gp.tileSize;
         col = worldX / gp.tileSize;
+
+        // unlock skins
+        unlockedSkins = new boolean[gp.skins.length];
+        for (int i = 0; i < gp.skins.length; i++) {
+            unlockedSkins[i] = gp.skins[i][1][0].equalsIgnoreCase("unlocked");
+        }
+
+        // instead of resetting to 0, use the skin stored in gamePanel
+        equippedSkinIndex = gp.equippedSkinIndex;
+        equippedSkin = gp.equippedSkin;
+
         walkSpeed = 4;
         sprintSpeed = 16;
         crouchSpeed = 2;
         speed = walkSpeed;
         direction = "down";
-        hasKey = false;
-        hasBlueKey = false;
-        hasRedKey = false;
-        hasGreenKey = false;
-        hasFlashlight = false;
+        level = 1;
+
+        getPlayerImage(); // load images for current skin
     }
 
+
+
+
     public void getPlayerImage() {
-        up1 = setup("/Rabbit/boy_up_1");
-        up2 = setup("/Rabbit/boy_up_2");
-        down1 = setup("/Rabbit/boy_down_1");
-        down2 = setup("/Rabbit/boy_down_2");
-        left1 = setup("/Rabbit/boy_left_1");
-        left2 = setup("/Rabbit/boy_left_2");
-        right1 = setup("/Rabbit/boy_right_1");
-        right2 = setup("/Rabbit/boy_right_2");
+        if (gp == null || gp.skins == null) return;
+
+        String[] paths = gp.skins[equippedSkinIndex][2]; // paths for all frames
+
+        try {
+            // Up frames
+            up1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[1])), gp.tileSize, gp.tileSize);
+            up2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[2])), gp.tileSize, gp.tileSize);
+
+            // Down frames
+            down1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[3])), gp.tileSize, gp.tileSize);
+            down2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[4])), gp.tileSize, gp.tileSize);
+
+            // right frames
+            right1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[5])), gp.tileSize, gp.tileSize);
+            right2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[6])), gp.tileSize, gp.tileSize);
+
+            // left frames
+            left1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[7])), gp.tileSize, gp.tileSize);
+            left2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[8])), gp.tileSize, gp.tileSize);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-    
+
    
   
     public void update() {
@@ -345,6 +444,8 @@ public class player extends entity {
 			gp.ui.levelFinished = true;
 			gp.stopMusic();
 			gp.playSoundEffect(2);
+			level++;
+			gp.resetGame(false);
 		}
 
     }
