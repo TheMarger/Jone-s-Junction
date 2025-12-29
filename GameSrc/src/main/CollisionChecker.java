@@ -1,6 +1,8 @@
 package main;
 
 import entity.entity;
+import task.Task;
+
 import java.awt.Rectangle;
 
 public class CollisionChecker {
@@ -128,6 +130,38 @@ public class CollisionChecker {
 		
 		return index;
 	}
+    
+    public int checkTask(entity entity, Task[] target, int dx, int dy) {
+
+		if (entity.solidArea == null) return 999;
+
+		// Future hitbox of the moving entity
+		Rectangle futureArea = new Rectangle(
+			entity.worldX + entity.solidArea.x + dx,
+			entity.worldY + entity.solidArea.y + dy,
+			entity.solidArea.width,
+			entity.solidArea.height
+		);
+
+		for (int i = 0; i < target.length; i++) {
+			if (target[i] == null || target[i].solidArea == null) continue;
+
+			// Target task hitbox
+			Rectangle targetArea = new Rectangle(
+				target[i].worldX + target[i].solidArea.x,
+				target[i].worldY + target[i].solidArea.y,
+				target[i].solidArea.width,
+				target[i].solidArea.height
+			);
+
+			if (futureArea.intersects(targetArea)) {
+				return i; // collided with this task
+			}
+		}
+
+		return 999; // no collision
+		
+    }
     
  // Check collision between an entity and a list of target entities
     public int checkEntity(entity entity, entity[] target, int dx, int dy) {

@@ -1,96 +1,188 @@
 package main; // package this class belongs to
 
-import java.awt.*; // color constants and creation
-import java.awt.Font; // font handling
-import java.awt.Graphics2D; // drawing surface type used in paint
+import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage; // image type for sprites/icons
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
-import java.text.DecimalFormat; // formatting numbers (unused currently but present)
+import java.text.DecimalFormat;
 
 import javax.imageio.ImageIO;
 
-import entity.player; // reference to player's static flags (hasKey, etc.)
+import entity.player;
 import task.Task;
-import Item.*; // import all Item classes (Key, Torch, etc.)
+import Item.*;
+import Item.Throwable;
 
-public class UserInterface { // UI class that draws HUD and title screens
+public class UserInterface {
 
-    gamePanel gp; // reference to main game panel (game state, tileSize, etc.)
-    Graphics2D g2; // temporary Graphics2D reference used during draw calls
-    Font arial_40; // base font used for drawing UI text
-    BufferedImage keyImage; // cached image for key icon
-    BufferedImage greenKeyImage; // cached image for green key icon
-    BufferedImage redKeyImage; // cached image for red key icon
-    BufferedImage torchImage; // cached image for torch icon
-    BufferedImage blueKeyImage; // cached image for blue key icon
-    
-    //////////____________________________________________________________________________
-    BufferedImage skinPreview;//This is for skins
-    ////////////////______________________________________________________________________
-  
-    public boolean messageOn = false; // whether a temporary message is visible
-    public boolean boxMessageOn = false; // whether a box message is visible
-    public boolean interactOn = false; // whether the "[E] to interact" hint is visible
-    public String interactMessage = ""; // text for the interact hint
-    public String message = ""; // text for the temporary message
-    public String boxMessage = ""; // text for the box message`
-    int messageCounter = 0; // simple counter to time how long temporary message shows
-    public int slotRow = 0; // current inventory slot row (not used in this snippet)
-    public String selectedItem = "";
+    gamePanel gp;
+    Graphics2D g2;
+    Font arial_40;
+    BufferedImage keyImage, greenKeyImage, redKeyImage, torchImage, blueKeyImage;
+    BufferedImage skinPreview;
 
-    // Title/menu state -------------------------------------------------------
-    public int commandNum = 0; // current selected item index in the main title menu
-    public int titleScreenState = 0; // which title sub-screen is active: 0=main,1=load,2=chars,3=keybinds
-
-    public boolean levelFinished = false; // flag used elsewhere to indicate level completion
-    double playTime; // total play time (unused drawing-wise here)
-    DecimalFormat df = new DecimalFormat("#0.00"); // formatter for playTime if needed
-
-    public String currentDialogue = ""; // currently displayed dialogue text (multi-line)
-
-    // ---- UI input flags (set by keyHandler) -------------------------------
-    public boolean uiUp = false; // UI navigation: up was pressed (edge-triggered)
-    public boolean uiDown = false; // UI navigation: down was pressed
-    public boolean uiLeft = false; // UI navigation: left was pressed
-    public boolean uiRight = false; // UI navigation: right was pressed
-    public boolean uiConfirm = false; // UI confirm/accept (e.g., Enter)
-    public boolean uiBack = false; // UI back/cancel (e.g., Backspace/Escape)
-
-    // ---- keybind editing state --------------------------------------------
-    public boolean awaitingKeybind = false; // waiting for user to press a key to bind
-    public boolean capturedKeyPressed = false; // keyHandler sets this when a key arrives in bind mode
-    public int capturedKey = -1; // stores the actual key code captured for binding
-    public int keybindSelectedIndex = 0; // which action is selected in the keybind list
-    public final String[] keybindActionNames = { // human-readable action names for the keybind screen
-        "Move Forward","Move Backward","Move Left","Move Right",
-        "Sprint","Crouch","Interact","Throw Item","Drop Item"
-    };
-    
+    // messages / UI
+    public boolean messageOn = false;
+    public boolean boxMessageOn = false;
+    public boolean interactOn = false;
+    public String interactMessage = "";
+    public String message = "";
+    public String boxMessage = "";
+    int messageCounter = 0;
+    int messageDuration = 80;
     int messageX;
     int messageY;
-    int messageDuration;
-    String colorName;
+    String colorName = "white";
+    public boolean showThrowRadius = false;
+    public Throwable activeThrowable;
 
-    // constructor - caches images and fonts ---------------------------------
+    // task / math variables
+    private boolean taskGenerated = false;
+    private String question = "";
+    private int correctAnswer = 0;
+    private String playerInput = "";
+    private boolean answerChecked = false;
+    private boolean answerCorrect = false;
+
+    // task counters / timers (math)
+    private int taskTimerFrames = 0;
+    private int taskTimeLimitFrames = 0;
+    private int questionsAsked = 0;
+    private int correctCount = 0;
+    private int wrongCount = 0;
+
+    // riddle task state
+    private boolean riddleGenerated = false;
+    private String riddleQuestion = "";
+    private String riddleAnswer = "";
+    private String riddlePlayerInput = "";
+    private boolean riddleAnswerChecked = false;
+    private boolean riddleAnswerCorrect = false;
+    private int riddleTimerFrames = 0;
+    private int riddleTimeLimitFrames = 45 * 60;
+
+    // riddle pool
+    private final String[] RIDDLE_QUESTIONS = {
+        "What has to be broken before you can use it?",
+        "I speak without a mouth and hear without ears. I have no body, but I come alive with the wind.",
+        "What can travel around the world while staying in a corner?",
+        "I have keys but no locks. I have space but no room. You can enter but can't go outside. What am I?",
+        "What gets wetter as it dries?",
+        "What has a heart that doesn’t beat?",
+        "What begins with T, ends with T, and has T in it?",
+        "What has one eye, but cannot see?",
+        "What can you catch, but not throw?",
+        "The more you take, the more you leave behind. What are they?",
+        "What has many teeth but cannot bite?",
+        "What is so fragile that saying its name breaks it?",
+        "What goes up but never comes down?",
+        "I’m light as a feather, yet the strongest man can’t hold me for more than five minutes. What am I?",
+        "What has hands but cannot clap?",
+        "What building has the most stories?",
+        "What can fill a room but takes up no space?",
+        "I’m tall when I’m young and short when I’m old. What am I?",
+        "What runs, but never walks; has a bed but never sleeps?",
+        "What tastes better than it smells?",
+        "What can you keep after giving it to someone?",
+        "What has a neck but no head?",
+        "What has an eye but cannot see?",
+        "What has an endless supply of letters but starts empty?",
+        "If you drop me I'm sure to crack, but smile at me and I'll smile back. What am I?",
+        "I have branches, but no fruit, trunk or leaves. What am I?",
+        "I follow you all the time and copy your every move, but you can’t touch me or catch me. What am I?",
+        "What is always in front of you but can’t be seen?",
+        "I shave every day, but my beard stays the same. Who am I?",
+        "What begins with an E but only has one letter?"
+    };
+
+    private final String[] RIDDLE_ANSWERS = {
+        "an egg",
+        "an echo",
+        "a stamp",
+        "a keyboard",
+        "a towel",
+        "an artichoke",
+        "a teapot",
+        "a needle",
+        "a cold",
+        "footsteps",
+        "a comb",
+        "silence",
+        "your age",
+        "breath",
+        "a clock",
+        "a library",
+        "light",
+        "a candle",
+        "a river",
+        "your tongue",
+        "a promise",
+        "a bottle",
+        "a needle",
+        "a mailbox",
+        "an egg",
+        "a tree",
+        "your shadow",
+        "the future",
+        "a barber",
+        "an envelope"
+    };
+
+    // Generic cooldown used across tasks (frames @ 60fps)
+    private int taskCooldownFrames = 0;
+    private final int DEFAULT_TASK_COOLDOWN_SECONDS = 10;
+
+    // Title/menu state
+    public int commandNum = 0;
+    public int titleScreenState = 0;
+
+    public boolean levelFinished = false;
+    double playTime;
+    DecimalFormat df = new DecimalFormat("#0.00");
+
+    public String currentDialogue = "";
+
+    // UI input flags (set by keyHandler)
+    public boolean uiUp = false;
+    public boolean uiDown = false;
+    public boolean uiLeft = false;
+    public boolean uiRight = false;
+    public boolean uiConfirm = false;
+    public boolean uiBack = false;
+
+    // keybind editing
+    public boolean awaitingKeybind = false;
+    public boolean capturedKeyPressed = false;
+    public int capturedKey = -1;
+    public int keybindSelectedIndex = 0;
+    public final String[] keybindActionNames = {"Move Forward","Move Backward","Move Left","Move Right","Sprint","Crouch","Interact","Throw Item","Drop Item"};
+
+    public int slotRow = 0;
+    public Item selectedItem;
+
     public UserInterface(gamePanel gp) {
-        this.gp = gp; // save reference to gamePanel so UI can read game state and resources
-        arial_40 = new Font("Cambria", Font.PLAIN, 40); // create base font
+        this.gp = gp;
+        arial_40 = new Font("Cambria", Font.PLAIN, 40);
 
-        // create example item objects and cache their images for HUD icons
-        Key key = new Key(gp); // instantiate Key item to access its image
-        greenKey greenKey = new greenKey(gp); // instantiate greenKey item
-        redKey redKey = new redKey(gp); // instantiate redKey item
-        Flashlight torch = new Flashlight(gp); // instantiate Torch item
-        blueKey blueKey = new blueKey(gp); // instantiate blueKey item
-        keyImage = key.image; // store key image for quick draw
-        greenKeyImage = greenKey.image; // store green key image
-        redKeyImage = redKey.image; // store red key image
-        torchImage = torch.image; // store torch image
-        blueKeyImage = blueKey.image; // store blue key image
+        // sample item image caching - keep as in original
+        try {
+            Key key = new Key(gp);
+            greenKey greenK = new greenKey(gp);
+            redKey redK = new redKey(gp);
+            Flashlight torch = new Flashlight(gp);
+            blueKey blueK = new blueKey(gp);
+            keyImage = key.image;
+            greenKeyImage = greenK.image;
+            redKeyImage = redK.image;
+            torchImage = torch.image;
+            blueKeyImage = blueK.image;
+        } catch (Exception e) {
+            // ignore if images not present during compile / quick tests
+        }
+
         messageX = gp.tileSize/2;
         messageY = gp.tileSize*5;
-        messageDuration = 80; // default message duration (frames)
+        messageDuration = 80;
         colorName = "white";
     }
 
@@ -154,6 +246,15 @@ public class UserInterface { // UI class that draws HUD and title screens
     			boxMessageOn = true; // enable box message rendering
     			messageCounter = 0; // reset timer/counter
     }
+    
+    public void showBoxMessage(String text, int x, int y) {
+    				boxMessage = text; // set box message text
+    				boxMessageOn = true; // enable box message rendering
+    				messageCounter = 0; // reset timer/counter
+    				messageX = x;
+    				messageY = y;
+    				
+    }
 
     // showInteract: enable the interact hint text
     public void showInteract() {
@@ -167,121 +268,224 @@ public class UserInterface { // UI class that draws HUD and title screens
         interactOn = false;
     }
 
-    // main draw entry — called every frame by gamePanel.paintComponent(...)
-    // handleInput() is called first so UI state (menu navigation, keybind capture) is processed
+ // main draw entry — called every frame by gamePanel.paintComponent(...)
     public void draw(Graphics2D g2) {
         this.g2 = g2; // store the Graphics2D instance for helper methods below
         g2.setFont(arial_40); // set base font
         g2.setColor(Color.white); // default draw color
 
+        // Tick global cooldown every frame (so it begins immediately when a task fails)
+        if (taskCooldownFrames > 0) {
+            taskCooldownFrames--;
+            if (taskCooldownFrames < 0) taskCooldownFrames = 0;
+        }
+
+        // Global Escape handler: if the player presses Escape while in a task, abort and reset
+        if (gp.gameState == gp.taskState && gp.keyH.escapePressed) {
+            gp.keyH.escapePressed = false;
+            resetAllTaskState();
+            gp.gameState = gp.playState;
+            return; // stop drawing task UI this frame
+        }
+
         // Process UI input first (consumes uiUp/uiDown/uiConfirm etc.)
         handleInput();
 
-        // If the game is at the title screen, draw the title/menu
+        // Title & main states drawing (preserve your existing structure)
         if (gp.gameState == gp.titleState) {
             drawTitleScreen();
         }
-        // If the game is in play state you could draw HUD elements here (not used)
         if (gp.gameState == gp.playState) {
-            // (game HUD logic could go here)
-        	drawInventory();
-        	drawStaminaBar();
-        	drawTasksList();
-        	
+            drawInventory();
+            drawStaminaBar();
+            drawTasksList();
         }
-        // If the game is paused, draw pause screen
-        if (gp.gameState == gp.pauseState) {
-            drawPauseScreen();
+        if (gp.gameState == gp.pauseState) drawPauseScreen();
+        if (gp.gameState == gp.dialogueState) drawDialogueScreen();
+        if (gp.gameState == gp.deathState) drawDeathScreen();
+
+        // Task state: pick task by player's current task name
+        if (gp.gameState == gp.taskState) {
+            if (gp.player != null && gp.player.curTaskName != null) {
+                switch (gp.player.curTaskName) {
+                    case "Math Task" -> drawMathTask();
+                    case "Riddle Task" -> drawRiddleTask();
+                    // other task types fall back to math or can be added
+                    default -> drawMathTask();
+                }
+            } else {
+                drawMathTask();
+            }
         }
-        // If the game is showing dialogue, draw the dialogue box
-        if (gp.gameState == gp.dialogueState) {
-            drawDialogueScreen();
-        }
-        if (gp.gameState == gp.deathState) {
-			drawDeathScreen();
-		}
 
         // MESSAGES: draw temporary message if set, and auto-hide it after a counter
         if (messageOn) {
-        	g2.setColor(switch(colorName) {
-        	case "red" -> Color.red;
-			case "yellow" -> Color.yellow;
-			case "green" -> Color.green;
-			default -> Color.white;
-        	});
-        	
+            g2.setColor(switch(colorName) {
+                case "red" -> Color.red;
+                case "yellow" -> Color.yellow;
+                case "green" -> Color.green;
+                default -> Color.white;
+            });
             g2.drawString(message, messageX, messageY); // position message
-            messageCounter++; // increment message timer
-            if (messageCounter > messageDuration) { // if shown for enough frames
-                messageCounter = 0; // reset
-                messageOn = false; // hide message
+            messageCounter++;
+            if (messageCounter > messageDuration) {
+                messageCounter = 0;
+                messageOn = false;
             }
         }
         if (boxMessageOn) {
-			g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller font for box message
-			int padding = 8;
-			int textWidth = g2.getFontMetrics().stringWidth(boxMessage);
-			int textHeight = g2.getFontMetrics().getHeight();
-			int frameX = gp.tileSize / 2 - padding;
-			int frameY = gp.tileSize * 6 + 20 - textHeight + 8; // adjust baseline
-			int frameWidth = textWidth + padding * 2;
-			int frameHeight = textHeight + padding / 2;
-			// draw semi-transparent background
-			g2.setColor(new Color(0, 0, 0, 160));
-			g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
-			// draw border
-			g2.setColor(Color.white);
-			g2.setStroke(new java.awt.BasicStroke(2));
-			g2.drawRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
-			// draw the box message text
-			g2.setColor(Color.white);
-			g2.drawString(boxMessage, gp.tileSize / 2, gp.tileSize * 6 + 20);
-			
-			messageCounter++; // increment message timer
-			if (messageCounter > messageDuration) { // if shown for enough frames
-			    messageCounter = 0; // reset
-			    boxMessageOn = false; // hide box message
-			}
-		}
-        // INTERACT 
-        if (interactOn) {
-        	if (gp.gameState == gp.playState) {
-	            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller font for hint
-	
-	            // calculate text width and height for the frame
-	            int padding = 8;
-	            int textWidth = g2.getFontMetrics().stringWidth(interactMessage);
-	            int textHeight = g2.getFontMetrics().getHeight();
-	
-	            int frameX = gp.tileSize / 2 - padding;
-	            int frameY = gp.tileSize * 6 + 20 - textHeight + 8; // adjust baseline
-	            int frameWidth = textWidth + padding * 2;
-	            int frameHeight = textHeight + padding / 2;
-	
-	            // draw semi-transparent background
-	            g2.setColor(new Color(0, 0, 0, 160));
-	            g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
-	
-	            // draw border
-	            g2.setColor(Color.white);
-	            g2.setStroke(new java.awt.BasicStroke(2));
-	            g2.drawRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
-	
-	            // draw the interact text
-	            g2.setColor(Color.white);
-	            g2.drawString(interactMessage, gp.tileSize / 2, gp.tileSize * 6 + 20);
-        
-        	}	
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller font for box message
+            int padding = 8;
+            int textWidth = g2.getFontMetrics().stringWidth(boxMessage);
+            int textHeight = g2.getFontMetrics().getHeight();
+            int frameX = messageX - padding;
+            int frameY = messageY - textHeight + 8; // adjust baseline
+            int frameWidth = textWidth + padding * 2;
+            int frameHeight = textHeight + padding / 2;
+            // draw semi-transparent background
+            g2.setColor(new Color(0, 0, 0, 160));
+            g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+            // draw border
+            g2.setColor(Color.white);
+            g2.setStroke(new java.awt.BasicStroke(2));
+            g2.drawRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+            // draw the box message text (center baseline)
+            g2.setColor(Color.white);
+            g2.drawString(boxMessage, messageX, messageY);
+
+            messageCounter++;
+            if (messageCounter > messageDuration) {
+                messageCounter = 0;
+                boxMessageOn = false;
+            }
         }
+
+        // INTERACT hint
+        if (interactOn && gp.gameState == gp.playState) {
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F));
+            int padding = 8;
+            int textWidth = g2.getFontMetrics().stringWidth(interactMessage);
+            int textHeight = g2.getFontMetrics().getHeight();
+            int frameX = gp.tileSize / 2 - padding;
+            int frameY = gp.tileSize * 6 + 20 - textHeight + 8;
+            int frameWidth = textWidth + padding * 2;
+            int frameHeight = textHeight + padding / 2;
+            g2.setColor(new Color(0, 0, 0, 160));
+            g2.fillRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+            g2.setColor(Color.white);
+            g2.setStroke(new java.awt.BasicStroke(2));
+            g2.drawRoundRect(frameX, frameY, frameWidth, frameHeight, 10, 10);
+            g2.setColor(Color.white);
+            g2.drawString(interactMessage, gp.tileSize / 2, gp.tileSize * 6 + 20);
+        }
+        if (selectedItem != null) {
+        	if (!selectedItem.getName().equals("") && gp.gameState == gp.playState) {
+                if (selectedItem.getName().equals("Flashlight")) {
+                    String[] options = { "[" + gp.interactKey + "] Use", "["+ gp.dropKey +"] Drop" };
+                    drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+                } else if (selectedItem.getName().equals("Pebble")) {
+                	String[] options = {"["+gp.throwKey+"] Throw", "["+ gp.dropKey +"] Drop" };
+                	drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+                }
+                else {
+                	String[] options = { "[" + gp.dropKey + "] Drop" };
+    				drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+                }
+                
+            }
+		}
         
-        if (!selectedItem.equals("") && gp.gameState == gp.playState) {
-        	if (selectedItem.equals("Flashlight")) {
-        	    String[] options = { "[E] Use", "[Q] Drop" };
-        	    drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
-        	}
+        if (showThrowRadius) {
+            drawThrowRadius(activeThrowable);
         }
 
     }
+    
+    public void drawThrowRadius(Throwable item) {
+        if (item == null) return;
+
+        // allowed radius in tiles (centered on player tile)
+        int radiusTiles = item.getAllowedRadiusTiles();
+
+        // player tile
+        int playerCol = gp.player.worldX / gp.tileSize;
+        int playerRow = gp.player.worldY / gp.tileSize;
+
+        // Save old composite/stroke so we can restore later
+        java.awt.Composite oldComp = g2.getComposite();
+        java.awt.Stroke oldStroke = g2.getStroke();
+
+        // translucent fill for in-range tiles
+        g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.15f));
+        g2.setColor(new java.awt.Color(50, 120, 220)); // translucent fill (alpha via composite)
+
+        // iterate bounding box (clamped to world)
+        int fromCol = Math.max(0, playerCol - radiusTiles);
+        int toCol   = Math.min(gp.maxWorldCol - 1, playerCol + radiusTiles);
+        int fromRow = Math.max(0, playerRow - radiusTiles);
+        int toRow   = Math.min(gp.maxWorldRow - 1, playerRow + radiusTiles);
+
+        for (int c = fromCol; c <= toCol; c++) {
+            for (int r = fromRow; r <= toRow; r++) {
+                int dx = c - playerCol;
+                int dy = r - playerRow;
+                double dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= radiusTiles + 0.0001) { // inside circle
+                    // compute screen coords for this tile
+                    int screenX = c * gp.tileSize - gp.player.worldX + gp.player.getScreenX();
+                    int screenY = r * gp.tileSize - gp.player.worldY + gp.player.getScreenY();
+
+                    // only draw tiles that are on-screen (simple frustum cull)
+                    if (screenX + gp.tileSize < 0 || screenX > gp.screenWidth || screenY + gp.tileSize < 0 || screenY > gp.screenHeight) {
+                        continue;
+                    }
+
+                    g2.fillRect(screenX, screenY, gp.tileSize, gp.tileSize);
+                }
+            }
+        }
+
+        // outline the hovered tile with a highlighted border
+        if (gp.hoveredTileCol >= 0 && gp.hoveredTileRow >= 0) {
+            // check if hovered is inside radius — if not, draw it but in a dim color (optional)
+            int dxH = gp.hoveredTileCol - playerCol;
+            int dyH = gp.hoveredTileRow - playerRow;
+            double distH = Math.sqrt(dxH * dxH + dyH * dyH);
+
+            if (distH <= radiusTiles + 0.0001) {
+                // strong highlight for hovered tile inside range
+                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 1f));
+                g2.setStroke(new java.awt.BasicStroke(3f));
+                g2.setColor(new java.awt.Color(220, 220, 50)); // yellow-ish outline
+                int screenX = gp.hoveredTileCol * gp.tileSize - gp.player.worldX + gp.player.getScreenX();
+                int screenY = gp.hoveredTileRow * gp.tileSize - gp.player.worldY + gp.player.getScreenY();
+                g2.drawRect(screenX + 1, screenY + 1, gp.tileSize - 2, gp.tileSize - 2);
+            } else {
+                // hovered out-of-range: dim outline (optional)
+                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.9f));
+                g2.setStroke(new java.awt.BasicStroke(2f));
+                g2.setColor(new java.awt.Color(140, 140, 140));
+                int screenX = gp.hoveredTileCol * gp.tileSize - gp.player.worldX + gp.player.getScreenX();
+                int screenY = gp.hoveredTileRow * gp.tileSize - gp.player.worldY + gp.player.getScreenY();
+                g2.drawRect(screenX + 1, screenY + 1, gp.tileSize - 2, gp.tileSize - 2);
+            }
+        }
+
+        // outline the selected tile (from mouse click) with a distinct color
+        if (gp.selectedThrowCol >= 0 && gp.selectedThrowRow >= 0) {
+            g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 1f));
+            g2.setStroke(new java.awt.BasicStroke(3f));
+            g2.setColor(new java.awt.Color(80, 200, 100)); // green outline for selected target
+            int sX = gp.selectedThrowCol * gp.tileSize - gp.player.worldX + gp.player.getScreenX();
+            int sY = gp.selectedThrowRow * gp.tileSize - gp.player.worldY + gp.player.getScreenY();
+            g2.drawRect(sX + 1, sY + 1, gp.tileSize - 2, gp.tileSize - 2);
+        }
+
+        // restore
+        g2.setComposite(oldComp);
+        g2.setStroke(oldStroke);
+    }
+
 
     // This method contains all UI logic and consumes UI flags from keyHandler.
     // It handles menu navigation, sub-screens, and keybind assignment.
@@ -524,10 +728,10 @@ public class UserInterface { // UI class that draws HUD and title screens
 	        g2.setColor(Color.yellow);
 	        g2.drawRoundRect(cursorX - 4, cursorY - 4, slotSize + 8, slotSize + 8, 12, 12);
 	        if (gp.player.inventory.size() > slotRow) {
-	        	selectedItem = gp.player.inventory.get(slotRow).getName();
+	        	selectedItem = gp.player.inventory.get(slotRow);
 	        }
         } else {
-			selectedItem = "";
+			selectedItem = null;
 		}
     }
     
@@ -869,6 +1073,785 @@ public class UserInterface { // UI class that draws HUD and title screens
         }
         if (line.length() > 0) out.add(line.toString());
         return out;
+    }
+    
+
+    public void drawTaskScreen() {
+		int x = gp.tileSize * 1; // left padding
+		int y = gp.tileSize * 1; // top padding
+		int width = gp.screenWidth - (gp.tileSize * 2); // width of the task box
+		int height = gp.screenHeight - (gp.tileSize * 2); // height of the task box
+
+		// Draw panel background and border
+		Color c = new Color(0, 0, 0); // semi-transparent black
+		g2.setColor(c);
+		g2.fillRoundRect(x, y, width, height, 35, 35); // filled rounded rect
+		c = new Color(255, 255, 255); // white for border
+		g2.setColor(c);
+		g2.setStroke(new java.awt.BasicStroke(5)); // thicker stroke for border
+		g2.drawRoundRect(x + 5, y + 5, width - 10, height - 10, 25, 25); // draw border inside
+		
+
+		g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // task font
+		x += gp.tileSize; // inner padding
+		y += gp.tileSize; // inner padding
+		
+	}
+    
+    // ------------------------ DRAW MATH TASK ------------------------
+    public void drawMathTask() {
+
+        // Rendering hints
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Dim background
+        Color overlay = new Color(0, 0, 0, 160);
+        g2.setColor(overlay);
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // Panel layout
+        int panelW = gp.tileSize * 10;
+        int panelH = gp.tileSize * 7;
+        int panelX = (gp.screenWidth - panelW) / 2;
+        int panelY = (gp.screenHeight - panelH) / 2;
+        int arc = 28;
+
+        // drop shadow
+        int shadowOffset = gp.tileSize / 8;
+        g2.setColor(new Color(0, 0, 0, 120));
+        g2.fillRoundRect(panelX + shadowOffset, panelY + shadowOffset, panelW, panelH, arc, arc);
+
+        // panel gradient background
+        GradientPaint gpBack = new GradientPaint(panelX, panelY,
+                new Color(60, 63, 65), panelX, panelY + panelH,
+                new Color(42, 45, 48));
+        g2.setPaint(gpBack);
+        g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+        // inner padding and separator line
+        int pad = gp.tileSize / 3;
+        int innerX = panelX + pad;
+        int innerY = panelY + pad;
+        int innerW = panelW - pad * 2;
+
+        // Title with subtle shadow
+        String title = "Math Task";
+        Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.9f);
+        g2.setFont(titleFont);
+        g2.setColor(new Color(0, 0, 0, 120));
+        g2.drawString(title, innerX + 3, innerY + (int)(gp.tileSize * 0.9f) + 3); // shadow
+        g2.setColor(new Color(230, 230, 230));
+        g2.drawString(title, innerX, innerY + (int)(gp.tileSize * 0.9f));
+
+        // Level badge (top-right)
+        String lvl = "Level " + gp.level;
+        Font badgeFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.45f);
+        int badgeW = gp.tileSize * 3;
+        int badgeH = gp.tileSize / 2;
+        int badgeX = panelX + panelW - pad - badgeW;
+        int badgeY = innerY - gp.tileSize/6;
+        g2.setColor(new Color(255, 200, 60));
+        g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, 12, 12);
+        g2.setColor(Color.BLACK);
+        g2.setFont(badgeFont);
+        FontMetrics fmBadge = g2.getFontMetrics();
+        int bx = badgeX + (badgeW - fmBadge.stringWidth(lvl)) / 2;
+        int by = badgeY + ((badgeH - fmBadge.getHeight()) / 2) + fmBadge.getAscent();
+        g2.drawString(lvl, bx, by);
+
+        // instruction under title
+        Font instrFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+        g2.setFont(instrFont);
+        g2.setColor(new Color(200, 200, 200));
+        String instr = "Solve the equation below (give INTEGER answer)";
+        g2.drawString(instr, innerX, innerY + (int)(gp.tileSize * 1.6f));
+
+        // divider
+        int dividerY = innerY + (int)(gp.tileSize * 1.9f);
+        g2.setStroke(new BasicStroke(1f));
+        g2.setColor(new Color(255, 255, 255, 30));
+        g2.drawLine(innerX, dividerY, innerX + innerW, dividerY);
+
+        // ----- GLOBAL COOLDOWN: block input if active -----
+        if (taskCooldownFrames > 0) {
+            Font big = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+            g2.setFont(big);
+            g2.setColor(new Color(180, 180, 180));
+            String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+            int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+            int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+            g2.drawString(locked, lx, ly);
+
+            // clear any input flags while locked so nothing sneaks through
+            gp.keyH.typedChar = 0;
+            gp.keyH.backspacePressed = false;
+            gp.keyH.enterPressed = false;
+            gp.keyH.escapePressed = false;
+            return;
+        }
+
+        // Initialize per-task timer / counters on first entry
+        if (questionsAsked == 0 && taskTimerFrames == 0 && !taskGenerated) {
+            switch (gp.level) {
+                case 1 -> taskTimeLimitFrames = 30 * 60; // 30s
+                case 2 -> taskTimeLimitFrames = 45 * 60; // 45s
+                case 3 -> taskTimeLimitFrames = 60 * 60; // 60s
+                default  -> taskTimeLimitFrames = 75 * 60; // 75s
+            }
+            taskTimerFrames = taskTimeLimitFrames;
+            correctCount = 0;
+            wrongCount = 0;
+            questionsAsked = 0;
+        }
+
+        // Escape to exit immediately
+        if (gp.keyH.escapePressed) {
+            gp.keyH.escapePressed = false;
+            resetAllTaskState();
+            gp.gameState = gp.playState;
+            return;
+        }
+
+        // Countdown the timer (only while not viewing feedback)
+        if (taskTimerFrames > 0 && !answerChecked) taskTimerFrames--;
+        if (taskTimerFrames <= 0 && !answerChecked) {
+            handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+            return;
+        }
+
+        // GENERATE QUESTION (once)
+        if (!taskGenerated) {
+            String[] ops = {"+", "-", "*", "/"};
+            int n1 = (int)(Math.random()*10)+1;
+            int n2 = (int)(Math.random()*10)+1;
+            int n3 = (int)(Math.random()*10)+1;
+            int n4 = (int)(Math.random()*10)+1;
+            int n5 = (int)(Math.random()*10)+1;
+            String op1 = ops[(int)(Math.random()*ops.length)];
+            String op2 = ops[(int)(Math.random()*ops.length)];
+            int temp = 0, result = 0;
+
+            // Level-specific logic (ensures integer division)
+            if (gp.level == 1) {
+                if (op1.equals("/")) {
+                    int q = (int)(Math.random()*9)+1;
+                    n2 = (int)(Math.random()*9)+1;
+                    n1 = n2 * q;
+                }
+                question = n1 + " " + op1 + " " + n2;
+                switch (op1) {
+                    case "+" -> result = n1 + n2;
+                    case "-" -> result = n1 - n2;
+                    case "*" -> result = n1 * n2;
+                    default  -> result = n1 / n2;
+                }
+            } else if (gp.level == 2) {
+                if (op1.equals("/")) {
+                    int q = (int)(Math.random()*9)+1;
+                    n2 = (int)(Math.random()*9)+1;
+                    n1 = n2 * q;
+                }
+                switch (op1) {
+                    case "+" -> temp = n1 + n2;
+                    case "-" -> temp = n1 - n2;
+                    case "*" -> temp = n1 * n2;
+                    default  -> temp = n1 / n2;
+                }
+                if (op2.equals("/")) {
+                    int absTemp = Math.abs(temp);
+                    if (absTemp <= 1) n3 = 1;
+                    else {
+                        java.util.List<Integer> divs = new java.util.ArrayList<>();
+                        for (int d = 1; d <= absTemp; d++) if (absTemp % d == 0) divs.add(d);
+                        n3 = divs.get((int)(Math.random()*divs.size()));
+                    }
+                }
+                question = n1 + " " + op1 + " " + n2 + " " + op2 + " " + n3;
+                switch (op2) {
+                    case "+" -> result = temp + n3;
+                    case "-" -> result = temp - n3;
+                    case "*" -> result = temp * n3;
+                    default  -> result = temp / n3;
+                }
+            } else if (gp.level == 3) {
+                if (op1.equals("/")) {
+                    int q = (int)(Math.random()*9)+1;
+                    n2 = (int)(Math.random()*9)+1;
+                    n1 = n2 * q;
+                }
+                switch (op1) {
+                    case "+" -> temp = n1 + n2;
+                    case "-" -> temp = n1 - n2;
+                    case "*" -> temp = n1 * n2;
+                    default  -> temp = n1 / n2;
+                }
+                if (op2.equals("/")) {
+                    int absTemp = Math.abs(temp);
+                    if (absTemp <= 1) n3 = 1;
+                    else {
+                        java.util.List<Integer> divs = new java.util.ArrayList<>();
+                        for (int d = 1; d <= absTemp; d++) if (absTemp % d == 0) divs.add(d);
+                        n3 = divs.get((int)(Math.random()*divs.size()));
+                    }
+                }
+                switch (op2) {
+                    case "+" -> temp = temp + n3;
+                    case "-" -> temp = temp - n3;
+                    case "*" -> temp = temp * n3;
+                    default  -> temp = temp / n3;
+                }
+                if (op1.equals("/")) {
+                    int absTemp = Math.abs(temp);
+                    if (absTemp <= 1) n4 = 1;
+                    else {
+                        java.util.List<Integer> divs = new java.util.ArrayList<>();
+                        for (int d = 1; d <= absTemp; d++) if (absTemp % d == 0) divs.add(d);
+                        n4 = divs.get((int)(Math.random()*divs.size()));
+                    }
+                }
+                question = n1 + " " + op1 + " " + n2 + " " + op2 + " " + n3 + " " + op1 + " " + n4;
+                switch (op1) {
+                    case "+" -> result = temp + n4;
+                    case "-" -> result = temp - n4;
+                    case "*" -> result = temp * n4;
+                    default  -> result = temp / n4;
+                }
+            } else {
+                if (op1.equals("/")) {
+                    int q = (int)(Math.random()*9)+1;
+                    n2 = (int)(Math.random()*9)+1;
+                    n1 = n2 * q;
+                }
+                switch (op1) {
+                    case "+" -> temp = n1 + n2;
+                    case "-" -> temp = n1 - n2;
+                    case "*" -> temp = n1 * n2;
+                    default  -> temp = n1 / n2;
+                }
+                if (op2.equals("/")) {
+                    int absTemp = Math.abs(temp);
+                    if (absTemp <= 1) n3 = 1;
+                    else {
+                        java.util.List<Integer> divs = new java.util.ArrayList<>();
+                        for (int d = 1; d <= absTemp; d++) if (absTemp % d == 0) divs.add(d);
+                        n3 = divs.get((int)(Math.random()*divs.size()));
+                    }
+                }
+                switch (op2) {
+                    case "+" -> temp = temp + n3;
+                    case "-" -> temp = temp - n3;
+                    case "*" -> temp = temp * n3;
+                    default  -> temp = temp / n3;
+                }
+                if (op1.equals("/")) {
+                    int absTemp = Math.abs(temp);
+                    if (absTemp <= 1) n4 = 1;
+                    else {
+                        java.util.List<Integer> divs = new java.util.ArrayList<>();
+                        for (int d = 1; d <= absTemp; d++) if (absTemp % d == 0) divs.add(d);
+                        n4 = divs.get((int)(Math.random()*divs.size()));
+                    }
+                }
+                switch (op1) {
+                    case "+" -> temp = temp + n4;
+                    case "-" -> temp = temp - n4;
+                    case "*" -> temp = temp * n4;
+                    default  -> temp = temp / n4;
+                }
+                if (op2.equals("/")) {
+                    int absTemp = Math.abs(temp);
+                    if (absTemp <= 1) n5 = 1;
+                    else {
+                        java.util.List<Integer> divs = new java.util.ArrayList<>();
+                        for (int d = 1; d <= absTemp; d++) if (absTemp % d == 0) divs.add(d);
+                        n5 = divs.get((int)(Math.random()*divs.size()));
+                    }
+                }
+                question = n1 + " " + op1 + " " + n2 + " " + op2 + " " + n3 + " " + op1 + " " + n4 + " " + op2 + " " + n5;
+                switch (op2) {
+                    case "+" -> result = temp + n5;
+                    case "-" -> result = temp - n5;
+                    case "*" -> result = temp * n5;
+                    default  -> result = temp / n5;
+                }
+            }
+
+            correctAnswer = result;
+            taskGenerated = true;
+            playerInput = "";
+            answerChecked = false;
+        }
+
+        // HANDLE INPUT (blocked earlier if taskCooldownFrames > 0)
+        if (!answerChecked) {
+
+            // typed char for numbers / minus
+            if (Character.isDigit(gp.keyH.typedChar) || gp.keyH.typedChar == '-') {
+                playerInput += gp.keyH.typedChar;
+                gp.keyH.typedChar = 0;
+            }
+
+            // backspace
+            if (gp.keyH.backspacePressed && playerInput.length() > 0) {
+                playerInput = playerInput.substring(0, playerInput.length() - 1);
+                gp.keyH.backspacePressed = false;
+            }
+
+            // ENTER submits
+            if (gp.keyH.enterPressed) {
+                try {
+                    int answer = Integer.parseInt(playerInput);
+                    answerCorrect = (answer == correctAnswer);
+                } catch (Exception e) {
+                    answerCorrect = false;
+                }
+                answerChecked = true;
+                gp.keyH.enterPressed = false;
+            }
+        } else {
+            // after feedback, ENTER continues
+            if (gp.keyH.enterPressed) {
+                // register the result into counters
+                questionsAsked++;
+                if (answerCorrect) correctCount++;
+                else wrongCount++;
+
+                gp.keyH.enterPressed = false;
+
+                // fail if 2+ wrong
+                if (wrongCount >= 2) {
+                    handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+                    return;
+                }
+
+                // success if 3 correct
+                if (correctCount >= 3) {
+                    handleTaskSuccess("Task Completed!");
+                    return;
+                }
+
+                // if 3 questions asked -> evaluate
+                if (questionsAsked >= 3) {
+                    if (correctCount >= 3) handleTaskSuccess("Task Completed!");
+                    else handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+                    return;
+                }
+
+                // else prepare next question
+                taskGenerated = false;
+                playerInput = "";
+                answerChecked = false;
+                answerCorrect = false;
+            }
+        }
+
+        // DRAW TIMER (top-right)
+        int secondsLeft = (taskTimerFrames + 59) / 60;
+        String timeText = String.format("Time: %d s", secondsLeft);
+        g2.setFont(instrFont);
+        g2.setColor(new Color(220,220,220));
+        FontMetrics tfm = g2.getFontMetrics();
+        int tx = panelX + panelW - pad - tfm.stringWidth(timeText);
+        int ty = innerY + (int)(gp.tileSize * 0.9f);
+        g2.drawString(timeText, tx, ty);
+
+        // TIMER BAR under the time text (match text width)
+        int textWidth  = tfm.stringWidth(timeText);
+        int textHeight = tfm.getHeight();
+        int barW = textWidth;
+        int barH = Math.max(6, textHeight / 5);
+        int barX = tx;
+        int barY = ty + 6; // small gap
+        float ratio = (float) taskTimerFrames / (float) taskTimeLimitFrames;
+        ratio = Math.max(0f, Math.min(1f, ratio));
+        g2.setColor(new Color(0, 0, 0, 130));
+        g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
+        Color col =
+                ratio > 0.6f ? new Color(120, 220, 140) :
+                ratio > 0.25f ? new Color(240, 200, 80) :
+                                new Color(240, 120, 120);
+        int fillW = Math.max(2, (int)(barW * ratio));
+        g2.setColor(col);
+        g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
+        g2.setColor(new Color(255, 255, 255, 70));
+        g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
+
+        // QUESTION DISPLAY (centered)
+        Font qFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 1.0f);
+        g2.setFont(qFont);
+        g2.setColor(new Color(245, 245, 245));
+        FontMetrics qfm = g2.getFontMetrics();
+        String qText = "What is " + question + " ?";
+        int qx = panelX + (panelW - qfm.stringWidth(qText)) / 2;
+        int qy = dividerY + (int)(gp.tileSize * 1.4f);
+        g2.drawString(qText, qx, qy);
+
+        // INPUT BOX (rounded, centered)
+        int boxW = innerW - gp.tileSize;
+        int boxH = gp.tileSize;
+        int boxX = panelX + (panelW - boxW) / 2;
+        int boxY = qy + gp.tileSize / 2;
+
+        // box background
+        g2.setColor(new Color(30, 33, 36, 200));
+        g2.fillRoundRect(boxX, boxY, boxW, boxH, 14, 14);
+
+        // box border
+        g2.setStroke(new BasicStroke(2f));
+        g2.setColor(new Color(120, 120, 120, 120));
+        g2.drawRoundRect(boxX, boxY, boxW, boxH, 14, 14);
+
+        // input text
+        Font inputFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.7f);
+        g2.setFont(inputFont);
+        g2.setColor(new Color(230, 230, 230));
+        FontMetrics ifm = g2.getFontMetrics();
+        String displayInput = playerInput.length() > 0 ? playerInput : "";
+        int ttx = boxX + gp.tileSize / 3;
+        int tty = boxY + ((boxH - ifm.getHeight()) / 2) + ifm.getAscent();
+        g2.drawString(displayInput, ttx, tty);
+
+        // blinking caret
+        if (!answerChecked) {
+            boolean blink = (System.currentTimeMillis() / 500) % 2 == 0;
+            if (blink) {
+                int caretX = ttx + ifm.stringWidth(displayInput);
+                int caretY1 = boxY + (boxH / 6);
+                int caretY2 = boxY + boxH - (boxH / 6);
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawLine(caretX, caretY1, caretX, caretY2);
+            }
+        }
+
+        // RESULT / FEEDBACK
+        int feedbackY = boxY + boxH + gp.tileSize / 2;
+        Font feedbackFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.6f);
+        g2.setFont(feedbackFont);
+
+        if (answerChecked) {
+            String msg = answerCorrect ? "Correct!" : "Wrong! Answer: " + correctAnswer;
+            g2.setColor(answerCorrect ? new Color(120, 220, 140) : new Color(240, 120, 120));
+            FontMetrics ffm = g2.getFontMetrics();
+            int fx = panelX + (panelW - ffm.stringWidth(msg)) / 2;
+            int fy = feedbackY + ffm.getAscent();
+            g2.drawString(msg, fx, fy);
+
+            // continue hint
+            String hint = "Press ENTER to continue";
+            g2.setFont(instrFont);
+            g2.setColor(new Color(200, 200, 200, 180));
+            FontMetrics hfm = g2.getFontMetrics();
+            int hx = panelX + (panelW - hfm.stringWidth(hint)) / 2;
+            g2.drawString(hint, hx, fy + gp.tileSize / 2);
+
+        } else {
+            // small helper hint
+            String hint = "Type numbers, use BACKSPACE, press ENTER to submit";
+            g2.setFont(instrFont);
+            g2.setColor(new Color(200, 200, 200, 160));
+            FontMetrics hfm = g2.getFontMetrics();
+            int hx = panelX + (panelW - hfm.stringWidth(hint)) / 2;
+            g2.drawString(hint, hx, feedbackY + hfm.getAscent());
+        }
+
+        // draw progress (x/3 and wrongs)
+        String prog = String.format("Progress: %d / 3   Wrong: %d", correctCount + wrongCount, wrongCount);
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.20f));
+        g2.setColor(new Color(200,200,200,180));
+        g2.drawString(prog, innerX, panelY + panelH - pad - gp.tileSize/6);
+    }
+
+    // ------------------------ DRAW RIDDLE TASK ------------------------
+    public void drawRiddleTask() {
+
+        // Rendering setup
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Dim background
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // Panel layout
+        int panelW = gp.tileSize * 10;
+        int panelH = gp.tileSize * 6;
+        int panelX = (gp.screenWidth - panelW) / 2;
+        int panelY = (gp.screenHeight - panelH) / 2;
+        int arc = 26;
+
+        // Shadow + background
+        g2.setColor(new Color(0,0,0,120));
+        g2.fillRoundRect(panelX+6, panelY+6, panelW, panelH, arc, arc);
+        GradientPaint back = new GradientPaint(panelX, panelY, new Color(245,235,210), panelX, panelY+panelH, new Color(230,210,170));
+        g2.setPaint(back);
+        g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+        // parchment lines
+        g2.setColor(new Color(0,0,0,10));
+        for (int yy = panelY + 12; yy < panelY + panelH - 12; yy += 12) {
+            g2.drawLine(panelX + 12, yy, panelX + panelW - 12, yy);
+        }
+
+        // emblem + title
+        int emblemSize = gp.tileSize;
+        int emblemX = panelX + gp.tileSize/2;
+        int emblemY = panelY + gp.tileSize/2;
+        g2.setColor(new Color(80,30,110));
+        g2.fillOval(emblemX, emblemY, emblemSize, emblemSize);
+        g2.setColor(new Color(255,235,200));
+        Font emblemFont = g2.getFont().deriveFont(Font.BOLD, emblemSize * 0.75f);
+        g2.setFont(emblemFont);
+        FontMetrics efm = g2.getFontMetrics();
+        String qMark = "?";
+        int qmx = emblemX + (emblemSize - efm.stringWidth(qMark)) / 2;
+        int qmy = emblemY + (emblemSize - efm.getHeight()) / 2 + efm.getAscent();
+        g2.drawString(qMark, qmx, qmy);
+
+        Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.8f);
+        g2.setFont(titleFont);
+        g2.setColor(new Color(40,20,60));
+        String title = "Riddle";
+        int tx = emblemX + emblemSize + gp.tileSize/3;
+        int ty = emblemY + emblemSize/2 + g2.getFontMetrics().getAscent()/2;
+        g2.drawString(title, tx, ty);
+
+        // cooldown block if active
+        if (taskCooldownFrames > 0) {
+            Font big = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+            g2.setFont(big);
+            g2.setColor(new Color(120,120,120));
+            String wait = "Riddle locked. Try again in " + ( (taskCooldownFrames + 59) / 60 ) + "s";
+            int wx = panelX + (panelW - g2.getFontMetrics().stringWidth(wait)) / 2;
+            int wy = panelY + panelH/2 + g2.getFontMetrics().getAscent()/2;
+            g2.drawString(wait, wx, wy);
+
+            riddleGenerated = false;
+            // eat input
+            gp.keyH.typedChar = 0;
+            gp.keyH.backspacePressed = false;
+            gp.keyH.enterPressed = false;
+            gp.keyH.escapePressed = false;
+            return;
+        }
+
+        // Initialize riddle if needed
+        if (!riddleGenerated) {
+            int idx = (int)(Math.random() * RIDDLE_QUESTIONS.length);
+            riddleQuestion = RIDDLE_QUESTIONS[idx];
+            riddleAnswer = RIDDLE_ANSWERS[idx];
+            riddleGenerated = true;
+            riddlePlayerInput = "";
+            riddleAnswerChecked = false;
+            riddleAnswerCorrect = false;
+            riddleTimeLimitFrames = 45 * 60;
+            riddleTimerFrames = riddleTimeLimitFrames;
+        }
+
+        // Escape abort
+        if (gp.keyH.escapePressed) {
+            gp.keyH.escapePressed = false;
+            resetAllTaskState();
+            gp.gameState = gp.playState;
+            return;
+        }
+
+        // timer tick while not viewing feedback
+        if (riddleTimerFrames > 0 && !riddleAnswerChecked) riddleTimerFrames--;
+        if (riddleTimerFrames <= 0 && !riddleAnswerChecked) {
+            handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Incorrect. The task failed. Re-entry required.");
+            return;
+        }
+
+        // Render single-line riddle: shrink font until it fits
+        int maxQW = panelW - gp.tileSize * 3;
+        float fsize = gp.tileSize * 0.9f;
+        Font qF = g2.getFont().deriveFont(Font.PLAIN, fsize);
+        FontMetrics qfm = g2.getFontMetrics(qF);
+        int qW = qfm.stringWidth(riddleQuestion);
+        float minSize = gp.tileSize * 0.35f;
+        while (qW > maxQW && fsize > minSize) {
+            fsize -= 1.5f;
+            qF = g2.getFont().deriveFont(Font.PLAIN, fsize);
+            qfm = g2.getFontMetrics(qF);
+            qW = qfm.stringWidth(riddleQuestion);
+        }
+        g2.setFont(qF);
+        g2.setColor(new Color(30,20,50));
+        int qx = panelX + (panelW - qW) / 2;
+        int qy = panelY + gp.tileSize * 2 + qfm.getAscent()/2;
+        g2.drawString(riddleQuestion, qx, qy);
+
+        // label + input box
+        Font labelFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+        g2.setFont(labelFont);
+        g2.setColor(new Color(70,60,40));
+        String label = "Type your answer";
+        int labelX = panelX + gp.tileSize;
+        int labelY = panelY + panelH - gp.tileSize*3 + g2.getFontMetrics().getAscent();
+        g2.drawString(label, labelX, labelY);
+
+        int boxW = panelW - gp.tileSize*2;
+        int boxH = gp.tileSize;
+        int boxX = panelX + gp.tileSize;
+        int boxY = panelY + panelH - gp.tileSize*2 - 8;
+        g2.setColor(new Color(255,255,255,200));
+        g2.fillRoundRect(boxX, boxY, boxW, boxH, 12, 12);
+        g2.setColor(new Color(200,170,120));
+        g2.setStroke(new BasicStroke(2f));
+        g2.drawRoundRect(boxX, boxY, boxW, boxH, 12, 12);
+
+        // input display & caret
+        Font inputFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.6f);
+        g2.setFont(inputFont);
+        g2.setColor(new Color(40,30,20));
+        FontMetrics ifm = g2.getFontMetrics();
+        String display = riddlePlayerInput.length() > 0 ? riddlePlayerInput : "";
+        int itx = boxX + gp.tileSize/3;
+        int ity = boxY + ((boxH - ifm.getHeight()) / 2) + ifm.getAscent();
+        g2.drawString(display, itx, ity);
+
+        if (!riddleAnswerChecked) {
+            boolean blink = (System.currentTimeMillis() / 500) % 2 == 0;
+            if (blink) {
+                int caretX = itx + ifm.stringWidth(display);
+                int cTop = boxY + boxH/6;
+                int cBot = boxY + boxH - boxH/6;
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawLine(caretX, cTop, caretX, cBot);
+            }
+        }
+
+        // Input handling only when not checked
+        if (!riddleAnswerChecked) {
+            char typed = gp.keyH.typedChar;
+            if (typed != 0) {
+                if (Character.isLetterOrDigit(typed) || Character.isWhitespace(typed) || isPunctuation(typed)) {
+                    riddlePlayerInput += typed;
+                }
+                gp.keyH.typedChar = 0;
+            }
+            if (gp.keyH.backspacePressed) {
+                if (riddlePlayerInput.length() > 0) riddlePlayerInput = riddlePlayerInput.substring(0, riddlePlayerInput.length() - 1);
+                gp.keyH.backspacePressed = false;
+            }
+            if (gp.keyH.enterPressed) {
+                gp.keyH.enterPressed = false;
+                String user = riddlePlayerInput.trim();
+                String correct = riddleAnswer.trim();
+                riddleAnswerCorrect = user.equalsIgnoreCase(correct);
+                riddleAnswerChecked = true;
+            }
+        } else {
+            Font fbFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+            g2.setFont(fbFont);
+            String fb = riddleAnswerCorrect ? "✔ Correct" : "Incorrect. The task failed. Re-entry required.";
+            g2.setColor(riddleAnswerCorrect ? new Color(40,150,60) : new Color(200,60,60));
+            int fbx = panelX + (panelW - g2.getFontMetrics().stringWidth(fb)) / 2;
+            int fby = boxY - gp.tileSize/2;
+            g2.drawString(fb, fbx, fby);
+
+            if (riddleAnswerCorrect) {
+                int alpha = 180;
+                g2.setColor(new Color(120,220,140,alpha));
+                int cx = boxX + boxW - gp.tileSize;
+                int cy = boxY - gp.tileSize/2;
+                g2.fillOval(cx, cy, gp.tileSize/2, gp.tileSize/2);
+            }
+
+            Font hintF = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+            g2.setFont(hintF);
+            g2.setColor(new Color(60,50,40));
+            String hint = riddleAnswerCorrect ? "Press ENTER to finish" : "Press ENTER to continue";
+            int hx = panelX + (panelW - g2.getFontMetrics().stringWidth(hint)) / 2;
+            g2.drawString(hint, hx, boxY + boxH + gp.tileSize/3);
+
+            if (gp.keyH.enterPressed) {
+                gp.keyH.enterPressed = false;
+                if (riddleAnswerCorrect) handleTaskSuccess("Riddle solved!");
+                else handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Incorrect. The task failed. Re-entry required.");
+                return;
+            }
+        }
+
+        // Timer top-right + bar
+        Font smallF = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+        g2.setFont(smallF);
+        g2.setColor(new Color(60,50,40));
+        String timeText = "Time: " + ((riddleTimerFrames + 59)/60) + " s";
+        FontMetrics tfm = g2.getFontMetrics();
+        int timeTX = panelX + panelW - gp.tileSize - tfm.stringWidth(timeText);
+        int timeTY = panelY + gp.tileSize/2 + tfm.getAscent()/2;
+        g2.drawString(timeText, timeTX, timeTY);
+
+        int textWidth = tfm.stringWidth(timeText);
+        int barH = Math.max(6, tfm.getHeight()/5);
+        int barX = timeTX;
+        int barY = timeTY + 6;
+        float ratio = (float) riddleTimerFrames / (float) riddleTimeLimitFrames;
+        ratio = Math.max(0f, Math.min(1f, ratio));
+        g2.setColor(new Color(0,0,0,80));
+        g2.fillRoundRect(barX, barY, textWidth, barH, barH, barH);
+        Color ccol = ratio > 0.6f ? new Color(120,220,140) : ratio > 0.25f ? new Color(240,200,80) : new Color(240,120,120);
+        int fillW = Math.max(2, (int)(textWidth * ratio));
+        g2.setColor(ccol);
+        g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
+        g2.setColor(new Color(255,255,255,80));
+        g2.drawRoundRect(barX, barY, textWidth, barH, barH, barH);
+    }
+
+    // ------------------------ HELPERS ------------------------
+
+    private boolean isPunctuation(char c) {
+        return "!@#$%^&*()_+-={}[]|:;\"'<>,.?/`~".indexOf(c) >= 0;
+    }
+
+    private void resetAllTaskState() {
+        // Math
+        taskGenerated = false;
+        playerInput = "";
+        answerChecked = false;
+        answerCorrect = false;
+        taskTimerFrames = 0;
+        taskTimeLimitFrames = 0;
+        questionsAsked = 0;
+        correctCount = 0;
+        wrongCount = 0;
+        // Riddle
+        riddleGenerated = false;
+        riddlePlayerInput = "";
+        riddleAnswerChecked = false;
+        riddleAnswerCorrect = false;
+        riddleTimerFrames = 0;
+        riddleTimeLimitFrames = 0;
+    }
+
+    public void handleTaskFailed(int cooldownSeconds, String popupMessage) {
+        resetAllTaskState();
+        taskCooldownFrames = Math.max(1, cooldownSeconds) * 60;
+        showBoxMessage(popupMessage, gp.screenWidth / 2 - gp.tileSize * 2, gp.screenHeight / 2 - gp.tileSize);
+        boxMessageOn = true;
+        messageCounter = 0;
+        messageDuration = Math.max(60, cooldownSeconds * 60 / 2);
+        gp.gameState = gp.playState;
+    }
+
+    public void handleTaskSuccess(String popupMessage) {
+        resetAllTaskState();
+        showBoxMessage(popupMessage, gp.screenWidth / 2 - gp.tileSize * 2, gp.screenHeight / 2 - gp.tileSize);
+        boxMessageOn = true;
+        messageCounter = 0;
+        messageDuration = 120;
+        try {
+            if (gp.player != null) {
+                int idx = gp.player.curTaskIndex;
+                if (idx >= 0 && idx < gp.player.tasksList.size()) {
+                    gp.player.tasksList.get(idx).setCompleted(true);
+                    if (idx >= 0 && idx < gp.tasks.length) gp.tasks[idx] = null;
+                }
+            }
+        } catch (Exception ignored) {}
+        gp.gameState = gp.playState;
     }
 
 

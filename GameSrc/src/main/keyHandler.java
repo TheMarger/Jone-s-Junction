@@ -6,8 +6,10 @@ import java.awt.event.KeyListener;
 public class keyHandler implements KeyListener {
     // gameplay flags (consumed by game code)
     public boolean upPressed, downPressed, leftPressed, rightPressed;
-    public boolean sprintPressed, crouchPressed, interactPressed, escapePressed, dropPressed, refreshPressed;
+    public boolean sprintPressed, crouchPressed, interactPressed, escapePressed, dropPressed, refreshPressed, enterPressed, backspacePressed, throwPressed; 
     public boolean onePressed, twoPressed, threePressed;
+    public char typedChar;
+    public boolean throwJustPressed = false;
 
     gamePanel gp;
 
@@ -55,6 +57,19 @@ public class keyHandler implements KeyListener {
             // do not set gameplay flags when on title screen
             return;
         }
+        
+        if (gp.gameState == gp.taskState) {
+			if (code == KeyEvent.VK_ENTER) {
+				enterPressed = true;
+			}
+			if (code == KeyEvent.VK_BACK_SPACE) {
+				backspacePressed = true;
+			}
+			if (code != KeyEvent.VK_ENTER && code != KeyEvent.VK_BACK_SPACE) {
+				typedChar = e.getKeyChar();
+			}
+			return;
+		}
 
         // ----- PLAY STATE: set gameplay flags (mapped to gp.keybinds) -----
         if (gp.gameState == gp.playState) {
@@ -79,6 +94,13 @@ public class keyHandler implements KeyListener {
             if (code == gp.keybinds[6]) {
             	interactPressed = true;
             }
+            if (code == gp.keybinds[7]) { // throw key
+                if (!throwPressed) {       // only mark just pressed on first frame
+                    throwJustPressed = true;
+                }
+                throwPressed = true;
+            }
+
 
             if (code == gp.keybinds[10]) {
 				onePressed = true;
@@ -115,10 +137,14 @@ public class keyHandler implements KeyListener {
 				gp.player.dropItem(gp.ui.slotRow);
 			}
             
-            if (code == KeyEvent.VK_B) {
+            if (code == KeyEvent.VK_M) {
 				refreshPressed = true;
 				gp.uTool.refreshMap();
 			}
+            
+            if (code ==KeyEvent.VK_T) {
+            	gp.uTool.refreshTasks();
+            }
 
             // allow ESC -> pause (game logic still happens in UI or gamePanel)
             if (code == KeyEvent.VK_ESCAPE) {
@@ -185,8 +211,10 @@ public class keyHandler implements KeyListener {
         	interactPressed = false;
         }
         if (code == gp.keybinds[7]) {
-			escapePressed = false;
-		}
+            throwPressed = false;
+            throwJustPressed = false; // reset
+        }
+
 		if (code == gp.keybinds[10]) {
 			onePressed = false;
 		}

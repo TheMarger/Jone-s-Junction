@@ -2,6 +2,14 @@ package main;
 
 import Item.*;
 import gaurd.*;
+import task.ButtonTask;
+import task.CookingTask;
+import task.FuseRepairTask;
+import task.LogicPanelTask;
+import task.MathTask;
+import task.RiddleTask;
+import task.Task;
+import task.VaultSequenceTask;
 import entity.*;
 
 public class AssetSetter {
@@ -16,6 +24,7 @@ public class AssetSetter {
 		setItem();
 		setNPC();
 		setGaurds();
+		setTasks();
 	}
 	
 	// in class AssetSetter
@@ -76,6 +85,14 @@ public class AssetSetter {
 	        it.worldY = gp.tileSize * 16;
 	        gp.items[slot] = it;
 	    }
+	    
+	    slot = gp.getEmptyItemSlot();
+	    if (slot != -1) {
+	        Item it = new Pebble(gp);
+	        it.worldX = gp.tileSize * 14;
+	        it.worldY = gp.tileSize * 19;
+	        gp.items[slot] = it;
+	    }
 	}
 
 	
@@ -103,4 +120,62 @@ public class AssetSetter {
 		gp.gaurds[1].worldY = gp.tileSize * 21;
 		
 	}
+	
+	public void setTasks() {
+
+        gp.player.tasksList.clear(); // clear existing tasks
+        for (int i = 0; i < gp.tasks.length; i++) {
+			gp.tasks[i] = null; // clear gamePanel's task array
+		}
+
+        int tasksToAdd = 2;
+
+        if (gp.level == 1) tasksToAdd = 2;
+        else if (gp.level == 2) tasksToAdd = 4;
+        else if (gp.level == 3) tasksToAdd = 6;
+        else if (gp.level >= 4) tasksToAdd = 8;
+
+        java.util.Random random = new java.util.Random();
+
+        for (int i = 0; i < tasksToAdd; i++) {
+
+            int choice = random.nextInt(8); // number of task types
+
+            Task task = null;
+
+            if (choice == 0) {
+                task = new MathTask(gp);
+            }
+            else if (choice == 1) {
+                task = new VaultSequenceTask(gp);
+            }
+            else if (choice == 2) {
+                task = new CookingTask(gp);
+            }
+            else if (choice == 3) {
+				task = new ButtonTask(gp);
+			}
+			else if (choice == 4) {
+				task = new LogicPanelTask(gp);
+			}
+			else if (choice == 5) {
+				task = new RiddleTask(gp);
+			}
+			else if (choice == 6) {
+				task = new FuseRepairTask(gp);
+			}
+			else if (choice == 7) {
+				task = new LogicPanelTask(gp);
+			}
+
+            if (task != null) {
+                gp.player.tasksList.add(task);
+                gp.tasks[i] = task; // also add to gamePanel's array for reference
+                gp.tasks[i].worldX = gp.tileSize * (10 + i); // example positioning
+                gp.tasks[i].worldY = gp.tileSize * (15 + i);
+                System.out.println("Added task: " + task.getName() + " at X: " + gp.tasks[i].worldX + " Y: " + gp.tasks[i].worldY);
+                
+            }
+        }
+    }
 }

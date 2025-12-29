@@ -29,7 +29,16 @@ public class TileManager {
 		tile = new tile[398];
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
-		loadMap("/maps/Level1Map.txt");
+		if (gp.level == 1) {
+			loadMap("/maps/Level1Map.txt");
+		} else if (gp.level == 2) {
+			loadMap("/maps/Level2Map.txt");
+		} else if (gp.level == 3) {
+			loadMap("/maps/Level3Map.txt");
+		} else if (gp.level == 4) {
+			loadMap("/maps/Level4Map.txt");
+		}
+
 	}
 	
 	public static void lockTile(int tileIndex) {

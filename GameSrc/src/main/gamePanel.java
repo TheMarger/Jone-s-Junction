@@ -35,24 +35,34 @@ public class gamePanel extends JPanel implements Runnable {
 	public int equippedSkinIndex = 0; // default
 	public String equippedSkin; // optional, just for readability
 	public int level = 1;
+	// mouse / selection state 
+	public int mouseX = 0, mouseY = 0;                  // last mouse coordinates on screen
+	public int hoveredTileCol = -1, hoveredTileRow = -1; // tile currently under mouse
+	public int selectedThrowCol = -1, selectedThrowRow = -1; // tile selected by click (throw target)
+
 	
 	// FPS
 	public final int FPS = 60;
 	
-	public String tasks[] = {
-			"Math Task",
-			"Cooking Task",
-			"Riddle Task",
-			"Shopping Task",
-			"Exercise Task"
-		};
-				
+	public Task tasks[] = new Task[10]; // max tasks
 		
 		// keybinds: 0=forward,1=back,2=left,3=right,4=sprint,5=crouch,6=interact,7=throw,8=drop
 		public int[] keybinds = new int[] {
 		    KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_A, KeyEvent.VK_D,
 		    KeyEvent.VK_SHIFT, KeyEvent.VK_CONTROL, KeyEvent.VK_E, KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_ESCAPE, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3
 		};
+		
+		public String forwardKey = KeyEvent.getKeyText(keybinds[0]);
+		public String backKey = KeyEvent.getKeyText(keybinds[1]);
+		public String leftKey = KeyEvent.getKeyText(keybinds[2]);
+		public String rightKey = KeyEvent.getKeyText(keybinds[3]);
+		public String sprintKey = KeyEvent.getKeyText(keybinds[4]);
+		public String crouchKey = KeyEvent.getKeyText(keybinds[5]);
+		public String interactKey = KeyEvent.getKeyText(keybinds[6]);
+		public String throwKey = KeyEvent.getKeyText(keybinds[7]);
+		public String dropKey = KeyEvent.getKeyText(keybinds[8]);
+		public String escapeKey = KeyEvent.getKeyText(keybinds[9]);
+		
 		
 		public final String[][][] skins = {
 		    {   // Rabbit
@@ -96,28 +106,19 @@ public class gamePanel extends JPanel implements Runnable {
 		    }
 		};
 	
-		public Item items[] = new Item[20]; // max objects on map
-		public entity npc[] = new entity[10];
-		public entity gaurds[] = new entity[20];
-		Sound music = new Sound();
-		Sound soundEffect = new Sound();
+	public Item items[] = new Item[20]; // max objects on map
+	public entity npc[] = new entity[10];
+	public entity gaurds[] = new entity[20];
+	Sound music = new Sound();
+	Sound soundEffect = new Sound();
 
-		public int gameState;
-		public final int titleState = 0;
-		public final int playState = 1;
-		public final int pauseState = 2;
-		public final int dialogueState = 3;
-		public final int deathState = 4;
-		
-		
-	/*public UtilityTool uTool = new UtilityTool(this);
-	public TileManager tileM = new TileManager(this);
-	public keyHandler keyH = new keyHandler(this);
-	public CollisionChecker cChecker = new CollisionChecker(this);
-	public AssetSetter aSetter = new AssetSetter(this);
-	public player player = new player(this, keyH);
-	public UserInterface ui = new UserInterface(this);
-	public EventHandler eHandler = new EventHandler(this);*/
+	public int gameState;
+	public final int titleState = 0;
+	public final int playState = 1;
+	public final int pauseState = 2;
+	public final int dialogueState = 3;
+	public final int deathState = 4;
+	public final int taskState = 5;
 		
 	public TileManager tileM;
 	public UtilityTool uTool;
@@ -137,6 +138,36 @@ public class gamePanel extends JPanel implements Runnable {
 	    setBackground(Color.black);
 	    setDoubleBuffered(true);
 	    setFocusable(true);
+	    
+		 // track mouse movement to update hovered tile
+		 addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+		     @Override
+		     public void mouseMoved(java.awt.event.MouseEvent e) {
+		         mouseX = e.getX();
+		         mouseY = e.getY();
+		         updateHoveredTile();
+		     }
+	
+		     @Override
+		     public void mouseDragged(java.awt.event.MouseEvent e) {
+		         mouseX = e.getX();
+		         mouseY = e.getY();
+		         updateHoveredTile();
+		     }
+		 });
+	
+		 // handle clicks to set the selected throw tile
+		 addMouseListener(new java.awt.event.MouseAdapter() {
+		     @Override
+		     public void mouseClicked(java.awt.event.MouseEvent e) {
+		         // only set selection while playing (optional tweak)
+		         if (gameState == playState) {
+		             // set selected target to the hovered tile (or clear if none)
+		             selectedThrowCol = hoveredTileCol;
+		             selectedThrowRow = hoveredTileRow;
+		         }
+		     }
+		 });
 
 	    keyH = new keyHandler(this);
 	    addKeyListener(keyH);
@@ -161,10 +192,16 @@ public class gamePanel extends JPanel implements Runnable {
 	    aSetter.setItem();
 	    aSetter.setNPC();
 	    aSetter.setGaurds();
-	    player.setTasks();
+	    aSetter.setTasks();
 
 	    if (player.level == 1) {
 	        tileM.loadMap("/maps/Level1Map.txt");
+	    } else if (player.level == 2) {
+	        tileM.loadMap("/maps/Level2Map.txt");
+	    } else if (player.level == 3) {
+	        tileM.loadMap("/maps/Level3Map.txt");
+	    } else if (player.level == 4) {
+	        tileM.loadMap("/maps/Level4Map.txt");
 	    }
 
 	    gameState = titleState;
@@ -225,11 +262,12 @@ public class gamePanel extends JPanel implements Runnable {
 				}
 			}
 			// Items
-			for (int i = 0; i < items.length; i++) {
+			for (int i = 0; i < items.length; i++) {			
 				if (items[i] != null) {
 					items[i].update();
 				}
 			}
+			
 			
 		}
 		if (gameState == pauseState) {
@@ -239,6 +277,9 @@ public class gamePanel extends JPanel implements Runnable {
 			
 		}
 		if (gameState == deathState) {
+			
+		}
+		if (gameState == taskState) {
 			
 		}
 	}
@@ -277,6 +318,13 @@ public class gamePanel extends JPanel implements Runnable {
 			for (int i = 0; i < items.length; i++) {
 				if (items[i] != null) {
 					items[i].draw(g2);
+				}
+			}
+			
+			//Draw tasks
+			for (int i = 0; i < tasks.length; i++) {
+				if (tasks[i] != null) {
+					tasks[i].draw(g2);
 				}
 			}
 			
@@ -335,4 +383,26 @@ public class gamePanel extends JPanel implements Runnable {
 		soundEffect.setVolume(0.65f);
 		soundEffect.play();
 	}
+	
+	public void updateHoveredTile() {
+	    // Convert mouse screen coords to world coords (invert your screenX calculation)
+	    if (player == null) return;
+	    int worldXAtMouse = mouseX + player.worldX - player.getScreenX();
+	    int worldYAtMouse = mouseY + player.worldY - player.getScreenY();
+
+	    // tile col/row under mouse
+	    int col = worldXAtMouse / tileSize;
+	    int row = worldYAtMouse / tileSize;
+
+	    // sanity check bounds
+	    if (col < 0 || col >= maxWorldCol || row < 0 || row >= maxWorldRow) {
+	        hoveredTileCol = -1;
+	        hoveredTileRow = -1;
+	    } else {
+	        hoveredTileCol = col;
+	        hoveredTileRow = row;
+	    }
+	}
+
+	
 }

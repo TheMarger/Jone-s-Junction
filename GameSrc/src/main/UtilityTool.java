@@ -75,4 +75,8 @@ public class UtilityTool {
 	public void refreshMap() {
 		gp.tileM.loadMap("/maps/Level1Map.txt");
 	}
+	
+	public void refreshTasks() {
+		gp.aSetter.setTasks();
+	}
 }

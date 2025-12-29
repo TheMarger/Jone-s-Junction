@@ -41,9 +41,9 @@ public class EventHandler {
 	public void checkEvent() {
 
 	    // Tile event
-	    if (hitTile(6, 19, "any")) {
-	        gp.player.tasksList.get(1).setCompleted(true);
-	    }
+	    //if (hitTile(6, 19, "any")) {
+	     //   gp.player.tasksList.get(1).setCompleted(true);
+	    //}
 	}
 
 	

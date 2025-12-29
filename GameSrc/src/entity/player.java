@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 import Item.*;
+import Item.Throwable;
 import main.UtilityTool;
 import main.gamePanel;
 import main.keyHandler;
@@ -33,12 +34,15 @@ public class player extends entity {
     public int equippedSkinIndex = 0;
     public int currentSkinIndex = 0;
     public String equippedSkin;
+    public int curTaskIndex;
+    public String curTaskName;
 
  	
     public boolean hasKey;
     public boolean hasBlueKey;
     public boolean hasRedKey;
     public boolean hasGreenKey;
+    public boolean hasPebble;
     int standCounter = 0;
     // torch ownership + last lit tile position
     public static boolean hasFlashlight = false;          // set true when player picks up a Torch item
@@ -83,61 +87,10 @@ public class player extends entity {
         setDefaultValues();
         getPlayerImage();
         setItems();
-        setTasks();
     }
     
     public void setItems() {
     	//inventory.add(new Flashlight(gp));
-    }
-    
-    public void setTasks() {
-
-        tasksList.clear();
-
-        int tasksToAdd = 2;
-
-        if (level == 1) tasksToAdd = 2;
-        else if (level == 2) tasksToAdd = 4;
-        else if (level == 3) tasksToAdd = 6;
-        else if (level >= 4) tasksToAdd = 8;
-
-        java.util.Random random = new java.util.Random();
-
-        for (int i = 0; i < tasksToAdd; i++) {
-
-            int choice = random.nextInt(8); // number of task types
-
-            Task task = null;
-
-            if (choice == 0) {
-                task = new MathTask(gp);
-            }
-            else if (choice == 1) {
-                task = new VaultSequenceTask(gp);
-            }
-            else if (choice == 2) {
-                task = new CookingTask(gp);
-            }
-            else if (choice == 3) {
-				task = new ButtonTask(gp);
-			}
-			else if (choice == 4) {
-				task = new LogicPanelTask(gp);
-			}
-			else if (choice == 5) {
-				task = new RiddleTask(gp);
-			}
-			else if (choice == 6) {
-				task = new FuseRepairTask(gp);
-			}
-			else if (choice == 7) {
-				task = new LogicPanelTask(gp);
-			}
-
-            if (task != null) {
-                tasksList.add(task);
-            }
-        }
     }
 
     
@@ -253,7 +206,7 @@ public class player extends entity {
         else walk();
 
         // ---------- torch (hold-to-light) ----------
-        if (keyH.interactPressed && hasFlashlight && gp.ui.selectedItem.equals("Flashlight")) {
+        if (keyH.interactPressed && hasFlashlight && gp.ui.selectedItem instanceof Flashlight) {
             interact("torch");
         } else if (lastPlayerCol != -1) {
             // turn off previously lit tiles when not holding interact
@@ -266,6 +219,15 @@ public class player extends entity {
             }
             lastPlayerCol = -1;
             lastPlayerRow = -1;
+        }
+        if (gp.keyH.throwJustPressed && gp.ui.selectedItem.getName().equals("Pebble") && hasPebble) {
+            interactThrow((Throwable) gp.ui.selectedItem);
+            gp.keyH.throwJustPressed = false; // consume the press
+        }
+		// ---------- update inventory items ----------
+        
+        for (Item item : inventory) {
+                item.update();
         }
 
         // ---------- clear interact prompt for this frame ----------
@@ -280,8 +242,9 @@ public class player extends entity {
                 if (dx != 0) {
                     int tile = gp.cChecker.getCollidingTile(this, dx, 0);
                     int npcIndex = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
+                    int taskIndex = gp.cChecker.checkTask(this, gp.tasks, dx, 0);
                     // treat guards as non-blocking here (we'll check hitboxes separately)
-                    if (tile == -1 && npcIndex == 999) {
+                    if (tile == -1 && npcIndex == 999 && taskIndex == 999) {
                         worldX += dx;
                         col = worldX / gp.tileSize;
                         moved = true;
@@ -293,7 +256,13 @@ public class player extends entity {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interact("exitVan");
                         break;
-                    } else {
+                    } else if (taskIndex != 999) {
+						gp.ui.showInteract();
+						curTaskIndex = taskIndex;
+						curTaskName = gp.tasks[taskIndex].getName();
+						if (keyH.interactPressed) interactTask(curTaskName);
+						break;
+					} else {
                         break;
                     }
                 }
@@ -302,7 +271,8 @@ public class player extends entity {
                 if (dy != 0) {
                     int tile = gp.cChecker.getCollidingTile(this, 0, dy);
                     int npcIndex = gp.cChecker.checkEntity(this, gp.npc, 0, dy);
-                    if (tile == -1 && npcIndex == 999) {
+                    int taskIndex = gp.cChecker.checkTask(this, gp.tasks, 0, dy);
+                    if (tile == -1 && npcIndex == 999 && taskIndex == 999) {
                         worldY += dy;
                         row = worldY / gp.tileSize;
                         moved = true;
@@ -314,6 +284,12 @@ public class player extends entity {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interact("exitVan");
                         break;
+                    } else if (taskIndex != 999) {
+                    	gp.ui.showInteract();
+                    	curTaskIndex = taskIndex;
+                    	curTaskName = gp.tasks[taskIndex].getName();
+                    	if (keyH.interactPressed) interactTask(curTaskName);
+                    	break;
                     } else {
                         break;
                     }
@@ -343,6 +319,7 @@ public class player extends entity {
 
             int collidedTile = gp.cChecker.getCollidingTile(this, checkX, checkY);
             int npcIndex = gp.cChecker.checkEntity(this, gp.npc, checkX, checkY);
+            int taskIndex = gp.cChecker.checkTask(this, gp.tasks, checkX, checkY);
 
             if (npcIndex != 999) {
                 gp.ui.showInteract();
@@ -350,12 +327,19 @@ public class player extends entity {
             } else if (collidedTile == 211 || collidedTile == 212) {
                 gp.ui.showInteract();
                 if (keyH.interactPressed) interact("exitVan");
-            }
+            } else if (taskIndex != 999) {
+				gp.ui.showInteract();
+				curTaskIndex = taskIndex;
+				curTaskName = gp.tasks[taskIndex].getName();
+				if (keyH.interactPressed) interactTask(curTaskName);
+			}
 
             // pick up items while standing
             int itemIndex = gp.cChecker.checkItem(this, true);
-            pickUpItem(itemIndex);
-
+            if (itemIndex != 999) {
+            	pickUpItem(itemIndex);
+            }
+            
             standCounter++;
             if (standCounter >= 20) {
                 spriteNum = 1;
@@ -388,7 +372,6 @@ public class player extends entity {
             }
         }
     }
-
 
 
 
@@ -472,6 +455,12 @@ public class player extends entity {
 		}
 	}
     
+    public void interactTask(String taskName) {
+    	System.out.println("Interacting with task: " + taskName);
+    	gp.gameState = gp.taskState;
+    }
+    
+    
     public void interactGaurd() {
     	gp.eHandler.playerDied();
     }
@@ -521,6 +510,11 @@ public class player extends entity {
                 hasFlashlight = true;
                 gp.playSoundEffect(3);
                 break;
+                
+            case "Pebble":
+            	hasPebble = true;
+            	gp.playSoundEffect(3);
+            	break;
 
             default:
                 return;
@@ -532,7 +526,25 @@ public class player extends entity {
         // ✅ REMOVE from world
         gp.items[index] = null;
     }
+    
+    public void interactThrow(Throwable throwable) {
+        // block if still cooling down
+        if (throwable.throwDelay > 0) return;
+        
+        if (gp.ui.showThrowRadius && gp.ui.activeThrowable == throwable) {
+            // Toggle OFF if clicking same throwable again
+            gp.ui.showThrowRadius = false;
+            gp.ui.activeThrowable = null;
 
+            gp.selectedThrowCol = -1;
+            gp.selectedThrowRow = -1;
+        } else {
+            // Toggle ON
+            gp.ui.activeThrowable = throwable;
+            gp.ui.showThrowRadius = true;
+            throwable.throwDelay = 60; // still useful for cooldown
+        }
+    }
 
 
     
@@ -595,7 +607,7 @@ public class player extends entity {
 
      // place in world
      gp.aSetter.placeItem(toDrop, worldX, worldY);
-     gp.ui.selectedItem = "";
+     gp.ui.selectedItem = null;
      gp.ui.slotRow = -1;
 
      // remove from inventory
