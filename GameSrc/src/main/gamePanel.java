@@ -34,7 +34,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public int currentItemIndex = 0;
 	public int equippedSkinIndex = 0; // default
 	public String equippedSkin; // optional, just for readability
-
+	public int level = 1;
 	
 	// FPS
 	public final int FPS = 60;
@@ -65,7 +65,7 @@ public class gamePanel extends JPanel implements Runnable {
 		    	//Boy
 		    	{"Boy"},
 		    	{"unlocked"},
-		        {"/player/boy_up_1.png", "/player/boy_up_1.png", "/player/boy_up_2.png", "/player/boy_down_1.png", "/player/boy_down_2.png", "/player/boy_right_1.png", "/player/boy_right_2.png", "/player/boy_left_1.png", "/player/boy_left_2.png"}
+		        {"/player/boy_down_1.png", "/player/boy_up_1.png", "/player/boy_up_2.png", "/player/boy_down_1.png", "/player/boy_down_2.png", "/player/boy_right_1.png", "/player/boy_right_2.png", "/player/boy_left_1.png", "/player/boy_left_2.png"}
 		    },
 		    
 		    {  
@@ -95,55 +95,83 @@ public class gamePanel extends JPanel implements Runnable {
 		        {"/assets/Marv.png"},
 		    }
 		};
+	
+		public Item items[] = new Item[20]; // max objects on map
+		public entity npc[] = new entity[10];
+		public entity gaurds[] = new entity[20];
+		Sound music = new Sound();
+		Sound soundEffect = new Sound();
+
+		public int gameState;
+		public final int titleState = 0;
+		public final int playState = 1;
+		public final int pauseState = 2;
+		public final int dialogueState = 3;
+		public final int deathState = 4;
 		
-	public UtilityTool uTool = new UtilityTool(this);
+		
+	/*public UtilityTool uTool = new UtilityTool(this);
 	public TileManager tileM = new TileManager(this);
 	public keyHandler keyH = new keyHandler(this);
 	public CollisionChecker cChecker = new CollisionChecker(this);
 	public AssetSetter aSetter = new AssetSetter(this);
 	public player player = new player(this, keyH);
-	public Item items[] = new Item[20]; // max objects on map
-	public entity npc[] = new entity[10];
-	public entity gaurds[] = new entity[20];
-	Sound music = new Sound();
-	Sound soundEffect = new Sound();
 	public UserInterface ui = new UserInterface(this);
-	public EventHandler eHandler = new EventHandler(this);
+	public EventHandler eHandler = new EventHandler(this);*/
+		
+	public TileManager tileM;
+	public UtilityTool uTool;
+	public keyHandler keyH;
+	public CollisionChecker cChecker;
+	public AssetSetter aSetter;
+	public player player;
+	public UserInterface ui;
+	public EventHandler eHandler;
+	
 	Thread gameThread;
-
-	public int gameState;
-	public final int titleState = 0;
-	public final int playState = 1;
-	public final int pauseState = 2;
-	public final int dialogueState = 3;
-	public final int deathState = 4;
 	
 	
 	public gamePanel() {
-		this.setPreferredSize(new Dimension(screenWidth, screenHeight));
-		this.setBackground(Color.black);
-		this.setDoubleBuffered(true);
-		this.addKeyListener(keyH);
-		this.setFocusable(true);
+
+	    setPreferredSize(new Dimension(screenWidth, screenHeight));
+	    setBackground(Color.black);
+	    setDoubleBuffered(true);
+	    setFocusable(true);
+
+	    keyH = new keyHandler(this);
+	    addKeyListener(keyH);
+
+	    System.out.println("gamePanel constructed");
 	}
+
 	
 	public void setupGame() {
-		aSetter.setItem();
-		aSetter.setNPC();
-		aSetter.setGaurds();
-		
-		if (player.level == 1) {
-			tileM.loadMap("/maps/Level1Map.txt");
-		} else if (player.level == 2) {
-			tileM.loadMap("/maps/Level2Map.txt");
-		} else if (player.level == 3) {
-			tileM.loadMap("/maps/Level3Map.txt");
-		} else if (player.level == 4) {
-			tileM.loadMap("/maps/Level4Map.txt");
-		} 
-	
-		gameState = titleState; 
+
+	    System.out.println("setupGame started");
+
+	    uTool = new UtilityTool(this);
+	    tileM = new TileManager(this);
+	    cChecker = new CollisionChecker(this);
+	    aSetter = new AssetSetter(this);
+
+	    player = new player(this, keyH);
+	    ui = new UserInterface(this);
+	    eHandler = new EventHandler(this);
+
+	    aSetter.setItem();
+	    aSetter.setNPC();
+	    aSetter.setGaurds();
+	    player.setTasks();
+
+	    if (player.level == 1) {
+	        tileM.loadMap("/maps/Level1Map.txt");
+	    }
+
+	    gameState = titleState;
+
+	    System.out.println("setupGame finished");
 	}
+
 	
 	public void startGameThread() {
 		gameThread = new Thread(this);
@@ -216,29 +244,21 @@ public class gamePanel extends JPanel implements Runnable {
 	}
 	
 	public void resetGame(boolean restartFromTitle) {
-
-	    // --- CLEAR ALL WORLD STATE ---
-		for (int i = 0; i < items.length; i++) {
-	        items[i] = null;
-	    }        // removes dropped items
-	    player.clearInventory();     // clear inventory
-	    player.setDefaultValues();   // reset flags (keys, flashlight, etc.)
-
+	    // Clear world objects, reset player, map, etc.
+	    for (int i = 0; i < items.length; i++) items[i] = null;
+	    player.clearInventory();
+	    player.setDefaultValues();
 	    tileM.resetMap();
 
-	    // --- RESPAWN CONTENT ---
-	    aSetter.setNPC();
+	    // Respawn items / NPCs but **do not create a new gamePanel**
 	    aSetter.setItem();
+	    aSetter.setNPC();
 	    aSetter.setGaurds();
-	    player.setDefaultValues();
-
-	    if (restartFromTitle) {
-	        gameState = titleState;
-	    } else {
-	        playMusic(0);
-	        gameState = playState;
-	    }
+	    
+	    if (restartFromTitle) gameState = titleState;
+	    else gameState = playState;
 	}
+
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);

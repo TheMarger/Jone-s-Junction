@@ -105,19 +105,34 @@ public class player extends entity {
 
         for (int i = 0; i < tasksToAdd; i++) {
 
-            int choice = random.nextInt(3); // number of task types
+            int choice = random.nextInt(8); // number of task types
 
             Task task = null;
 
             if (choice == 0) {
-                task = new MathTask("Complete the math challenge.");
+                task = new MathTask(gp);
             }
             else if (choice == 1) {
-                task = new Task("Solve the riddle.");
+                task = new VaultSequenceTask(gp);
             }
             else if (choice == 2) {
-                task = new CookingTask("Finish the cooking task.");
+                task = new CookingTask(gp);
             }
+            else if (choice == 3) {
+				task = new ButtonTask(gp);
+			}
+			else if (choice == 4) {
+				task = new LogicPanelTask(gp);
+			}
+			else if (choice == 5) {
+				task = new RiddleTask(gp);
+			}
+			else if (choice == 6) {
+				task = new FuseRepairTask(gp);
+			}
+			else if (choice == 7) {
+				task = new LogicPanelTask(gp);
+			}
 
             if (task != null) {
                 tasksList.add(task);
@@ -185,7 +200,7 @@ public class player extends entity {
         crouchSpeed = 2;
         speed = walkSpeed;
         direction = "down";
-        level = 1;
+        level = gp.level;
 
         getPlayerImage(); // load images for current skin
     }
@@ -444,7 +459,7 @@ public class player extends entity {
 			gp.ui.levelFinished = true;
 			gp.stopMusic();
 			gp.playSoundEffect(2);
-			level++;
+			gp.level++;
 			gp.resetGame(false);
 		}
 

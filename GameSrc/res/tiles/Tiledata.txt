@@ -385,7 +385,7 @@ true
 192.png
 true
 193.png
-false
+true
 194.png
 true
 195.png
@@ -437,7 +437,7 @@ true
 218.png
 true
 219.png
-false
+true
 220.png
 false
 221.png
@@ -453,7 +453,7 @@ true
 226.png
 true
 227.png
-false
+true
 228.png
 true
 229.png

@@ -87,6 +87,10 @@ public class AssetSetter {
 		gp.npc[1] = new BillyGoat(gp);
 		gp.npc[1].worldX = gp.tileSize * 6;
 		gp.npc[1].worldY = gp.tileSize * 15;
+		
+		gp.npc[2] = new OldManJone(gp);
+		gp.npc[2].worldX = gp.tileSize * 1;
+		gp.npc[2].worldY = gp.tileSize * 40;
 	}
 	
 	public void setGaurds() {
