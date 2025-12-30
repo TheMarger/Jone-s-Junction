@@ -86,9 +86,6 @@ public class player extends entity {
         equippedSkinIndex = gp.equippedSkinIndex;
         equippedSkin = gp.equippedSkin;
         
-        inventory.add(new redKey(gp));
-        inventory.add(new blueKey(gp));
-        
         isAlive = true;
 
         setDefaultValues();
