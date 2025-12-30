@@ -38,21 +38,27 @@ public class keyHandler implements KeyListener {
             // Navigation keys for titles/menus (UI will consume these flags)
             if (code == KeyEvent.VK_W)    {
             	gp.ui.uiUp = true;
+            	gp.playSoundEffect(5);
             }
             if (code == KeyEvent.VK_S)  {
             	gp.ui.uiDown = true;
+            	gp.playSoundEffect(5);
             }
             if (code == KeyEvent.VK_A)  {
             	gp.ui.uiLeft = true;
+            	gp.playSoundEffect(5);
             }
             if (code == KeyEvent.VK_D) {
             	gp.ui.uiRight = true;
+            	gp.playSoundEffect(5);
             }
             if (code == KeyEvent.VK_ENTER) {
             	gp.ui.uiConfirm = true;
+            	gp.playSoundEffect(5);
             }
             if (code == KeyEvent.VK_ESCAPE) {
             	gp.ui.uiBack = true;
+            	gp.playSoundEffect(5);
             }
             // do not set gameplay flags when on title screen
             return;

@@ -12,7 +12,7 @@ public class Tray extends Throwable {
         super(gp);
         name = "Tray";
         allowedRadiusTiles = 3;     
-        throwSoundIndex = 3;         
+        throwSoundIndex = 7;         
         sizeX = 32;
         sizeY = 32;
          try {

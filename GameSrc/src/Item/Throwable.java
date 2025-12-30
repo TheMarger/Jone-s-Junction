@@ -9,7 +9,7 @@ public class Throwable extends Item {
     public int allowedRadiusTiles = 8;
 
     // Sound index to play when thrown 
-    protected int throwSoundIndex = -1;
+    public int throwSoundIndex = -1;
     
     public int throwDelay = 0;
 

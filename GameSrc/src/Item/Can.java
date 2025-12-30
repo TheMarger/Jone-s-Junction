@@ -12,7 +12,7 @@ public class Can extends Throwable {
         super(gp);
         name = "Can";
         allowedRadiusTiles = 4;     
-        throwSoundIndex = 3;         
+        throwSoundIndex = 5;         
         sizeX = 28;
         sizeY = 28;
          try {

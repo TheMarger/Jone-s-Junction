@@ -299,6 +299,8 @@ public class gamePanel extends JPanel implements Runnable {
 	    aSetter.setTasks();
 	    
 	    ui.levelFinished = false;
+	    ui.slotRow = -1;
+	    ui.selectedItem = null;
 	    
 	    if (restartFromTitle) gameState = titleState;
 	    else gameState = playState;

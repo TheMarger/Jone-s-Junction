@@ -16,6 +16,17 @@ public class AssetSetter {
 
 	gamePanel gp;
 	
+	int[][][] TaskLocations = new int[][][] {
+		// Level 1 Tasks
+		{ {62,2550}, {1563,1715}, {2434,1015}, {1921,893} },
+		// Level 2 Tasks
+		{ {10,15}, {12,18}, {14,20}, {16,22} },
+		// Level 3 Tasks
+		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26} },
+		// Level 4 Tasks
+		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} }
+	};
+	
 	public AssetSetter(gamePanel gp) {
 		this.gp = gp;
 	}
@@ -145,10 +156,6 @@ public class AssetSetter {
 		gp.npc[1] = new BillyGoat(gp);
 		gp.npc[1].worldX = gp.tileSize * 6;
 		gp.npc[1].worldY = gp.tileSize * 15;
-		
-		gp.npc[2] = new OldManJone(gp);
-		gp.npc[2].worldX = gp.tileSize * 1;
-		gp.npc[2].worldY = gp.tileSize * 40;
 	}
 	
 	public void setGaurds() {
@@ -181,6 +188,27 @@ public class AssetSetter {
         for (int i = 0; i < tasksToAdd; i++) {
 
             int choice = random.nextInt(8); // number of task types
+            
+            while (true) {
+				boolean alreadyAssigned = false;
+				for (Task t : gp.player.tasksList) {
+					if ((choice == 0 && t instanceof MathTask) ||
+						(choice == 1 && t instanceof VaultSequenceTask) ||
+						(choice == 2 && t instanceof CookingTask) ||
+						(choice == 3 && t instanceof ButtonTask) ||
+						(choice == 4 && t instanceof LogicPanelTask) ||
+						(choice == 5 && t instanceof RiddleTask) ||
+						(choice == 6 && t instanceof FuseRepairTask)) {
+						alreadyAssigned = true;
+						break;
+					}
+				}
+				if (!alreadyAssigned) {
+					break; // unique task type found
+				}
+				choice = random.nextInt(8); // pick another
+			}
+            
 
             Task task = null;
 
@@ -208,12 +236,33 @@ public class AssetSetter {
 			else if (choice == 7) {
 				task = new LogicPanelTask(gp);
 			}
+            choice = random.nextInt(TaskLocations[gp.level - 1].length);
+            
+            // check if location is already taken
+            while (true) {
+            	boolean locationTaken = false;
+            	int x = TaskLocations[gp.level - 1][choice][0];
+            	int y = TaskLocations[gp.level - 1][choice][1];
+            	for (Task t : gp.player.tasksList) {
+					if (t.worldX == x && t.worldY == y) {
+						locationTaken = true;
+						break;
+					}
+				}
+            	if (!locationTaken) {
+					break; // unique location found
+				}
+				choice = random.nextInt(TaskLocations[gp.level - 1].length);
+            }
+            
+            int x = TaskLocations[gp.level - 1][choice][0];
+            int y = TaskLocations[gp.level - 1][choice][1];
 
             if (task != null) {
                 gp.player.tasksList.add(task);
-                gp.tasks[i] = task; // also add to gamePanel's array for reference
-                gp.tasks[i].worldX = gp.tileSize * (10 + i); // example positioning
-                gp.tasks[i].worldY = gp.tileSize * (15 + i);
+                gp.tasks[i] = task; 
+                gp.tasks[i].worldX = x; // example positioning
+                gp.tasks[i].worldY = y;
                 System.out.println("Added task: " + task.getName() + " at X: " + gp.tasks[i].worldX + " Y: " + gp.tasks[i].worldY);
                 
             }

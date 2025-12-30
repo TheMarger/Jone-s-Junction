@@ -2,6 +2,7 @@ package main; // package this class belongs to
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.text.DecimalFormat;
@@ -158,7 +159,7 @@ public class UserInterface {
     public int keybindSelectedIndex = 0;
     public final String[] keybindActionNames = {"Move Forward","Move Backward","Move Left","Move Right","Sprint","Crouch","Interact","Throw Item","Drop Item"};
 
-    public int slotRow = 0;
+    public int slotRow = -1;
     public Item selectedItem;
 
     public UserInterface(gamePanel gp) {
@@ -384,14 +385,38 @@ public class UserInterface {
                 if (selectedItem.getName().equals("Flashlight")) {
                     String[] options = { "[" + gp.interactKey + "] Use", "["+ gp.dropKey +"] Drop" };
                     drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+                    
+                    String[] description = {"Type: Tool", "Illuminate dark areas."};
+                    drawSubWindow(gp.tileSize * 11, gp.tileSize * 3, description, 20);
+                    
                 } else if (selectedItem instanceof Food) {
 					String[] options = { "[" + gp.interactKey + "] Eat", "[" + gp.throwKey + "] Throw" , "[" + gp.dropKey + "] Drop" };
 					drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+					Food food = (Food) selectedItem;
+					String[] description = {"Type: Food", "Restores " + ((int) (food.restoreValue*100)) +"% stamina when eaten", "Sound value if thrown: Low"};
+					drawSubWindow(gp.tileSize * 11, gp.tileSize * 3, description, 20);
 				} 
                 else if (selectedItem instanceof Throwable) {
                 	String[] options = {"["+gp.throwKey+"] Throw", "["+ gp.dropKey +"] Drop" };
                 	drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
-                }
+                	
+                	Throwable throwable = (Throwable) selectedItem;
+                	String[] description = {
+                		    "Type: Throwable",
+                		    "Can be thrown to distract guards",
+                		    "Sound value if thrown: " +
+                		        (throwable.throwSoundIndex == 3 ? "Low" :
+                		         throwable.throwSoundIndex == 5 ? "Med" :
+                		         throwable.throwSoundIndex == 7 ? "High" : "Unknown"),
+                		    "Allowed Throw Radius: " + throwable.getAllowedRadiusTiles() + " tiles."
+                		};
+                	drawSubWindow(gp.tileSize * 11, gp.tileSize * 3, description, 20);
+                } else if (selectedItem instanceof Key) {
+					String[] options = { "[" + gp.dropKey + "] Drop" };
+					drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+					String[] description = {"Type: Key", "Unlock doors of matching color."};
+					drawSubWindow(gp.tileSize * 11, gp.tileSize * 3, description, 20);
+				}
                 else {
                 	String[] options = { "[" + gp.dropKey + "] Drop" };
     				drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
@@ -1745,26 +1770,61 @@ public class UserInterface {
             return;
         }
 
-        // Render single-line riddle: shrink font until it fits
-        int maxQW = panelW - gp.tileSize * 3;
+        // -----------------------------
+        // QUESTION RENDERING (ROBUST)
+        // -----------------------------
+        // Define question area (top portion of panel)
+        int questionAreaX = panelX + gp.tileSize / 2;
+        int questionAreaY = panelY + gp.tileSize / 2;
+        int questionAreaW = panelW - gp.tileSize;
+        int questionAreaH = panelH / 2; // use top half for question
+
+        // Attempt single-line with shrinking font first
+        int maxQW = questionAreaW - gp.tileSize; // inner padding
         float fsize = gp.tileSize * 0.9f;
+        float minSize = gp.tileSize * 0.35f;
         Font qF = g2.getFont().deriveFont(Font.PLAIN, fsize);
         FontMetrics qfm = g2.getFontMetrics(qF);
         int qW = qfm.stringWidth(riddleQuestion);
-        float minSize = gp.tileSize * 0.35f;
+
         while (qW > maxQW && fsize > minSize) {
             fsize -= 1.5f;
             qF = g2.getFont().deriveFont(Font.PLAIN, fsize);
             qfm = g2.getFontMetrics(qF);
             qW = qfm.stringWidth(riddleQuestion);
         }
+
         g2.setFont(qF);
         g2.setColor(new Color(30,20,50));
-        int qx = panelX + (panelW - qW) / 2;
-        int qy = panelY + gp.tileSize * 2 + qfm.getAscent()/2;
-        g2.drawString(riddleQuestion, qx, qy);
 
+        if (qW <= maxQW) {
+            // single-line fits: center it inside questionArea
+            int drawX = questionAreaX + (questionAreaW - qW) / 2;
+            int drawY = questionAreaY + (questionAreaH / 2) + (qfm.getAscent() / 2);
+            g2.drawString(riddleQuestion, drawX, drawY);
+        } else {
+            // still too wide even at minSize -> wrap into multiple lines
+            Font wrapFont = g2.getFont().deriveFont(Font.PLAIN, minSize);
+            FontMetrics wfm = g2.getFontMetrics(wrapFont);
+            java.util.List<String> wrapped = wrapText(riddleQuestion, wfm, maxQW);
+
+            // compute total height and start Y to center vertically in questionArea
+            int lineH = wfm.getHeight();
+            int totalH = wrapped.size() * lineH;
+            int startY = questionAreaY + (questionAreaH - totalH) / 2 + wfm.getAscent();
+
+            g2.setFont(wrapFont);
+            for (String line : wrapped) {
+                int lw = wfm.stringWidth(line);
+                int lx = questionAreaX + (questionAreaW - lw) / 2;
+                g2.drawString(line, lx, startY);
+                startY += lineH;
+            }
+        }
+
+        // -----------------------------
         // label + input box
+        // -----------------------------
         Font labelFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
         g2.setFont(labelFont);
         g2.setColor(new Color(70,60,40));
@@ -1882,6 +1942,7 @@ public class UserInterface {
         g2.drawRoundRect(barX, barY, textWidth, barH, barH, barH);
     }
 
+
     // ------------------------ HELPERS ------------------------
 
     private boolean isPunctuation(char c) {
@@ -1967,11 +2028,9 @@ public class UserInterface {
         // ===========================
         if (levelFinished) {
 
-            // full black background
             g2.setColor(Color.black);
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-            // title
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));
             g2.setColor(Color.white);
             FontMetrics fm = g2.getFontMetrics();
@@ -1981,23 +2040,19 @@ public class UserInterface {
             int titleY = gp.screenHeight / 2 - fm.getHeight();
             g2.drawString(title, titleX, titleY);
 
-            // dialogue text (centered)
             g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24f));
             fm = g2.getFontMetrics();
 
             String text = currentDialogue != null ? currentDialogue : "";
             String[] lines = text.split("\n");
 
-            int totalH = lines.length * fm.getHeight();
-            int startY = gp.screenHeight / 2 + fm.getAscent();
-
+            int y = gp.screenHeight / 2 + fm.getAscent();
             for (String line : lines) {
                 int x = gp.screenWidth / 2 - fm.stringWidth(line) / 2;
-                g2.drawString(line, x, startY);
-                startY += fm.getHeight();
+                g2.drawString(line, x, y);
+                y += fm.getHeight();
             }
 
-            // hint
             g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18f));
             g2.setColor(new Color(200, 200, 200));
             String hint = "Press ENTER to continue";
@@ -2024,7 +2079,7 @@ public class UserInterface {
             g2.fillRoundRect(x + i, y + i, width, height, radius, radius);
         }
 
-        // background gradient
+        // background
         GradientPaint bg = new GradientPaint(
                 x, y, new Color(20, 26, 32, 235),
                 x, y + height, new Color(36, 44, 52, 235)
@@ -2039,7 +2094,7 @@ public class UserInterface {
         g2.setStroke(new BasicStroke(2f));
         g2.drawRoundRect(x, y, width, height, radius, radius);
 
-        // header bar
+        // header
         int headerH = gp.tileSize;
         GradientPaint header = new GradientPaint(
                 x, y, new Color(90, 140, 255, 220),
@@ -2052,7 +2107,6 @@ public class UserInterface {
         g2.setPaint(oldPaint);
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20f));
         g2.setColor(Color.white);
-        
 
         String speaker = (currentDialogueSpeaker != null && !currentDialogueSpeaker.isEmpty())
                 ? currentDialogueSpeaker
@@ -2064,27 +2118,67 @@ public class UserInterface {
                 y + headerH / 2 + g2.getFontMetrics().getAscent() / 2
         );
 
-        // portrait placeholder
+        // ===========================
+        // PORTRAIT (NPC SPRITE)
+        // ===========================
         int portraitSize = gp.tileSize;
         int portraitX = x + padding;
         int portraitY = y + headerH + padding / 2;
 
-        g2.setColor(new Color(45, 52, 60, 220));
-        g2.fillOval(portraitX, portraitY, portraitSize, portraitSize);
-        g2.setColor(new Color(255, 255, 255, 60));
-        g2.drawOval(portraitX, portraitY, portraitSize, portraitSize);
+        BufferedImage portrait = null;
 
-        // initials
-        if (!speaker.isEmpty()) {
-            String initials = "" + speaker.charAt(0);
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 22f));
-            FontMetrics pfm = g2.getFontMetrics();
-            int ix = portraitX + (portraitSize - pfm.stringWidth(initials)) / 2;
-            int iy = portraitY + (portraitSize + pfm.getAscent()) / 2 - 4;
-            g2.drawString(initials, ix, iy);
+        if (gp.npc != null) {
+            for (int i = 0; i < gp.npc.length; i++) {
+                if (gp.npc[i] == null) continue;
+
+                if (gp.npc[i].name != null &&
+                    gp.npc[i].name.equalsIgnoreCase(speaker)) {
+
+                    if (gp.npc[i].down1 != null) portrait = gp.npc[i].down1;
+                    else if (gp.npc[i].down1 != null) portrait = gp.npc[i].down1;
+                    break;
+                }
+            }
         }
 
-        // text area
+        if (portrait != null) {
+            Shape oldClip = g2.getClip();
+            Ellipse2D circle = new Ellipse2D.Float(
+                    portraitX, portraitY, portraitSize, portraitSize
+            );
+            g2.setClip(circle);
+
+            int iw = portrait.getWidth();
+            int ih = portrait.getHeight();
+            double scale = portraitSize / (double)Math.max(iw, ih);
+            int dw = (int)(iw * scale);
+            int dh = (int)(ih * scale);
+
+            int dx = portraitX + (portraitSize - dw) / 2;
+            int dy = portraitY + (portraitSize - dh) / 2;
+
+            g2.drawImage(portrait, dx, dy, dw, dh, null);
+            g2.setClip(oldClip);
+
+            g2.setColor(new Color(255, 255, 255, 80));
+            g2.drawOval(portraitX, portraitY, portraitSize, portraitSize);
+        } else {
+            g2.setColor(new Color(45, 52, 60, 220));
+            g2.fillOval(portraitX, portraitY, portraitSize, portraitSize);
+            g2.setColor(new Color(255, 255, 255, 60));
+            g2.drawOval(portraitX, portraitY, portraitSize, portraitSize);
+
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 22f));
+            FontMetrics pfm = g2.getFontMetrics();
+            String init = speaker.substring(0, 1);
+            int ix = portraitX + (portraitSize - pfm.stringWidth(init)) / 2;
+            int iy = portraitY + (portraitSize + pfm.getAscent()) / 2 - 4;
+            g2.drawString(init, ix, iy);
+        }
+
+        // ===========================
+        // DIALOGUE TEXT
+        // ===========================
         int textX = portraitX + portraitSize + 18;
         int textY = portraitY + 6;
         int textW = width - (textX - x) - padding;
@@ -2092,28 +2186,30 @@ public class UserInterface {
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20f));
         g2.setColor(new Color(230, 230, 230));
 
-        String text = currentDialogue != null ? currentDialogue : "";
-        java.util.List<String> lines = wrapText(text, g2.getFontMetrics(), textW);
+        String dialogue = currentDialogue != null ? currentDialogue : "";
+        java.util.List<String> lines = wrapText(dialogue, g2.getFontMetrics(), textW);
 
-        int lineH = g2.getFontMetrics().getHeight();
+        int lh = g2.getFontMetrics().getHeight();
         for (String line : lines) {
             g2.drawString(line, textX, textY + g2.getFontMetrics().getAscent());
-            textY += lineH;
+            textY += lh;
         }
 
         // continue arrow
-        boolean blink = ((System.currentTimeMillis() / 500) % 2) == 0;
-        if (blink) {
+        if ((System.currentTimeMillis() / 500) % 2 == 0) {
             int ax = x + width - padding - 14;
             int ay = y + height - padding - 10;
-            int[] px = { ax, ax + 10, ax };
-            int[] py = { ay - 6, ay, ay + 6 };
             g2.setColor(new Color(200, 220, 255));
-            g2.fillPolygon(px, py, 3);
+            g2.fillPolygon(
+                    new int[]{ax, ax + 10, ax},
+                    new int[]{ay - 6, ay, ay + 6},
+                    3
+            );
         }
 
         g2.setStroke(new BasicStroke(1f));
     }
+
 
     
     // drawSubWindow: helper that renders a rounded black translucent panel with white border
