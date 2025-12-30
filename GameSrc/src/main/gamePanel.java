@@ -39,7 +39,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public int mouseX = 0, mouseY = 0;                  // last mouse coordinates on screen
 	public int hoveredTileCol = -1, hoveredTileRow = -1; // tile currently under mouse
 	public int selectedThrowCol = -1, selectedThrowRow = -1; // tile selected by click (throw target)
-
+	public boolean mouseClicked = false;               // flag to indicate a click occurred
 	
 	// FPS
 	public final int FPS = 60;
@@ -165,6 +165,7 @@ public class gamePanel extends JPanel implements Runnable {
 		             // set selected target to the hovered tile (or clear if none)
 		             selectedThrowCol = hoveredTileCol;
 		             selectedThrowRow = hoveredTileRow;
+		             mouseClicked = true; // flag for one-time processing
 		         }
 		     }
 		 });

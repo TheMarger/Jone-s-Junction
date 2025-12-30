@@ -6,17 +6,17 @@ import javax.imageio.ImageIO;
 
 import main.gamePanel;
 
-public class Pebble extends Throwable {
+public class Can extends Throwable {
 
-    public Pebble(gamePanel gp) {
+    public Can(gamePanel gp) {
         super(gp);
-        name = "Pebble";
-        allowedRadiusTiles = 6;     
+        name = "Can";
+        allowedRadiusTiles = 4;     
         throwSoundIndex = 3;         
         sizeX = 28;
         sizeY = 28;
          try {
-			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/items/Sphere.png")), sizeX, sizeY);
+			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/items/Soda Can.png")), sizeX, sizeY);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

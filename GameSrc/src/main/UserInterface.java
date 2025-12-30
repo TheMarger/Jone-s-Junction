@@ -383,7 +383,11 @@ public class UserInterface {
                 if (selectedItem.getName().equals("Flashlight")) {
                     String[] options = { "[" + gp.interactKey + "] Use", "["+ gp.dropKey +"] Drop" };
                     drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
-                } else if (selectedItem.getName().equals("Pebble")) {
+                } else if (selectedItem instanceof Food) {
+					String[] options = { "[" + gp.interactKey + "] Eat", "[" + gp.throwKey + "] Throw" , "[" + gp.dropKey + "] Drop" };
+					drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
+				} 
+                else if (selectedItem instanceof Throwable) {
                 	String[] options = {"["+gp.throwKey+"] Throw", "["+ gp.dropKey +"] Drop" };
                 	drawSubWindow(gp.tileSize / 2, gp.tileSize * 6, options, 28);
                 }
@@ -447,6 +451,75 @@ public class UserInterface {
 
         // outline the hovered tile with a highlighted border
         if (gp.hoveredTileCol >= 0 && gp.hoveredTileRow >= 0) {
+            int dxH = gp.hoveredTileCol - playerCol;
+            int dyH = gp.hoveredTileRow - playerRow;
+            double distH = Math.sqrt(dxH * dxH + dyH * dyH);
+
+            if (distH <= radiusTiles + 0.0001) {
+                // strong highlight for hovered tile inside range
+                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 1f));
+                g2.setStroke(new java.awt.BasicStroke(3f));
+                g2.setColor(new java.awt.Color(220, 220, 50)); // yellow-ish outline
+                int screenX = gp.hoveredTileCol * gp.tileSize - gp.player.worldX + gp.player.getScreenX();
+                int screenY = gp.hoveredTileRow * gp.tileSize - gp.player.worldY + gp.player.getScreenY();
+                g2.drawRect(screenX + 1, screenY + 1, gp.tileSize - 2, gp.tileSize - 2);
+            } else {
+                // hovered out-of-range: dim outline (optional)
+                g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 0.9f));
+                g2.setStroke(new java.awt.BasicStroke(2f));
+                g2.setColor(new java.awt.Color(140, 140, 140));
+                int screenX = gp.hoveredTileCol * gp.tileSize - gp.player.worldX + gp.player.getScreenX();
+                int screenY = gp.hoveredTileRow * gp.tileSize - gp.player.worldY + gp.player.getScreenY();
+                g2.drawRect(screenX + 1, screenY + 1, gp.tileSize - 2, gp.tileSize - 2);
+            }
+        }
+
+        // outline the selected tile (from mouse click) — only if inside range draw as "selectable"
+        if (gp.selectedThrowCol >= 0 && gp.selectedThrowRow >= 0) {
+            int dxS = gp.selectedThrowCol - playerCol;
+            int dyS = gp.selectedThrowRow - playerRow;
+            double distS = Math.sqrt(dxS * dxS + dyS * dyS);
+
+            int sX = gp.selectedThrowCol * gp.tileSize - gp.player.worldX + gp.player.getScreenX();
+            int sY = gp.selectedThrowRow * gp.tileSize - gp.player.worldY + gp.player.getScreenY();
+
+            // only draw selection if it's on-screen
+            if (!(sX + gp.tileSize < 0 || sX > gp.screenWidth || sY + gp.tileSize < 0 || sY > gp.screenHeight)) {
+                if (distS <= radiusTiles + 0.0001) {
+                    g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 1f));
+                    g2.setStroke(new java.awt.BasicStroke(3f));
+                    g2.setColor(new java.awt.Color(80, 200, 100)); // green outline for selected target
+                    g2.drawRect(sX + 1, sY + 1, gp.tileSize - 2, gp.tileSize - 2);
+
+                    if (gp.mouseClicked) {
+                        gp.player.throwItem(activeThrowable, gp.selectedThrowCol, gp.selectedThrowRow);
+
+                        // consume click and close the throw UI
+                        gp.mouseClicked = false;
+                        showThrowRadius = false;
+                        activeThrowable = null;
+                        gp.selectedThrowCol = -1;
+                        gp.selectedThrowRow = -1;
+                        selectedItem = null;
+                    }
+                } else {
+                    // selected out-of-range: show a dim/red outline to indicate invalid target
+                    g2.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, 1f));
+                    g2.setStroke(new java.awt.BasicStroke(3f));
+                    g2.setColor(new java.awt.Color(200, 80, 80)); // red outline for invalid selection
+                    g2.drawRect(sX + 1, sY + 1, gp.tileSize - 2, gp.tileSize - 2);
+                }
+            }
+        }
+
+        // restore
+        g2.setComposite(oldComp);
+        g2.setStroke(oldStroke);
+    
+	
+
+        // outline the hovered tile with a highlighted border
+        if (gp.hoveredTileCol >= 0 && gp.hoveredTileRow >= 0) {
             // check if hovered is inside radius — if not, draw it but in a dim color (optional)
             int dxH = gp.hoveredTileCol - playerCol;
             int dyH = gp.hoveredTileRow - playerRow;
@@ -484,11 +557,19 @@ public class UserInterface {
         // restore
         g2.setComposite(oldComp);
         g2.setStroke(oldStroke);
+        
+        // Show text hint
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F));
+        String hint = "Click within radius to throw";
+        int hintWidth = g2.getFontMetrics().stringWidth(hint);
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRoundRect((gp.screenWidth - hintWidth) / 2 - 10, gp.screenHeight - gp.tileSize - 40, hintWidth + 20, 40, 10, 10);
+        g2.setColor(Color.white);
+        g2.drawString(hint, (gp.screenWidth - hintWidth) / 2, gp.screenHeight - gp.tileSize - 15);
+        
     }
 
 
-    // This method contains all UI logic and consumes UI flags from keyHandler.
-    // It handles menu navigation, sub-screens, and keybind assignment.
     public void handleInput() {
         // If we are waiting for a key to bind and a key has been captured, handle it first
         if (awaitingKeybind && capturedKeyPressed) {

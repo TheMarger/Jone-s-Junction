@@ -93,6 +93,47 @@ public class AssetSetter {
 	        it.worldY = gp.tileSize * 19;
 	        gp.items[slot] = it;
 	    }
+	    
+	    slot = gp.getEmptyItemSlot();
+	    if (slot != -1) {
+	        Item it = new Can(gp);
+	        it.worldX = gp.tileSize * 10;
+	        it.worldY = gp.tileSize * 20;
+	        gp.items[slot] = it;
+	    }
+	    
+	    slot = gp.getEmptyItemSlot();
+	    if (slot != -1) {
+	        Item it = new Tray(gp);
+	        it.worldX = gp.tileSize * 11;
+	        it.worldY = gp.tileSize * 20;
+	        gp.items[slot] = it;
+	    }
+	    
+	    slot = gp.getEmptyItemSlot();
+	    if (slot != -1) {
+	        Item it = new Apple(gp);
+	        it.worldX = gp.tileSize * 12;
+	        it.worldY = gp.tileSize * 20;
+	        gp.items[slot] = it;
+	    }
+	    
+	    slot = gp.getEmptyItemSlot();
+	    if (slot != -1) {
+	        Item it = new Bread(gp);
+	        it.worldX = gp.tileSize * 13;
+	        it.worldY = gp.tileSize * 20;
+	        gp.items[slot] = it;
+	    }
+	    
+	    slot = gp.getEmptyItemSlot();
+	    if (slot != -1) {
+	        Item it = new ProteinBar(gp);
+	        it.worldX = gp.tileSize * 14;
+	        it.worldY = gp.tileSize * 20;
+	        gp.items[slot] = it;
+	    }
+	    
 	}
 
 	

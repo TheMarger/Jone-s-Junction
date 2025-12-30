@@ -43,6 +43,11 @@ public class player extends entity {
     public boolean hasRedKey;
     public boolean hasGreenKey;
     public boolean hasPebble;
+    public boolean hasCan;
+    public boolean hasTray;
+    public boolean hasApple;
+    public boolean hasBread;
+    public boolean hasProteinBar;
     int standCounter = 0;
     // torch ownership + last lit tile position
     public static boolean hasFlashlight = false;          // set true when player picks up a Torch item
@@ -220,10 +225,24 @@ public class player extends entity {
             lastPlayerCol = -1;
             lastPlayerRow = -1;
         }
-        if (gp.keyH.throwJustPressed && gp.ui.selectedItem.getName().equals("Pebble") && hasPebble) {
+        if (gp.keyH.throwJustPressed && gp.ui.selectedItem instanceof Throwable) {
             interactThrow((Throwable) gp.ui.selectedItem);
             gp.keyH.throwJustPressed = false; // consume the press
         }
+        
+        if (gp.keyH.interactPressed && gp.ui.selectedItem instanceof Food) {
+			// find index of selected food in inventory
+			int foodIndex = -1;
+			for (int i = 0; i < inventory.size(); i++) {
+				if (inventory.get(i) == gp.ui.selectedItem) {
+					foodIndex = i;
+					break;
+				}
+			}
+			consumeItem(foodIndex);
+			gp.keyH.interactPressed = false; // consume the press
+		}
+        
 		// ---------- update inventory items ----------
         
         for (Item item : inventory) {
@@ -515,7 +534,28 @@ public class player extends entity {
             	hasPebble = true;
             	gp.playSoundEffect(3);
             	break;
-
+            	
+            case "Can":
+            	hasCan = true;
+				gp.playSoundEffect(3);
+				break;
+            case "Tray":
+            	hasTray = true;
+            	gp.playSoundEffect(3);
+            	break;
+            case "Apple":
+            	hasApple = true;
+				gp.playSoundEffect(3);
+				break;
+			case "Bread":
+				hasBread = true;
+				gp.playSoundEffect(3);
+				break;
+			case "Protein Bar":
+				hasProteinBar = true;	
+				gp.playSoundEffect(3);
+				break;
+				
             default:
                 return;
         }
@@ -545,9 +585,121 @@ public class player extends entity {
             throwable.throwDelay = 60; // still useful for cooldown
         }
     }
-
-
     
+    public void throwItem(Throwable throwable, int targetCol, int targetRow) {
+        if (throwable == null) return;
+        if (targetCol < 0 || targetRow < 0) return;
+
+        // check target bounds
+        if (targetCol >= gp.maxWorldCol || targetRow >= gp.maxWorldRow) {
+            gp.ui.showMessage("Invalid target");
+            return;
+        }
+
+        // ensure target within allowed radius
+        int playerCol = worldX / gp.tileSize;
+        int playerRow = worldY / gp.tileSize;
+        int dx = targetCol - playerCol;
+        int dy = targetRow - playerRow;
+        double dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist > throwable.getAllowedRadiusTiles() + 0.0001) {
+            gp.ui.showMessage("Target out of range");
+            return;
+        }
+
+        // find the throwable instance in the player's inventory
+        int invIndex = -1;
+        for (int i = 0; i < inventory.size(); i++) {
+            Item it = inventory.get(i);
+            if (it == throwable || (it.getName() != null && it.getName().equals(throwable.getName()))) {
+                invIndex = i;
+                break;
+            }
+        }
+
+        if (invIndex == -1) {
+            gp.ui.showMessage("No throwable in inventory");
+            return;
+        }
+
+        // find an empty world slot to place the thrown item
+        int worldSlot = gp.getEmptyItemSlot();
+        if (worldSlot == -1) {
+            gp.ui.showMessage("World is full, can't throw");
+            return;
+        }
+
+        // prepare the item to place in the world (we reuse the same Item instance)
+        Item toPlace = inventory.get(invIndex);
+
+        // set placement coordinates (top-left of tile)
+        toPlace.worldX = targetCol * gp.tileSize;
+        toPlace.worldY = targetRow * gp.tileSize;
+
+        // prevent immediate re-pickup
+        toPlace.pickupDelay = 60;
+
+        // if the item supports throwDelay, set it
+        try {
+            throwable.throwDelay = 60;
+            if (toPlace instanceof Throwable) ((Throwable) toPlace).throwDelay = 60;
+        } catch (Exception ignored) {}
+
+        // put item into world and remove from inventory
+        gp.items[worldSlot] = toPlace;
+        inventory.remove(invIndex);
+
+        // update player flags for common throwable types
+        String name = toPlace.getName();
+        if (name != null) {
+            if (name.equalsIgnoreCase("Pebble")) hasPebble = false;
+        }
+
+        // close throw UI and clear selection
+        gp.ui.showThrowRadius = false;
+        gp.ui.activeThrowable = null;
+        gp.selectedThrowCol = -1;
+        gp.selectedThrowRow = -1;
+
+        // small feedback sound
+        try { gp.playSoundEffect(6); } catch (Exception ignored) {}
+    }
+    
+    public void consumeItem(int index) {
+		if (index < 0 || index >= inventory.size()) return;
+		Item item = inventory.get(index);
+		if (item == null) return;
+
+		String name = item.getName();
+		if (name == null) return;
+
+		switch (name) {
+			case "Apple":
+				hasApple = false;
+				gp.playSoundEffect(5); 
+				break;
+			case "Bread":
+				hasBread = false;
+				gp.playSoundEffect(5); // eating sound
+				break;
+			case "Protein Bar":
+				hasProteinBar = false;
+				gp.playSoundEffect(5); // eating sound
+				break;
+			default:
+				return; // not consumable
+		}
+		if (stamina >= maxStamina) {
+			gp.ui.showBoxMessage("Stamina full!");
+			return;
+		}
+		stamina += maxStamina * (((Food) item).getRestoreValue());
+
+		// remove from inventory
+		inventory.remove(index);
+		gp.ui.selectedItem = null;
+	}
+
     public void dropItem(int index) {
 
         System.out.println("Attempting to drop item at index: " + index);
@@ -595,6 +747,25 @@ public class player extends entity {
             TileManager.lockTile(204);
             TileManager.lockTile(205);
         }
+        
+        if (original instanceof Pebble) {
+			hasPebble = false;
+		}
+        
+        if (original instanceof Can) {
+			hasCan = false;
+		}
+        
+        if (original instanceof Tray) {
+        	hasTray = false;
+        }
+        
+        if (original instanceof Throwable) {
+        	 gp.ui.showThrowRadius = false;
+             gp.ui.activeThrowable = null;
+             gp.selectedThrowCol = -1;
+             gp.selectedThrowRow = -1;
+		}
 
         Item toDrop = original;
 
