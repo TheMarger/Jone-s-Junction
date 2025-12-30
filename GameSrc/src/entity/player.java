@@ -85,13 +85,16 @@ public class player extends entity {
         sprintStaminaCost = 20f; // 10 stamina per second while sprinting
         equippedSkinIndex = gp.equippedSkinIndex;
         equippedSkin = gp.equippedSkin;
-
+        
+        inventory.add(new redKey(gp));
+        inventory.add(new blueKey(gp));
         
         isAlive = true;
 
         setDefaultValues();
         getPlayerImage();
         setItems();
+        setDialogues();
     }
     
     public void setItems() {
@@ -120,7 +123,9 @@ public class player extends entity {
 
     public void unlockSkin(int index) {
         if (index < 0 || index >= unlockedSkins.length) return;
+        System.out.println("trying to unlock skin: " + gp.skins[index][0][0]);
         unlockedSkins[index] = true;
+        gp.skins[index][1][0] = "unlocked";
     }
 
 
@@ -159,7 +164,8 @@ public class player extends entity {
         speed = walkSpeed;
         direction = "down";
         level = gp.level;
-
+        stamina = maxStamina;
+        
         getPlayerImage(); // load images for current skin
     }
 
@@ -458,19 +464,45 @@ public class player extends entity {
 	        lastPlayerRow = playerRow;
 	    }
         if ("exitVan".equals(item)) {
-			gp.ui.levelFinished = true;
+        	levelUp();
 			gp.stopMusic();
 			gp.playSoundEffect(2);
-			gp.level++;
-			gp.resetGame(false);
+			gp.gameState = gp.dialogueState;
+			speak();
 		}
 
     }
     
+    public void levelUp() {
+    	switch (level) {
+    		case 1:
+    		unlockSkin(5); // unlock BillyGoat skin
+    		break;
+    	}
+    	gp.ui.levelFinished = true;
+		gp.level++;
+    	
+	}
+    
+    public void setDialogues() {
+    	switch (gp.level) {
+    	case 1:
+			dialogues[0] = "Gaurd: Payload delivery to the warehouse \n Attendant: All clear, you may proceed.\n\n\nCompleted Level 1!\n You have unlocked the BillyGoat skin.";
+			break;    		
+    	}
+
+	}
+    
+    public void speak() {
+		super.speak();
+    }
+    
     public void interactNPC(int index) {
 		if (index != 999) {
+			gp.ui.currentDialogueSpeaker = gp.npc[index].name;
 			gp.gameState = gp.dialogueState;
 			gp.npc[index].speak();
+			
 		}
 	}
     
@@ -809,23 +841,6 @@ public class player extends entity {
         }
 
         g2.drawImage(image, screenX, screenY, null);
-
-        // DEBUG HITBOX
-        g2.setColor(new Color(0, 255, 0, 120));
-        g2.fillRect(
-            screenX + solidArea.x,
-            screenY + solidArea.y,
-            solidArea.width,
-            solidArea.height
-        );
-
-        g2.setColor(Color.GREEN);
-        g2.drawRect(
-            screenX + solidArea.x,
-            screenY + solidArea.y,
-            solidArea.width,
-            solidArea.height
-        );
         
         gp.uTool.showPlayerPosition(g2, worldX, worldY, row, col);
     }

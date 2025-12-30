@@ -9,6 +9,7 @@ public class OldManJone extends entity {
 		this.isMoving = false;
 		this.direction = "down";
 		this.speed = walkSpeed;
+		name = "Old Man Jone";
 
 		getImage();
 		setDialogues();

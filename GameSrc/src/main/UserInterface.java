@@ -141,6 +141,7 @@ public class UserInterface {
     DecimalFormat df = new DecimalFormat("#0.00");
 
     public String currentDialogue = "";
+    public String currentDialogueSpeaker = "";
 
     // UI input flags (set by keyHandler)
     public boolean uiUp = false;
@@ -1959,24 +1960,161 @@ public class UserInterface {
     	
     }
 
-    // Draw a dialogue window with multi-line text
     public void drawDialogueScreen() {
-        int x = gp.tileSize * 2; // left padding
-        int y = gp.tileSize * 6; // top padding
-        int width = gp.screenWidth - (gp.tileSize * 4); // width of the dialogue box
-        int height = gp.tileSize * 4; // height of the dialogue box
 
-        drawSubWindow(x, y, width, height); // draw panel background and border
+        // ===========================
+        // LEVEL COMPLETE – CINEMATIC
+        // ===========================
+        if (levelFinished) {
 
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller dialogue font
-        x += gp.tileSize; // inner padding
-        y += gp.tileSize; // inner padding
+            // full black background
+            g2.setColor(Color.black);
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-        for (String line : currentDialogue.split("\n")) { // split by newline and draw each line
-            g2.drawString(line, x, y);
-            y += 40; // line spacing
+            // title
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48f));
+            g2.setColor(Color.white);
+            FontMetrics fm = g2.getFontMetrics();
+
+            String title = "LEVEL COMPLETE";
+            int titleX = gp.screenWidth / 2 - fm.stringWidth(title) / 2;
+            int titleY = gp.screenHeight / 2 - fm.getHeight();
+            g2.drawString(title, titleX, titleY);
+
+            // dialogue text (centered)
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24f));
+            fm = g2.getFontMetrics();
+
+            String text = currentDialogue != null ? currentDialogue : "";
+            String[] lines = text.split("\n");
+
+            int totalH = lines.length * fm.getHeight();
+            int startY = gp.screenHeight / 2 + fm.getAscent();
+
+            for (String line : lines) {
+                int x = gp.screenWidth / 2 - fm.stringWidth(line) / 2;
+                g2.drawString(line, x, startY);
+                startY += fm.getHeight();
+            }
+
+            // hint
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18f));
+            g2.setColor(new Color(200, 200, 200));
+            String hint = "Press ENTER to continue";
+            int hx = gp.screenWidth / 2 - g2.getFontMetrics().stringWidth(hint) / 2;
+            g2.drawString(hint, hx, gp.screenHeight - gp.tileSize);
+
+            return;
         }
+
+        // ===========================
+        // NORMAL DIALOGUE PANEL
+        // ===========================
+
+        int x = gp.tileSize * 2;
+        int y = gp.tileSize * 6;
+        int width = gp.screenWidth - gp.tileSize * 4;
+        int height = gp.tileSize * 4;
+        int radius = 22;
+        int padding = gp.tileSize / 2;
+
+        // shadow
+        for (int i = 6; i >= 1; i--) {
+            g2.setColor(new Color(0, 0, 0, 20));
+            g2.fillRoundRect(x + i, y + i, width, height, radius, radius);
+        }
+
+        // background gradient
+        GradientPaint bg = new GradientPaint(
+                x, y, new Color(20, 26, 32, 235),
+                x, y + height, new Color(36, 44, 52, 235)
+        );
+        Paint oldPaint = g2.getPaint();
+        g2.setPaint(bg);
+        g2.fillRoundRect(x, y, width, height, radius, radius);
+
+        // border
+        g2.setPaint(oldPaint);
+        g2.setColor(new Color(255, 255, 255, 50));
+        g2.setStroke(new BasicStroke(2f));
+        g2.drawRoundRect(x, y, width, height, radius, radius);
+
+        // header bar
+        int headerH = gp.tileSize;
+        GradientPaint header = new GradientPaint(
+                x, y, new Color(90, 140, 255, 220),
+                x + width, y, new Color(90, 220, 200, 220)
+        );
+        g2.setPaint(header);
+        g2.fillRoundRect(x + 4, y + 4, width - 8, headerH, radius / 2, radius / 2);
+
+        // speaker name
+        g2.setPaint(oldPaint);
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 20f));
+        g2.setColor(Color.white);
+        
+
+        String speaker = (currentDialogueSpeaker != null && !currentDialogueSpeaker.isEmpty())
+                ? currentDialogueSpeaker
+                : "Dialogue";
+
+        g2.drawString(
+                speaker,
+                x + padding,
+                y + headerH / 2 + g2.getFontMetrics().getAscent() / 2
+        );
+
+        // portrait placeholder
+        int portraitSize = gp.tileSize;
+        int portraitX = x + padding;
+        int portraitY = y + headerH + padding / 2;
+
+        g2.setColor(new Color(45, 52, 60, 220));
+        g2.fillOval(portraitX, portraitY, portraitSize, portraitSize);
+        g2.setColor(new Color(255, 255, 255, 60));
+        g2.drawOval(portraitX, portraitY, portraitSize, portraitSize);
+
+        // initials
+        if (!speaker.isEmpty()) {
+            String initials = "" + speaker.charAt(0);
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 22f));
+            FontMetrics pfm = g2.getFontMetrics();
+            int ix = portraitX + (portraitSize - pfm.stringWidth(initials)) / 2;
+            int iy = portraitY + (portraitSize + pfm.getAscent()) / 2 - 4;
+            g2.drawString(initials, ix, iy);
+        }
+
+        // text area
+        int textX = portraitX + portraitSize + 18;
+        int textY = portraitY + 6;
+        int textW = width - (textX - x) - padding;
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 20f));
+        g2.setColor(new Color(230, 230, 230));
+
+        String text = currentDialogue != null ? currentDialogue : "";
+        java.util.List<String> lines = wrapText(text, g2.getFontMetrics(), textW);
+
+        int lineH = g2.getFontMetrics().getHeight();
+        for (String line : lines) {
+            g2.drawString(line, textX, textY + g2.getFontMetrics().getAscent());
+            textY += lineH;
+        }
+
+        // continue arrow
+        boolean blink = ((System.currentTimeMillis() / 500) % 2) == 0;
+        if (blink) {
+            int ax = x + width - padding - 14;
+            int ay = y + height - padding - 10;
+            int[] px = { ax, ax + 10, ax };
+            int[] py = { ay - 6, ay, ay + 6 };
+            g2.setColor(new Color(200, 220, 255));
+            g2.fillPolygon(px, py, 3);
+        }
+
+        g2.setStroke(new BasicStroke(1f));
     }
+
     
     // drawSubWindow: helper that renders a rounded black translucent panel with white border
     public void drawSubWindow(int x, int y, int width, int height) {

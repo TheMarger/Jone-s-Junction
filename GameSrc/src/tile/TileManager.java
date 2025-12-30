@@ -152,7 +152,7 @@ public class TileManager {
 	        	// Draw the tile
 	        	
 	        	g2.drawImage(tile[tileNum].getImage(), screenX, screenY, gp.tileSize, gp.tileSize, null);
-	        	gp.uTool.showTileNumber(g2, screenX, screenY, tileNum);
+	        	//gp.uTool.showTileNumber(g2, screenX, screenY, tileNum);
 
 	        }
 	        

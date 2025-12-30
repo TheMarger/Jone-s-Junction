@@ -296,6 +296,9 @@ public class gamePanel extends JPanel implements Runnable {
 	    aSetter.setItem();
 	    aSetter.setNPC();
 	    aSetter.setGaurds();
+	    aSetter.setTasks();
+	    
+	    ui.levelFinished = false;
 	    
 	    if (restartFromTitle) gameState = titleState;
 	    else gameState = playState;
@@ -349,7 +352,7 @@ public class gamePanel extends JPanel implements Runnable {
 			for (int i = 0; i < gaurds.length; i++) {
 			    if (gaurds[i] != null) {
 			    	gaurds[i].draw(g2);
-			    	uTool.drawEntityHitbox(g2, gaurds[i]);
+			    	//uTool.drawEntityHitbox(g2, gaurds[i]);
 			    }
 			}
 			

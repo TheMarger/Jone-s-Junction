@@ -5,7 +5,7 @@ import main.gamePanel;
 public class BillyGoat extends entity {
 	public BillyGoat(gamePanel gp) {
 		super(gp);
-
+		name = "Billy Goat";
 		this.isMoving = false;
 		this.speed = walkSpeed;
 		this.direction = "down";

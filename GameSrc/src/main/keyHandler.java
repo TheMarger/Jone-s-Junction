@@ -163,14 +163,27 @@ public class keyHandler implements KeyListener {
 
         if (gp.gameState == gp.dialogueState) {
             if (code == KeyEvent.VK_ENTER) {
-                gp.gameState = gp.playState;
-                upPressed = true;      // small convenience to advance player
-                interactPressed = true;
+            	if (gp.ui.levelFinished) {
+            		gp.resetGame(false);
+            	} else {
+	                enterPressed = true;   // simple boolean — draw() will handle the logic
+	                upPressed = true;  // prevent stuck key issue
+	                interactPressed = true;
+	                gp.gameState = gp.playState;
+            	}
+                
             }
             if (code == KeyEvent.VK_ESCAPE) {
-                upPressed = false;
-                interactPressed = false;
-                gp.gameState = gp.playState;
+            	if (gp.ui.levelFinished) {
+            		return; // ignore during level complete
+            	} else {
+	                escapePressed = true;  // draw() will handle cancel behavior
+	                upPressed = false;
+	                interactPressed = false;
+	                gp.gameState = gp.playState;
+            	}
+      
+                
             }
         }
         if (gp.gameState == gp.deathState) {
