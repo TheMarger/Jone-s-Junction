@@ -36,6 +36,26 @@ public class UserInterface {
     String colorName = "white";
     public boolean showThrowRadius = false;
     public Throwable activeThrowable;
+    
+    // Tile select task variables
+    private boolean tileSelectGenerated = false;
+
+    private static final int TS_GRID = 6; // 6x6
+    private static final int TS_FLASH_COUNT = 6;
+
+    private int tsCellSize;
+    private int tsGridX, tsGridY;
+
+    private boolean[][] tsPattern = new boolean[TS_GRID][TS_GRID];
+    private boolean[][] tsSelected = new boolean[TS_GRID][TS_GRID];
+
+    private int tsPhase = 0; // 0=flash, 1=blank pause, 2=input, 3=feedback
+    private int tsFlashFrames = (int) (3.0 * 60);
+    private int tsBlankFrames = (int) (2.0 * 60); // 120 frames
+    private int tsTimer = 0;
+
+    private boolean tsResult = false;
+
 
     // task / math variables
     private boolean taskGenerated = false;
@@ -312,6 +332,7 @@ public class UserInterface {
                 switch (gp.player.curTaskName) {
                     case "Math Task" -> drawMathTask();
                     case "Riddle Task" -> drawRiddleTask();
+                    case "Tile Select Task" -> drawTileSelectTask();
                     // other task types fall back to math or can be added
                     default -> drawMathTask();
                 }
@@ -1205,6 +1226,241 @@ public class UserInterface {
 		
 	}
     
+ // ------------------------------------- TILE SELECT TASK SCREEN -------------------------------------
+    public void drawTileSelectTask() {
+
+		// overlay
+		g2.setColor(new Color(0, 0, 0, 160));
+		g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+		// panel
+		int panelW = gp.tileSize * 10;
+		int panelH = gp.tileSize * 8;
+		int panelX = (gp.screenWidth - panelW) / 2;
+		int panelY = (gp.screenHeight - panelH) / 2;
+
+		// shadow
+		int shadowOffset = gp.tileSize / 10;
+		g2.setColor(new Color(0, 0, 0, 120));
+		g2.fillRoundRect(panelX + shadowOffset, panelY + shadowOffset, panelW, panelH, 24, 24);
+
+		// main panel
+		g2.setColor(new Color(30, 30, 30, 220));
+		g2.fillRoundRect(panelX, panelY, panelW, panelH, 24, 24);
+		g2.setColor(new Color(255, 255, 255, 70));
+		g2.setStroke(new BasicStroke(2f));
+		g2.drawRoundRect(panelX, panelY, panelW, panelH, 24, 24);
+
+		// title
+		g2.setFont(g2.getFont().deriveFont(Font.BOLD, 42f));
+		g2.setColor(Color.white);
+		g2.drawString("Tile Select", panelX + gp.tileSize / 2, panelY + gp.tileSize);
+
+		// grid placement
+		tsCellSize = gp.tileSize;
+		int gridPixel = TS_GRID * tsCellSize;
+		tsGridX = gp.screenWidth / 2 - gridPixel / 2;
+		tsGridY = panelY + gp.tileSize * 2;
+
+		// cooldow
+		if (taskCooldownFrames > 0) {
+
+			int s = (taskCooldownFrames + 59) / 60;
+
+			g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28f));
+			String t = "Tasks locked. Try again in " + s + "s";
+			int x = gp.screenWidth / 2 - g2.getFontMetrics().stringWidth(t) / 2;
+			int y = gp.screenHeight / 2;
+
+			g2.setColor(Color.lightGray);
+			g2.drawString(t, x, y);
+
+			gp.mouseClicked = false;
+			gp.keyH.enterPressed = false;
+			gp.keyH.typedChar = 0;
+			gp.keyH.backspacePressed = false;
+
+			//escape handler already handles escape
+			return;
+		}
+		if (!tileSelectGenerated) {
+
+			// clear grids
+			for (int r = 0; r < TS_GRID; r++) {
+				for (int c = 0; c < TS_GRID; c++) {
+					tsPattern[r][c] = false;
+					tsSelected[r][c] = false;
+				}
+			}
+
+			// pick 6 random tiles
+			int placed = 0;
+			while (placed < TS_FLASH_COUNT) {
+				int r = (int) (Math.random() * TS_GRID);
+				int c = (int) (Math.random() * TS_GRID);
+				if (!tsPattern[r][c]) {
+					tsPattern[r][c] = true;
+					placed++;
+				}
+			}
+
+			tsPhase = 0; // 0=flash, 1=blank, 2=input, 3=feedback
+			tsTimer = tsFlashFrames;
+			tsResult = false;
+
+			tileSelectGenerated = true;
+		}
+
+		//  phase timing
+		if (tsPhase == 0) { // flash
+			tsTimer--;
+			if (tsTimer <= 0) {
+				tsPhase = 1;
+				tsTimer = tsBlankFrames;
+			}
+		} else if (tsPhase == 1) { // blank pause
+			tsTimer--;
+			if (tsTimer <= 0) {
+				tsPhase = 2; // input
+			}
+		}
+
+		//instructions
+		g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22f));
+		g2.setColor(new Color(220, 220, 220));
+
+		String instr = "";
+		if (tsPhase == 0) instr = "Memorize the 6 tiles...";
+		else if (tsPhase == 1) instr = "Wait...";
+		else if (tsPhase == 2) instr = "Click the 6 tiles, then press ENTER to submit.";
+		else instr = "Press ENTER to continue";
+
+		g2.drawString(instr, panelX + gp.tileSize / 2, panelY + gp.tileSize + 40);
+
+		// draw grid
+		for (int r = 0; r < TS_GRID; r++) {
+			for (int c = 0; c < TS_GRID; c++) {
+
+				int x = tsGridX + c * tsCellSize;
+				int y = tsGridY + r * tsCellSize;
+
+				// base tile
+				g2.setColor(new Color(60, 60, 60, 220));
+				g2.fillRoundRect(x, y, tsCellSize, tsCellSize, 8, 8);
+
+				// show flash tiles only during phase 0
+				if (tsPhase == 0 && tsPattern[r][c]) {
+					g2.setColor(new Color(240, 220, 80, 230));
+					g2.fillRoundRect(x, y, tsCellSize, tsCellSize, 8, 8);
+				}
+
+				// show selected tiles during input
+				if (tsPhase == 2 && tsSelected[r][c]) {
+					g2.setColor(new Color(120, 220, 140, 220));
+					g2.fillRoundRect(x, y, tsCellSize, tsCellSize, 8, 8);
+				}
+
+				// outline
+				g2.setColor(new Color(255, 255, 255, 90));
+				g2.drawRoundRect(x, y, tsCellSize, tsCellSize, 8, 8);
+			}
+		}
+
+		// input phase
+		if (tsPhase == 2) {
+
+			// handle mouse 
+			if (gp.mouseClicked) {
+				gp.mouseClicked = false; // consume click
+
+				int mx = gp.mouseX;
+				int my = gp.mouseY;
+
+				// inside grid
+				if (mx >= tsGridX && mx < tsGridX + TS_GRID * tsCellSize &&
+					my >= tsGridY && my < tsGridY + TS_GRID * tsCellSize) {
+
+					int col = (mx - tsGridX) / tsCellSize;
+					int row = (my - tsGridY) / tsCellSize;
+
+					// toggle selection
+					tsSelected[row][col] = !tsSelected[row][col];}
+			}
+
+			// count selected
+			int selectedCount = 0;
+			for (int r = 0; r < TS_GRID; r++) {
+				for (int c = 0; c < TS_GRID; c++) {
+					if (tsSelected[r][c]) selectedCount++;
+				}
+			}
+
+			// show selected count
+			g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 16f));
+			g2.setColor(new Color(200, 200, 200, 170));
+			String countText = "Selected: " + selectedCount + " / " + TS_FLASH_COUNT;
+			int cx = panelX + gp.tileSize / 2;
+			int cy = panelY + panelH - gp.tileSize / 2;
+			g2.drawString(countText, cx, cy);
+
+			// ENTER submits only when 6 selected 
+			if (selectedCount == TS_FLASH_COUNT && gp.keyH.enterPressed) {
+				gp.keyH.enterPressed = false;
+
+				boolean ok = true;
+				for (int r = 0; r < TS_GRID; r++) {
+					for (int c = 0; c < TS_GRID; c++) {
+						if (tsSelected[r][c] != tsPattern[r][c]) {
+							ok = false;
+							break;
+						}
+					}
+					if (!ok) break;
+				}
+
+				tsResult = ok;
+				tsPhase = 3; // feedback
+			}
+
+			// eat enter if pressed early 
+			if (gp.keyH.enterPressed && selectedCount != TS_FLASH_COUNT) {
+				gp.keyH.enterPressed = false;}
+		}
+
+		//feedback pase
+		if (tsPhase == 3) {
+
+			g2.setFont(g2.getFont().deriveFont(Font.BOLD, 36f));
+			String msg = tsResult ? "Correct!" : "Incorrect!";
+			g2.setColor(tsResult ? new Color(120, 220, 140) : new Color(240, 120, 120));
+
+			int mx = gp.screenWidth / 2 - g2.getFontMetrics().stringWidth(msg) / 2;
+			int my = panelY + panelH - gp.tileSize;
+			g2.drawString(msg, mx, my);
+
+			g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22f));
+			g2.setColor(new Color(220, 220, 220));
+			String hint = "Press ENTER to continue";
+			int hx = gp.screenWidth / 2 - g2.getFontMetrics().stringWidth(hint) / 2;
+			g2.drawString(hint, hx, my + 30);
+
+			if (gp.keyH.enterPressed) {
+				gp.keyH.enterPressed = false;
+
+				// reset generator so next entry generates a new pattern)
+				tileSelectGenerated = false;
+
+				if (tsResult) {
+					handleTaskSuccess("Task Completed!");
+				} else {
+					handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+							"Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+				}
+			}
+		}
+	}
+	
+    
     // ------------------------ DRAW MATH TASK ------------------------
     public void drawMathTask() {
 
@@ -1967,6 +2223,16 @@ public class UserInterface {
         riddleAnswerCorrect = false;
         riddleTimerFrames = 0;
         riddleTimeLimitFrames = 0;
+        // tile select
+        tileSelectGenerated = false;
+        tsPhase = 0;
+        tsTimer = 0;
+        tsResult = false;
+        for (int r = 0; r < TS_GRID; r++)
+            for (int c = 0; c < TS_GRID; c++) {
+                tsPattern[r][c] = false;
+                tsSelected[r][c] = false;
+            }
     }
 
     public void handleTaskFailed(int cooldownSeconds, String popupMessage) {

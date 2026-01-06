@@ -161,7 +161,7 @@ public class gamePanel extends JPanel implements Runnable {
 		     @Override
 		     public void mouseClicked(java.awt.event.MouseEvent e) {
 		         // only set selection while playing (optional tweak)
-		         if (gameState == playState) {
+		         if (gameState == playState || gameState == taskState) {
 		             // set selected target to the hovered tile (or clear if none)
 		             selectedThrowCol = hoveredTileCol;
 		             selectedThrowRow = hoveredTileRow;

@@ -9,6 +9,7 @@ import task.LogicPanelTask;
 import task.MathTask;
 import task.RiddleTask;
 import task.Task;
+import task.TileSelectTask;
 import task.VaultSequenceTask;
 import entity.*;
 
@@ -231,7 +232,7 @@ public class AssetSetter {
 				task = new RiddleTask(gp);
 			}
 			else if (choice == 6) {
-				task = new FuseRepairTask(gp);
+				task = new TileSelectTask(gp);
 			}
 			else if (choice == 7) {
 				task = new LogicPanelTask(gp);
