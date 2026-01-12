@@ -19,7 +19,7 @@ public class tile {
     public BufferedImage image; //tile image
     private int num; 
 
-    // Constructor used by TileManager, for the looks and solidity
+    //Constructor used by TileManager, for the looks and solidity
     public tile(int num, BufferedImage image, boolean collision) {
         this.image = image;
         this.collision = collision;

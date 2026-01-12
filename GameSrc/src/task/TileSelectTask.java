@@ -8,7 +8,7 @@ public class TileSelectTask extends Task {
 		
 	public TileSelectTask(gamePanel gp) {
 		super(gp);
-		name = "Tile Selection Task";
+		name = "Tile Select Task";
 		description = "Select the correct tile to complete the task!";
 		try {
 			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/tasks/tileSelectTask.png")), gp.tileSize, gp.tileSize);
