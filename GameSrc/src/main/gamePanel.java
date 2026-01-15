@@ -12,7 +12,7 @@ import task.Task;
 import tile.TileManager;
 
 import javax.swing.JPanel;
-
+import saves.*;
 import Item.Item;
 import tile.TileManager;
 
@@ -40,6 +40,11 @@ public class gamePanel extends JPanel implements Runnable {
 	public int hoveredTileCol = -1, hoveredTileRow = -1; // tile currently under mouse
 	public int selectedThrowCol = -1, selectedThrowRow = -1; // tile selected by click (throw target)
 	public boolean mouseClicked = false;               // flag to indicate a click occurred
+	
+	// saves
+	public save1 save1 = new save1();
+	public save2 save2 = new save2();
+	public save3 save3 = new save3();
 	
 	// FPS
 	public final int FPS = 60;
@@ -128,6 +133,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public player player;
 	public UserInterface ui;
 	public EventHandler eHandler;
+	public saveSystem saveSystem;
 	
 	Thread gameThread;
 	
@@ -209,8 +215,55 @@ public class gamePanel extends JPanel implements Runnable {
 
 	    System.out.println("setupGame finished");
 	}
-
 	
+	public void saveGame(int slot) {
+		if (slot == 1) {
+			saves.save1.saveGame(this);
+		} else if (slot == 2) {
+			saves.save2.saveGame(this);
+
+		}
+		else if (slot == 3) {
+			saves.save3.saveGame(this);		
+		}
+	    
+	}
+	
+	public void loadGame(int slot) {
+		if (slot == 1) {
+			if (saves.save1.fileExists()) {
+				saves.save1.loadGame(this);
+				player.updateInventory();
+				ui.showBoxMessage("Game Loaded from Slot 1!");
+				gameState = playState;
+		}
+			else {
+				ui.showBoxMessage("No save file found in Slot 2!");
+			}
+		} else if (slot == 2) {
+			if (saves.save2.fileExists()) {
+				saves.save2.loadGame(this);
+				player.updateInventory();
+				ui.showBoxMessage("Game Loaded from Slot 2!");
+				gameState = playState;
+		}	else {
+				ui.showBoxMessage("No save file found in Slot 2!");
+			}
+		}
+		else if (slot == 3) {
+			if (saves.save3.fileExists()) {
+				saves.save3.loadGame(this);
+				player.updateInventory();
+				ui.showBoxMessage("Game Loaded from Slot 3!");
+				gameState = playState;
+			}else {
+				ui.showBoxMessage("No save file found in Slot 2!");
+			}
+		}
+	    
+}
+
+
 	public void startGameThread() {
 		gameThread = new Thread(this);
 		gameThread.start();
@@ -301,15 +354,22 @@ public class gamePanel extends JPanel implements Runnable {
 	    ui.levelFinished = false;
 	    ui.slotRow = -1;
 	    ui.selectedItem = null;
-	    
-	    if (restartFromTitle) gameState = titleState;
+	    ui.showThrowRadius = false;
+        ui.activeThrowable = null;
+        selectedThrowCol = -1;
+        selectedThrowRow = -1;
+        
+	    if (restartFromTitle) {
+	    	gameState = titleState;
+	    	ui.titleScreenState = 0;
+	    }
 	    else gameState = playState;
 	}
 
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		
+		 
 		Graphics2D g2 = (Graphics2D) g;
 		
 		//Title screen

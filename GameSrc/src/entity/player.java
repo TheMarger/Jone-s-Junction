@@ -22,8 +22,8 @@ public class player extends entity {
 
     private final int screenX;
     private final int screenY;
-    int row;
-    int col;
+    public int row;
+    public int col;
 
     public ArrayList<Item> inventory = new ArrayList<>();
 	public ArrayList<Task> tasksList = new ArrayList<>(); 
@@ -511,6 +511,77 @@ public class player extends entity {
     
     public void interactGaurd() {
     	gp.eHandler.playerDied();
+    }
+    
+    public void updateInventory() {
+		for (Item item : inventory) {
+			refreshItem(item.getName());
+		}
+	}
+    
+    public void refreshItem(String name) {
+
+        switch (name) {
+
+            case "Key":
+                hasKey = true;
+                TileManager.unlockTile(227);
+                gp.playSoundEffect(1);
+                break;
+
+            case "Red Key":
+                hasRedKey = true;
+                TileManager.unlockTile(193);
+                gp.playSoundEffect(1);
+                break;
+
+            case "Green Key":
+                hasGreenKey = true;
+                TileManager.unlockTile(219);
+                gp.playSoundEffect(1);
+                break;
+
+            case "Blue Key":
+                hasBlueKey = true;
+                TileManager.unlockTile(204);
+                TileManager.unlockTile(205);
+                gp.playSoundEffect(1);
+                break;
+
+            case "Flashlight":
+                hasFlashlight = true;
+                gp.playSoundEffect(3);
+                break;
+                
+            case "Pebble":
+            	hasPebble = true;
+            	gp.playSoundEffect(3);
+            	break;
+            	
+            case "Can":
+            	hasCan = true;
+				gp.playSoundEffect(3);
+				break;
+            case "Tray":
+            	hasTray = true;
+            	gp.playSoundEffect(3);
+            	break;
+            case "Apple":
+            	hasApple = true;
+				gp.playSoundEffect(3);
+				break;
+			case "Bread":
+				hasBread = true;
+				gp.playSoundEffect(3);
+				break;
+			case "Protein Bar":
+				hasProteinBar = true;	
+				gp.playSoundEffect(3);
+				break;
+				
+            default:
+                return;
+        }
     }
 
     public void pickUpItem(int index) {

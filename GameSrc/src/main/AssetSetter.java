@@ -188,7 +188,7 @@ public class AssetSetter {
 
         for (int i = 0; i < tasksToAdd; i++) {
 
-            int choice = random.nextInt(8); // number of task types
+            int choice = random.nextInt(9); // number of task types
             
             while (true) {
 				boolean alreadyAssigned = false;
@@ -199,7 +199,8 @@ public class AssetSetter {
 						(choice == 3 && t instanceof ButtonTask) ||
 						(choice == 4 && t instanceof LogicPanelTask) ||
 						(choice == 5 && t instanceof RiddleTask) ||
-						(choice == 6 && t instanceof FuseRepairTask)) {
+						(choice == 6 && t instanceof FuseRepairTask) ||
+						(choice == 7 && t instanceof TileSelectTask)) {
 						alreadyAssigned = true;
 						break;
 					}

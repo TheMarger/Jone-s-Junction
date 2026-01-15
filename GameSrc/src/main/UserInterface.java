@@ -10,6 +10,9 @@ import java.text.DecimalFormat;
 import javax.imageio.ImageIO;
 
 import entity.player;
+import saves.save1;
+import saves.save2;
+import saves.save3;
 import task.Task;
 import Item.*;
 import Item.Throwable;
@@ -688,6 +691,7 @@ public class UserInterface {
     }
 
 
+
     public void handleInput() {
         // If we are waiting for a key to bind and a key has been captured, handle it first
         if (awaitingKeybind && capturedKeyPressed) {
@@ -717,11 +721,23 @@ public class UserInterface {
         }
 
         // If we're not on the title screen, we ignore the UI navigation flags and clear them
-        if (gp.gameState != gp.titleState) {
+        if (gp.gameState != gp.titleState && gp.gameState != gp.pauseState) {
             // Clear any stray UI flags so they don't trigger when you return to the menu
             uiUp = uiDown = uiLeft = uiRight = uiConfirm = uiBack = false;
             return; // no UI handling this frame
         }
+        
+        if (gp.gameState == gp.pauseState) {
+			if (uiConfirm) {
+				titleScreenState = 6; // save 
+				gp.gameState = gp.titleState;
+				uiConfirm = false;
+			}
+			if (uiBack) {
+				gp.gameState = gp.playState;
+				uiBack = false;
+			}
+		}
 
         // UI Behavior when on main title menu (titleScreenState == 0)
         if (titleScreenState == 0) {
@@ -756,9 +772,15 @@ public class UserInterface {
                         keybindSelectedIndex = 0; // select first action
                         awaitingKeybind = false; // ensure not in awaiting mode
                         break;
-                    case 4: // EXIT: quit the application
-                        System.exit(0);
+                    case 4: // INSTRUCTIONS: show instructions screen
+                    	titleScreenState = 4;
+                    	commandNum = 0;
+                    	keybindSelectedIndex = 0;
+                    	awaitingKeybind = false;
                         break;
+                    case 5: // EXIT: close the game
+						System.exit(0);
+						break;
                 }
                 uiConfirm = false; // consume confirm
             }
@@ -772,20 +794,21 @@ public class UserInterface {
         if (titleScreenState == 1) {
             if (uiUp) {
                 commandNum--;
-                if (commandNum < 0) commandNum = 2; // wrap for 3 items
+                if (commandNum < 0) commandNum = 3; // wrap for 3 items
                 uiUp = false; // consume
             }
             if (uiDown) {
                 commandNum++;
-                if (commandNum > 2) commandNum = 0;
+                if (commandNum > 3) commandNum = 0;
                 uiDown = false;
             }
             if (uiConfirm) {
-                if (commandNum == 2) { // Back entry
+                if (commandNum == 3) { // Back entry
                     titleScreenState = 0; // return to main title
                     commandNum = 0;
                 } else { // selecting a save slot (not implemented)
-                    showMessage("Load slot " + (commandNum + 1) + " selected (not implemented)");
+					gp.loadGame(commandNum+1);
+					titleScreenState = 0;
                 }
                 uiConfirm = false;
             }
@@ -869,6 +892,59 @@ public class UserInterface {
             // if awaitingKeybind == true, the capturedKeyPressed branch at the top handles assignment
             return;
         }
+        
+        if (titleScreenState == 4) { // INSTRUCTIONS SCREEN 
+            if (!awaitingKeybind) { // normal navigation when not capturing a key      
+                if (uiBack) { // return to main menu
+                    titleScreenState = 0;
+                    commandNum = 0;
+                    uiBack = false;
+                }
+            }
+            }
+            if (titleScreenState == 6) {
+
+                if (!awaitingKeybind) {
+
+                    if (uiUp) {
+                        commandNum--;
+                        if (commandNum < 0) {
+							commandNum = 3;
+						}
+                        uiUp = false;
+                    }
+
+                    if (uiDown) {
+                        commandNum++;
+                       if (commandNum > 3) {
+                    	   commandNum = 0;
+                       }
+                        uiDown = false;
+                    }
+
+                    if (uiConfirm) {
+                        if (commandNum == 3) { // Back
+                            gp.gameState = gp.pauseState;
+                        } else {
+                            // SAVE SLOT SELECTED
+                            showMessage("Saved to Slot " + (commandNum + 1));
+                            gp.saveGame(commandNum+1);
+                            gp.resetGame(true);
+                        }
+                        uiConfirm = false;
+                    }
+
+                    if (uiBack) {
+                        titleScreenState = 0;
+                        commandNum = 0;
+                        uiBack = false;
+                    }
+                }
+
+                return;
+            }
+
+   
     }
     
     public void drawInventory() {
@@ -949,7 +1025,7 @@ public class UserInterface {
             g2.drawString(text, x, y); // draw title
 
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F)); // menu font
-            String[] menu = { "NEW GAME", "LOAD GAME", "CHARACTERS", "KEYBINDINGS", "EXIT" }; // menu labels
+            String[] menu = { "NEW GAME", "LOAD GAME", "CHARACTERS", "KEYBINDINGS", "INSTRUCTIONS", "EXIT" }; // menu labels
             int localY = y; // local Y cursor for menu
             for (int i = 0; i < menu.length; i++) {
                 text = menu[i]; // menu item text
@@ -977,7 +1053,13 @@ public class UserInterface {
             g2.drawString(title, x, y); // draw header
 
             g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 28F)); // smaller font for list
-            String[] saves = { "Save slot 1 - (empty)", "Save slot 2 - (empty)", "Back" }; // placeholder entries
+            String[] saves = new String[4];
+
+            saves[0] = "Save Slot 1 " + (save1.fileExists() ? "(exists)" : "(empty)");
+            saves[1] = "Save Slot 2 " + (save2.fileExists() ? "(exists)" : "(empty)");
+            saves[2] = "Save Slot 3 " + (save3.fileExists() ? "(exists)" : "(empty)");
+            saves[3] = "Back";
+
             int localY = y;
             for (int i = 0; i < saves.length; i++) {
                 String s = saves[i];
@@ -1087,6 +1169,80 @@ public class UserInterface {
                 g2.drawString("ESCAPE to go back.", gp.tileSize, localY);
             }
         }
+        else if (titleScreenState == 4) { // INSTRUCTIONS screen
+			g2.setColor(Color.black);
+			g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+			g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
+			String title = "INSTRUCTIONS";
+			int x = getXforCenteredText(title);
+			int y = gp.tileSize;
+			g2.setColor(Color.white);
+			g2.drawString(title, x, y);
+
+			g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F));
+			String[] instructions = {
+				"Use WASD or Arrow keys to move.",
+				"Press SPACE to interact with objects/NPCs.",
+				"Open inventory with I key.",
+				"Access this instructions screen from the main menu.",
+				"Complete tasks to progress in the game."
+			};
+			int localY = y + gp.tileSize;
+			for (String line : instructions) {
+				int sx = gp.tileSize; // left margin
+				g2.drawString(line, sx, localY);
+				localY += gp.tileSize / 1.5; // vertical spacing
+			}
+
+			g2.drawString("ESCAPE to go back.", gp.tileSize, gp.screenHeight - gp.tileSize);
+		}
+        
+        else if (titleScreenState == 6) { // SAVE screen
+
+            g2.setColor(new Color(0,0,0,200));
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+            String text = "Save Game - Select Slot";
+            int x = gp.screenWidth / 2 - gp.tileSize * 2;
+            int y = gp.tileSize;
+
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
+            g2.setColor(Color.white);
+            g2.drawString(text, x, y);
+
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F));
+            
+            String[] saves = new String[3];
+
+            saves[0] = "Save Slot 1 " + (save1.fileExists() ? "(exists)" : "(empty)");
+            saves[1] = "Save Slot 2 " + (save2.fileExists() ? "(exists)" : "(empty)");
+            saves[2] = "Save Slot 3 " + (save3.fileExists() ? "(exists)" : "(empty)");
+ 
+            int localY = y;
+            for (int i = 0; i < saves.length; i++) {
+                String s = saves[i];
+                int sx = getXforCenteredText(s); // center each entry
+                localY += gp.tileSize; // vertical spacing
+                if (commandNum == i) { // highlighted row
+                    g2.setColor(Color.gray);
+                    g2.drawString(s, sx, localY);
+                    g2.setColor(Color.white);
+                    g2.drawString(">", sx - gp.tileSize, localY); // arrow
+                } else {
+                    g2.setColor(Color.white);
+                    g2.drawString(s, sx, localY);
+                }
+            }
+
+            // Back (3)
+            int backY = y + gp.tileSize + 3 * gp.tileSize;
+            if (commandNum == 3) g2.setColor(Color.yellow);
+            else g2.setColor(Color.white);
+
+            g2.drawString("Back", x, backY);
+        }
+
     }
     
     public void drawDeathScreen() {
@@ -2093,12 +2249,6 @@ public class UserInterface {
                 if (diff <= buttonMatchWindow) {
                     buttonMatchFeedback = "SUCCESS!";
                     
-                    // ✅ PUT YOUR "task success" logic here (same as Math Task success)
-                    // Example (replace with your project's actual method):
-                    // gp.player.completeCurrentTask();
-                    // gp.player.removeTaskFromList();
-                    // gp.player.tasksRemaining--;
-
                 } else {
                     buttonMatchFeedback = "FAILED (too early/late)";
                     taskCooldownFrames = DEFAULT_TASK_COOLDOWN_SECONDS * 60;
@@ -3128,6 +3278,13 @@ public class UserInterface {
 		x = getXforCenteredText(prompt);
 		y += gp.tileSize * 1;
 		g2.drawString(prompt, x, y); // draw prompt
+		
+		// Draw "SAVE and EXIT" option below
+		String saveExit = "ENTER to Save & Exit";
+		g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 32F)); // smaller font for prompt
+		x = getXforCenteredText(saveExit);
+		y += gp.tileSize * 1;
+		g2.drawString(saveExit, x, y); // draw prompt
     	
     }
 

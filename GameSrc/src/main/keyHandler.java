@@ -27,7 +27,7 @@ public class keyHandler implements KeyListener {
         int code = e.getKeyCode();
 
         // ----- If we're on the title screen, set UI flags in gp.ui and capture keys for binding -----
-        if (gp.gameState == gp.titleState) {
+        if (gp.gameState == gp.titleState || gp.gameState == gp.pauseState) {
             // If UI is awaiting a keybind, capture the raw key for UI to validate/assign
             if (gp.ui.titleScreenState == 3 && gp.ui.awaitingKeybind) {
                 gp.ui.capturedKey = code;
@@ -159,13 +159,6 @@ public class keyHandler implements KeyListener {
             return;
         }
 
-        // ----- PAUSE / DIALOGUE state: keep simple (game handles) -----
-        if (gp.gameState == gp.pauseState) {
-            if (code == KeyEvent.VK_ESCAPE) {
-            	gp.gameState = gp.playState;
-            }
-            return;
-        }
 
         if (gp.gameState == gp.dialogueState) {
             if (code == KeyEvent.VK_ENTER) {
