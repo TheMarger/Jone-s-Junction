@@ -20,13 +20,21 @@ public class TileManager {
 	public TileManager(gamePanel gp) {
 		this.gp = gp;
 		UtilityTool uTool = new UtilityTool(gp);
+<<<<<<< HEAD
 		tile = new tile[600];
+=======
+		tile = new tile[434];
+>>>>>>> branch 'main' of https://github.com/TheMarger/Jone-s-Junction.git
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
 	}
 	
 	public void resetMap () {
+<<<<<<< HEAD
 		tile = new tile[600];
+=======
+		tile = new tile[434];
+>>>>>>> branch 'main' of https://github.com/TheMarger/Jone-s-Junction.git
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
 		if (gp.level == 1) {
