@@ -20,13 +20,13 @@ public class TileManager {
 	public TileManager(gamePanel gp) {
 		this.gp = gp;
 		UtilityTool uTool = new UtilityTool(gp);
-		tile = new tile[398];
+		tile = new tile[600];
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
 	}
 	
 	public void resetMap () {
-		tile = new tile[398];
+		tile = new tile[600];
 		mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 		getTileImage();
 		if (gp.level == 1) {

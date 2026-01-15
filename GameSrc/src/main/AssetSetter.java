@@ -207,7 +207,7 @@ public class AssetSetter {
 				if (!alreadyAssigned) {
 					break; // unique task type found
 				}
-				choice = random.nextInt(8); // pick another
+				choice = random.nextInt(9); // pick another
 			}
             
 
@@ -236,6 +236,9 @@ public class AssetSetter {
 			}
 			else if (choice == 7) {
 				task = new LogicPanelTask(gp);
+			} 
+			else if (choice == 8) {
+				task = new FuseRepairTask(gp);
 			}
             choice = random.nextInt(TaskLocations[gp.level - 1].length);
             

@@ -81,7 +81,74 @@ public class UserInterface {
     private boolean riddleAnswerCorrect = false;
     private int riddleTimerFrames = 0;
     private int riddleTimeLimitFrames = 45 * 60;
+    
+    
+ // BUTTON MATCH TASK VARIABLES
+    private boolean buttonMatchGenerated = false;
+    private boolean buttonMatchResolved = false;
 
+    private long buttonMatchStartNano = 0;
+    private double buttonMatchTargetSeconds = 0;   
+    private final double buttonMatchWindow = 0.10; // +/- 0.10 seconds window
+
+    private Rectangle buttonMatchButtonRect = new Rectangle();
+    private String buttonMatchFeedback = "";
+    private int buttonMatchFeedbackFrames = 0;
+    
+	// pattern switches task
+	private boolean patternGenerated = false;
+	private int[] patternSequence = new int[0];
+	private int patternLength = 0;
+	private boolean patternShowing = true;
+
+	// timing (frames @ 60fps)
+	private int patternFlashFrames = 30; // 0.5s
+	private int patternGapFrames = 6; // small gap between flashes (optional)
+	private int patternIndex = 0;
+	private int patternFlashTimer = 0; // counts down within flash
+	private int patternGapTimer = 0; // counts down between flashes
+	private int patternInputIndex = 0;
+	private int patternInputTimerFrames = 0;
+	private int patternInputLimitFrames = 5 * 60; // 5 seconds
+	private boolean patternChecked = false;
+	private boolean patternSuccess = false; {
+
+	// Pattern Switches
+	patternGenerated = false;
+	patternSequence = new int[0];
+	patternLength = 0;
+	patternShowing = true;
+	patternIndex = 0;
+	patternFlashTimer = 0;
+	patternGapTimer = 0;
+	patternInputIndex = 0;
+	patternInputTimerFrames = 0;
+	patternInputLimitFrames = 5 * 60;
+	patternChecked = false;
+	patternSuccess = false; }
+
+    
+ // VAULT SEQUENCE TASK VARIABLES
+    private boolean vaultGenerated = false;
+    private boolean vaultResolved = false;
+
+    private int[] vaultSequence;          // the generated sequence (like 2,4,1,3)
+    private int vaultSeqLen = 0;          // length of sequence
+    private int vaultProgressIndex = 0;   // how many correct inputs so far
+
+    private int vaultStrikes = 0;         // mistakes
+    private int vaultMaxStrikes = 2;      // fail after 2 mistakes
+
+    private int vaultTimerFrames = 0;
+    private int vaultTimeLimitFrames = 0;
+
+    private Rectangle[] vaultButtonRects = new Rectangle[4];  // clickable tiles/buttons
+    private String vaultFeedback = "";
+    private int vaultFeedbackFrames = 0;
+
+    // optional: reuse riddle pool as flavor text (not required but matches your "use same riddles" idea)
+    private String vaultFlavorRiddle = "";
+    
     // riddle pool
     private final String[] RIDDLE_QUESTIONS = {
         "What has to be broken before you can use it?",
@@ -181,6 +248,7 @@ public class UserInterface {
 
     public int slotRow = -1;
     public Item selectedItem;
+    
 
     public UserInterface(gamePanel gp) {
         this.gp = gp;
@@ -333,6 +401,9 @@ public class UserInterface {
                     case "Math Task" -> drawMathTask();
                     case "Riddle Task" -> drawRiddleTask();
                     case "Tile Select Task" -> drawTileSelectTask();
+                    case "Button Task" -> drawButtonMatchTask();
+                    case "Vault Sequence Task" -> drawVaultSequenceTask();
+                    case "Fuse Repair Task" -> drawPatternSwitchTask();
                     // other task types fall back to math or can be added
                     default -> drawMathTask();
                 }
@@ -1924,6 +1995,716 @@ public class UserInterface {
         g2.setColor(new Color(200,200,200,180));
         g2.drawString(prog, innerX, panelY + panelH - pad - gp.tileSize/6);
     }
+    
+    // ------------------------ DRAW Button Match  TASK ------------------------
+    public void drawButtonMatchTask() {
+
+        // If task is on cooldown, show message and block attempts
+        if (taskCooldownFrames > 0) {
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28f));
+            g2.setColor(Color.white);
+            g2.drawString("Task is cooling down...", gp.tileSize * 4, gp.tileSize * 4);
+            return;
+        }
+
+        // Generate the task once
+        if (!buttonMatchGenerated) {
+            buttonMatchGenerated = true;
+            buttonMatchResolved = false;
+
+            // random target time between 1.0s and 3.0s
+            buttonMatchTargetSeconds = 1.0 + (Math.random() * 2.0);
+            buttonMatchStartNano = System.nanoTime();
+
+            buttonMatchFeedback = "";
+            buttonMatchFeedbackFrames = 0;
+        }
+
+        // Draw background panel (simple)
+        int frameX = gp.tileSize * 2;
+        int frameY = gp.tileSize * 2;
+        int frameW = gp.screenWidth - gp.tileSize * 4;
+        int frameH = gp.screenHeight - gp.tileSize * 4;
+
+        g2.setColor(new Color(0, 0, 0, 200));
+        g2.fillRoundRect(frameX, frameY, frameW, frameH, 20, 20);
+
+        // Title + instructions
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 34f));
+        g2.setColor(Color.white);
+        g2.drawString("Button Match Task", frameX + gp.tileSize, frameY + gp.tileSize);
+
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22f));
+        g2.drawString("Click the button when the timer hits the target window.", frameX + gp.tileSize, frameY + gp.tileSize * 2);
+
+        // Compute elapsed time
+        double elapsed = (System.nanoTime() - buttonMatchStartNano) / 1_000_000_000.0;
+
+        // Draw timer info
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22f));
+        g2.drawString("Time: " + String.format("%.2f", elapsed) + "s", frameX + gp.tileSize, frameY + gp.tileSize * 3);
+        g2.drawString("Target: " + String.format("%.2f", buttonMatchTargetSeconds) + "s", frameX + gp.tileSize, frameY + gp.tileSize * 4);
+        g2.drawString("Window: +/- " + String.format("%.2f", buttonMatchWindow) + "s", frameX + gp.tileSize, frameY + gp.tileSize * 5);
+
+        // Button rectangle (centered)
+        int btnW = gp.tileSize * 6;
+        int btnH = gp.tileSize * 2;
+        int btnX = frameX + (frameW / 2) - (btnW / 2);
+        int btnY = frameY + (frameH / 2) - (btnH / 2);
+
+        buttonMatchButtonRect.setBounds(btnX, btnY, btnW, btnH);
+
+        // Draw button
+        g2.setColor(Color.darkGray);
+        g2.fillRoundRect(btnX, btnY, btnW, btnH, 20, 20);
+
+        g2.setColor(Color.white);
+        g2.drawRoundRect(btnX, btnY, btnW, btnH, 20, 20);
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 26f));
+        g2.drawString("CLICK", btnX + gp.tileSize * 2, btnY + gp.tileSize + 10);
+
+        // If already resolved, just show feedback for a bit then exit task
+        if (buttonMatchResolved) {
+            if (buttonMatchFeedbackFrames > 0) buttonMatchFeedbackFrames--;
+
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28f));
+            g2.setColor(Color.white);
+            g2.drawString(buttonMatchFeedback, frameX + gp.tileSize, frameY + frameH - gp.tileSize * 2);
+
+            // After feedback ends, leave task screen
+            if (buttonMatchFeedbackFrames == 0) {
+                resetAllTaskState();
+                gp.gameState = gp.playState;
+            }
+            return;
+        }
+
+        // Detect click (same style as your other "click-based" UI features)
+        // IMPORTANT: this assumes you have gp.mouseClicked + gp.mouseX + gp.mouseY
+        if (gp.mouseClicked) {
+            gp.mouseClicked = false;
+
+            boolean clickedButton = buttonMatchButtonRect.contains(gp.mouseX, gp.mouseY);
+
+            if (clickedButton) {
+                double diff = Math.abs(elapsed - buttonMatchTargetSeconds);
+
+                if (diff <= buttonMatchWindow) {
+                    buttonMatchFeedback = "SUCCESS!";
+                    
+                    // ✅ PUT YOUR "task success" logic here (same as Math Task success)
+                    // Example (replace with your project's actual method):
+                    // gp.player.completeCurrentTask();
+                    // gp.player.removeTaskFromList();
+                    // gp.player.tasksRemaining--;
+
+                } else {
+                    buttonMatchFeedback = "FAILED (too early/late)";
+                    taskCooldownFrames = DEFAULT_TASK_COOLDOWN_SECONDS * 60;
+                }
+
+                buttonMatchResolved = true;
+                buttonMatchFeedbackFrames = 60; // 1 second of feedback
+            }
+        }
+    }
+    
+ // ------------------------ DRAW PATTERN SWITCHES TASK ------------------------
+ 	public void drawPatternSwitchTask() {
+
+ 		// Rendering
+ 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+ 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+ 		// Dim background
+ 		g2.setColor(new Color(0, 0, 0, 160));
+ 		g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+ 		// Panel layout
+ 		int panelW = gp.tileSize * 10;
+ 		int panelH = gp.tileSize * 7;
+ 		int panelX = (gp.screenWidth - panelW) / 2;
+ 		int panelY = (gp.screenHeight - panelH) / 2;
+ 		int arc = 28;
+
+ 		// drop shadow
+ 		int shadowOffset = gp.tileSize / 8;
+ 		g2.setColor(new Color(0, 0, 0, 120));
+ 		g2.fillRoundRect(panelX + shadowOffset, panelY + shadowOffset, panelW, panelH, arc, arc);
+
+ 		// panel gradient background
+ 		GradientPaint back = new GradientPaint(panelX, panelY, new Color(60, 63, 65), panelX, panelY + panelH,
+ 				new Color(42, 45, 48));
+ 		g2.setPaint(back);
+ 		g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+ 		// inner padding
+ 		int pad = gp.tileSize / 3;
+ 		int innerX = panelX + pad;
+ 		int innerY = panelY + pad;
+ 		int innerW = panelW - pad * 2;
+
+ 		// Title with subtle shadow
+ 		String title = "Pattern Switches";
+ 		Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.9f);
+ 		g2.setFont(titleFont);
+ 		g2.setColor(new Color(0, 0, 0, 120));
+ 		g2.drawString(title, innerX + 3, innerY + (int) (gp.tileSize * 0.9f) + 3);
+ 		g2.setColor(new Color(230, 230, 230));
+ 		g2.drawString(title, innerX, innerY + (int) (gp.tileSize * 0.9f));
+
+ 		// Level badge
+ 		String lvl = "Level " + gp.level;
+ 		Font badgeFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.45f);
+ 		int badgeW = gp.tileSize * 3;
+ 		int badgeH = gp.tileSize / 2;
+ 		int badgeX = panelX + panelW - pad - badgeW;
+ 		int badgeY = innerY - gp.tileSize / 6;
+ 		g2.setColor(new Color(255, 200, 60));
+ 		g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, 12, 12);
+ 		g2.setColor(Color.BLACK);
+ 		g2.setFont(badgeFont);
+ 		FontMetrics fmBadge = g2.getFontMetrics();
+ 		int bx = badgeX + (badgeW - fmBadge.stringWidth(lvl)) / 2;
+ 		int by = badgeY + ((badgeH - fmBadge.getHeight()) / 2) + fmBadge.getAscent();
+ 		g2.drawString(lvl, bx, by);
+
+ 		// instruction under title
+ 		Font instrFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+ 		g2.setFont(instrFont);
+ 		g2.setColor(new Color(200, 200, 200));
+
+ 		String instr;
+ 		if (patternShowing) {
+ 			instr = "Memorize the flashes. Then repeat using keys 1, 2, 3, 4";
+ 		} else if (!patternChecked) {
+ 			instr = "Repeat the sequence: press 1, 2, 3, 4";
+ 		} else {
+ 			instr = "Press ENTER to continue";
+ 		}
+ 		g2.drawString(instr, innerX, innerY + (int) (gp.tileSize * 1.6f));
+
+ 		// divider
+ 		int dividerY = innerY + (int) (gp.tileSize * 1.9f);
+ 		g2.setStroke(new BasicStroke(1f));
+ 		g2.setColor(new Color(255, 255, 255, 30));
+ 		g2.drawLine(innerX, dividerY, innerX + innerW, dividerY);
+
+ 		// block input if active
+ 		if (taskCooldownFrames > 0) {
+ 			Font big = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+ 			g2.setFont(big);
+ 			g2.setColor(new Color(180, 180, 180));
+ 			String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+ 			int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+ 			int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+ 			g2.drawString(locked, lx, ly);
+
+ 			// clear any input while locked
+ 			gp.keyH.typedChar = 0;
+ 			gp.keyH.backspacePressed = false;
+ 			gp.keyH.enterPressed = false;
+ 			gp.keyH.escapePressed = false;
+ 			return;
+ 		}
+
+ 		// Escape to exit immediately
+ 		if (gp.keyH.escapePressed) {
+ 			gp.keyH.escapePressed = false;
+ 			resetAllTaskState();
+ 			gp.gameState = gp.playState;
+ 			return;
+ 		}
+
+ 		// Generate pattern once on entry
+ 		if (!patternGenerated) {
+
+ 			// difficulty scaling by level
+ 			if (gp.level <= 1) {
+ 				patternLength = 4;
+ 				patternInputLimitFrames = 5 * 60;
+ 			} else if (gp.level == 2) {
+ 				patternLength = 5;
+ 				patternInputLimitFrames = 5 * 60;
+ 			} else if (gp.level == 3) {
+ 				patternLength = 6;
+ 				patternInputLimitFrames = 6 * 60;
+ 			} else {
+ 				patternLength = 7;
+ 				patternInputLimitFrames = 6 * 60;
+ 			}
+
+ 			patternSequence = new int[patternLength];
+
+ 			// random 1..4
+ 			for (int i = 0; i < patternLength; i++) {
+ 				patternSequence[i] = (int) (Math.random() * 4) + 1;
+ 			}
+
+ 			// reset phase state
+ 			patternGenerated = true;
+ 			patternShowing = true;
+
+ 			patternIndex = 0;
+ 			patternFlashTimer = 0;
+ 			patternGapTimer = 0;
+
+ 			patternInputIndex = 0;
+ 			patternInputTimerFrames = 0;
+
+ 			patternChecked = false;
+ 			patternSuccess = false;
+
+ 			// clear any olinput
+ 			gp.keyH.typedChar = 0;
+ 			gp.keyH.backspacePressed = false;
+ 			gp.keyH.enterPressed = false;
+ 		}
+
+ 		// GRID LAYOUT
+ 		int gridSize = gp.tileSize * 4;
+ 		int gridX = panelX + (panelW - gridSize) / 2;
+ 		int gridY = dividerY + gp.tileSize / 2;
+
+ 		int btnSize = gp.tileSize * 2 - gp.tileSize / 4;
+ 		int gap = gp.tileSize / 4;
+
+ 		// 1=top-left, 2=top-right, 3=bottom-left, 4=bottom-right
+ 		int[] bxPos = new int[5];
+ 		int[] byPos = new int[5];
+ 		bxPos[1] = gridX;
+ 		byPos[1] = gridY;
+ 		bxPos[2] = gridX + btnSize + gap;
+ 		byPos[2] = gridY;
+ 		bxPos[3] = gridX;
+ 		byPos[3] = gridY + btnSize + gap;
+ 		bxPos[4] = gridX + btnSize + gap;
+ 		byPos[4] = gridY + btnSize + gap;
+
+ 		// Determine which button should be highlighted during show phase
+ 		int highlight = -1;
+
+ 		// SHOW PHASE
+ 		if (patternShowing) {
+
+ 			// start flash if idle
+ 			if (patternFlashTimer <= 0 && patternGapTimer <= 0) {
+ 				patternFlashTimer = patternFlashFrames;
+ 			}
+
+ 			// flashing
+ 			if (patternFlashTimer > 0) {
+ 				highlight = patternSequence[patternIndex];
+ 				patternFlashTimer--;
+ 				if (patternFlashTimer <= 0) {
+ 					patternGapTimer = patternGapFrames;
+ 				}
+ 			} else if (patternGapTimer > 0) {
+ 				patternGapTimer--;
+ 				if (patternGapTimer <= 0) {
+ 					patternIndex++;
+ 					if (patternIndex >= patternLength) {
+ 						// move to input phase
+ 						patternShowing = false;
+ 						patternIndex = 0;
+ 						patternInputIndex = 0;
+ 						patternInputTimerFrames = 0;
+ 					}
+ 				}
+ 			}
+ 		}
+
+ 		// INPUT PHASE
+ 		if (!patternShowing && !patternChecked) {
+
+ 			// input timer
+ 			patternInputTimerFrames++;
+ 			if (patternInputTimerFrames > patternInputLimitFrames) {
+ 				patternChecked = true;
+ 				patternSuccess = false;
+ 			}
+
+ 			// accept only 1 -> 4
+ 			char typed = gp.keyH.typedChar;
+ 			if (typed != 0) {
+
+ 				int pressed = -1;
+ 				if (typed == '1')
+ 					pressed = 1;
+ 				if (typed == '2')
+ 					pressed = 2;
+ 				if (typed == '3')
+ 					pressed = 3;
+ 				if (typed == '4')
+ 					pressed = 4;
+
+ 				// consume typed char no matter what
+ 				gp.keyH.typedChar = 0;
+
+ 				if (pressed != -1) {
+ 					if (pressed == patternSequence[patternInputIndex]) {
+ 						patternInputIndex++;
+ 						if (patternInputIndex >= patternLength) {
+ 							patternChecked = true;
+ 							patternSuccess = true;
+ 						}
+ 					} else {
+ 						patternChecked = true;
+ 						patternSuccess = false;
+ 					}
+ 				}
+ 			}
+ 		}
+
+ 		// DRAW BUTTONS
+ 		for (int i = 1; i <= 4; i++) {
+
+ 			// base
+ 			g2.setColor(new Color(30, 33, 36, 200));
+ 			g2.fillRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 16, 16);
+
+ 			// highlight fill (only during show phase)
+ 			if (patternShowing && highlight == i) {
+ 				g2.setColor(new Color(255, 220, 90, 80));
+ 				g2.fillRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 16, 16);
+ 			}
+
+ 			// border
+ 			g2.setStroke(new BasicStroke(2f));
+ 			g2.setColor(new Color(120, 120, 120, 120));
+ 			g2.drawRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 16, 16);
+
+ 			// strong border while highlighted
+ 			if (patternShowing && highlight == i) {
+ 				g2.setStroke(new BasicStroke(4f));
+ 				g2.setColor(new Color(255, 220, 90));
+ 				g2.drawRoundRect(bxPos[i] - 2, byPos[i] - 2, btnSize + 4, btnSize + 4, 18, 18);
+ 			}
+
+ 			// number label
+ 			Font numF = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.9f);
+ 			g2.setFont(numF);
+ 			g2.setColor(new Color(230, 230, 230, 220));
+ 			String n = String.valueOf(i);
+ 			FontMetrics nfm = g2.getFontMetrics();
+ 			int nx = bxPos[i] + (btnSize - nfm.stringWidth(n)) / 2;
+ 			int ny = byPos[i] + (btnSize - nfm.getHeight()) / 2 + nfm.getAscent();
+ 			g2.drawString(n, nx, ny);
+ 		}
+
+ 		// Timeduring input
+ 		if (!patternShowing && !patternChecked) {
+ 			Font smallF = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+ 			g2.setFont(smallF);
+ 			g2.setColor(new Color(220, 220, 220));
+
+ 			int secLeft = (patternInputLimitFrames - patternInputTimerFrames + 59) / 60;
+ 			if (secLeft < 0)
+ 				secLeft = 0;
+
+ 			String timeText = "Time: " + secLeft + " s";
+ 			FontMetrics tfm = g2.getFontMetrics();
+ 			int tx = panelX + panelW - pad - tfm.stringWidth(timeText);
+ 			int ty = innerY + (int) (gp.tileSize * 0.9f);
+ 			g2.drawString(timeText, tx, ty);
+
+ 			// timer bar
+ 			int barW = tfm.stringWidth(timeText);
+ 			int barH = Math.max(6, tfm.getHeight() / 5);
+ 			int barX = tx;
+ 			int barY = ty + 6;
+
+ 			float ratio = 1f;
+ 			if (patternInputLimitFrames > 0)
+ 				ratio = 1f - ((float) patternInputTimerFrames / (float) patternInputLimitFrames);
+ 			if (ratio < 0f)
+ 				ratio = 0f;
+ 			if (ratio > 1f)
+ 				ratio = 1f;
+
+ 			g2.setColor(new Color(0, 0, 0, 130));
+ 			g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
+
+ 			Color col = ratio > 0.6f ? new Color(120, 220, 140)
+ 					: ratio > 0.25f ? new Color(240, 200, 80) : new Color(240, 120, 120);
+
+ 			int fillW = Math.max(2, (int) (barW * ratio));
+ 			g2.setColor(col);
+ 			g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
+ 			g2.setColor(new Color(255, 255, 255, 70));
+ 			g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
+ 		}
+
+ 		// PROGRESS 
+ 		int dotsY = gridY + gridSize + gp.tileSize / 4;
+ 		int dotSize = gp.tileSize / 5;
+ 		int dotGap = 6;
+ 		int totalDotsW = patternLength * dotSize + (patternLength - 1) * dotGap;
+ 		int dotsX = panelX + (panelW - totalDotsW) / 2;
+
+ 		for (int i = 0; i < patternLength; i++) {
+ 			boolean on = (!patternShowing && i < patternInputIndex);
+ 			g2.setColor(on ? new Color(120, 220, 140) : new Color(120, 120, 120, 140));
+ 			int dx = dotsX + i * (dotSize + dotGap);
+ 			g2.fillOval(dx, dotsY, dotSize, dotSize);
+ 		}
+ 		// FEEDBACK (when checked)
+ 		if (patternChecked) {
+
+ 			Font fbF = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+ 			g2.setFont(fbF);
+
+ 			String fb = patternSuccess ? "✔ Correct" : "Incorrect. The task failed. Re-entry required.";
+ 			g2.setColor(patternSuccess ? new Color(120, 220, 140) : new Color(240, 120, 120));
+
+ 			int fbx = panelX + (panelW - g2.getFontMetrics().stringWidth(fb)) / 2;
+ 			int fby = panelY + panelH - gp.tileSize * 2;
+ 			g2.drawString(fb, fbx, fby);
+
+ 			Font hintF = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+ 			g2.setFont(hintF);
+ 			g2.setColor(new Color(200, 200, 200, 180));
+
+ 			String hint = "Press ENTER to continue";
+ 			int hx = panelX + (panelW - g2.getFontMetrics().stringWidth(hint)) / 2;
+ 			g2.drawString(hint, hx, fby + gp.tileSize / 2);
+
+ 			// ENTER 
+ 			if (gp.keyH.enterPressed) {
+ 				gp.keyH.enterPressed = false;
+ 				if (patternSuccess) {
+ 					handleTaskSuccess("Task Completed!");
+ 				} else {
+ 					handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+ 							"Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+ 				}
+ 				return;
+ 			}
+
+ 		} else {
+ 			// helper hint
+ 			String hint = "Press 1,2,3,4 in order";
+ 			g2.setFont(instrFont);
+ 			g2.setColor(new Color(200, 200, 200, 160));
+ 			FontMetrics hfm = g2.getFontMetrics();
+ 			int hx = panelX + (panelW - hfm.stringWidth(hint)) / 2;
+ 			g2.drawString(hint, hx, panelY + panelH - pad);
+ 		}
+ 	}
+    
+ // ------------------------ DRAW VAULT SEQUENCE TASK ------------------------
+    public void drawVaultSequenceTask() {
+
+        // Cooldown block
+        if (taskCooldownFrames > 0) {
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28f));
+            g2.setColor(Color.white);
+            g2.drawString("Task is cooling down...", gp.tileSize * 4, gp.tileSize * 4);
+
+            // eat clicks so player can’t spam
+            gp.mouseClicked = false;
+            return;
+        }
+
+        // Rendering hints (same style as your other tasks)
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Dim background
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // Panel layout
+        int panelW = gp.tileSize * 11;
+        int panelH = gp.tileSize * 7;
+        int panelX = (gp.screenWidth - panelW) / 2;
+        int panelY = (gp.screenHeight - panelH) / 2;
+        int arc = 26;
+
+        // Shadow + background
+        g2.setColor(new Color(0,0,0,120));
+        g2.fillRoundRect(panelX+6, panelY+6, panelW, panelH, arc, arc);
+        g2.setColor(new Color(30, 30, 36, 240));
+        g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+        // Title
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f));
+        g2.setColor(Color.white);
+        g2.drawString("Vault Sequence", panelX + gp.tileSize, panelY + gp.tileSize);
+
+        // Initialize task once
+        if (!vaultGenerated) {
+            vaultGenerated = true;
+            vaultResolved = false;
+
+            // sequence length by level (adjust if you want)
+            vaultSeqLen = (gp.level <= 1) ? 3 :
+                          (gp.level == 2) ? 4 :
+                          (gp.level == 3) ? 5 : 6;
+
+            vaultSequence = new int[vaultSeqLen];
+
+            // generate random values 1..4
+            for (int i = 0; i < vaultSeqLen; i++) {
+                vaultSequence[i] = 1 + (int)(Math.random() * 4);
+            }
+
+            vaultProgressIndex = 0;
+            vaultStrikes = 0;
+            vaultFeedback = "";
+            vaultFeedbackFrames = 0;
+
+            // time limit (you can tweak)
+            vaultTimeLimitFrames = (gp.level <= 1) ? 30 * 60 : 45 * 60;
+            vaultTimerFrames = vaultTimeLimitFrames;
+
+            // optional: pick a flavor riddle from your pool (reuses your existing arrays)
+            int idx = (int)(Math.random() * RIDDLE_QUESTIONS.length);
+            vaultFlavorRiddle = RIDDLE_QUESTIONS[idx];
+
+            // setup rectangles array
+            for (int i = 0; i < vaultButtonRects.length; i++) {
+                if (vaultButtonRects[i] == null) vaultButtonRects[i] = new Rectangle();
+            }
+        }
+
+        // Escape abort (your global escape handler already exists, but this keeps it consistent)
+        if (gp.keyH.escapePressed) {
+            gp.keyH.escapePressed = false;
+            resetAllTaskState();
+            gp.gameState = gp.playState;
+            return;
+        }
+
+        // Timer tick
+        if (vaultTimerFrames > 0 && !vaultResolved) vaultTimerFrames--;
+        if (vaultTimerFrames <= 0 && !vaultResolved) {
+            handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Vault failed. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+            return;
+        }
+
+        // Show small flavor line (uses your riddle pool)
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.28f));
+        g2.setColor(new Color(200, 200, 200));
+        g2.drawString("Hint: " + vaultFlavorRiddle, panelX + gp.tileSize, panelY + (int)(gp.tileSize * 1.6));
+
+        // Show progress + strikes
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f));
+        g2.setColor(Color.white);
+        g2.drawString("Progress: " + vaultProgressIndex + " / " + vaultSeqLen, panelX + gp.tileSize, panelY + (int)(gp.tileSize * 2.4));
+        g2.setColor(new Color(240, 120, 120));
+        g2.drawString("Strikes: " + vaultStrikes + " / " + vaultMaxStrikes, panelX + gp.tileSize, panelY + (int)(gp.tileSize * 2.9));
+
+        // Time top-right
+        g2.setColor(new Color(220,220,220));
+        String timeText = "Time: " + ((vaultTimerFrames + 59) / 60) + " s";
+        int tW = g2.getFontMetrics().stringWidth(timeText);
+        g2.drawString(timeText, panelX + panelW - gp.tileSize - tW, panelY + (int)(gp.tileSize * 1.0));
+
+        // Draw 4 buttons (2x2 grid)
+        int btnSize = gp.tileSize * 2;
+        int gap = gp.tileSize / 2;
+
+        int gridW = btnSize * 2 + gap;
+        int gridH = btnSize * 2 + gap;
+
+        int gridX = panelX + (panelW - gridW) / 2;
+        int gridY = panelY + (int)(gp.tileSize * 3.2);
+
+        // positions: 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right
+        Rectangle r1 = vaultButtonRects[0];
+        Rectangle r2 = vaultButtonRects[1];
+        Rectangle r3 = vaultButtonRects[2];
+        Rectangle r4 = vaultButtonRects[3];
+
+        r1.setBounds(gridX, gridY, btnSize, btnSize);
+        r2.setBounds(gridX + btnSize + gap, gridY, btnSize, btnSize);
+        r3.setBounds(gridX, gridY + btnSize + gap, btnSize, btnSize);
+        r4.setBounds(gridX + btnSize + gap, gridY + btnSize + gap, btnSize, btnSize);
+
+        // draw helper
+        drawVaultButton(r1, "1");
+        drawVaultButton(r2, "2");
+        drawVaultButton(r3, "3");
+        drawVaultButton(r4, "4");
+
+        // instruction
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.32f));
+        g2.setColor(new Color(200,200,200));
+        g2.drawString("Click the buttons in the correct order.", panelX + gp.tileSize, panelY + panelH - gp.tileSize);
+
+        // If resolved, show feedback then finish
+        if (vaultResolved) {
+            if (vaultFeedbackFrames > 0) vaultFeedbackFrames--;
+
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.55f));
+            g2.setColor(vaultStrikes >= vaultMaxStrikes ? new Color(240,120,120) : new Color(120,220,140));
+
+            int fW = g2.getFontMetrics().stringWidth(vaultFeedback);
+            g2.drawString(vaultFeedback, panelX + (panelW - fW)/2, panelY + (int)(gp.tileSize * 3.0));
+
+            if (vaultFeedbackFrames == 0) {
+                if (vaultStrikes >= vaultMaxStrikes) {
+                    handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Vault failed. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+                } else {
+                    handleTaskSuccess("Vault unlocked!");
+                }
+            }
+            return;
+        }
+
+        // Handle click input
+        if (gp.mouseClicked) {
+            gp.mouseClicked = false;
+
+            int clicked = 0;
+            if (r1.contains(gp.mouseX, gp.mouseY)) clicked = 1;
+            else if (r2.contains(gp.mouseX, gp.mouseY)) clicked = 2;
+            else if (r3.contains(gp.mouseX, gp.mouseY)) clicked = 3;
+            else if (r4.contains(gp.mouseX, gp.mouseY)) clicked = 4;
+
+            if (clicked != 0) {
+                int expected = vaultSequence[vaultProgressIndex];
+
+                if (clicked == expected) {
+                    vaultProgressIndex++;
+
+                    // completed whole sequence
+                    if (vaultProgressIndex >= vaultSeqLen) {
+                        vaultFeedback = "SUCCESS!";
+                        vaultResolved = true;
+                        vaultFeedbackFrames = 60;
+                    }
+                } else {
+                    vaultStrikes++;
+
+                    if (vaultStrikes >= vaultMaxStrikes) {
+                        vaultFeedback = "FAILED!";
+                        vaultResolved = true;
+                        vaultFeedbackFrames = 60;
+                    }
+                }
+            }
+        }
+    }
+
+    // helper for drawing the vault buttons
+    private void drawVaultButton(Rectangle r, String label) {
+        g2.setColor(new Color(60, 60, 70));
+        g2.fillRoundRect(r.x, r.y, r.width, r.height, 18, 18);
+
+        g2.setColor(Color.white);
+        g2.setStroke(new BasicStroke(2f));
+        g2.drawRoundRect(r.x, r.y, r.width, r.height, 18, 18);
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.6f));
+        FontMetrics fm = g2.getFontMetrics();
+        int lx = r.x + (r.width - fm.stringWidth(label)) / 2;
+        int ly = r.y + (r.height - fm.getHeight()) / 2 + fm.getAscent();
+        g2.drawString(label, lx, ly);
+    }
+
 
     // ------------------------ DRAW RIDDLE TASK ------------------------
     public void drawRiddleTask() {
@@ -2233,6 +3014,69 @@ public class UserInterface {
                 tsPattern[r][c] = false;
                 tsSelected[r][c] = false;
             }
+     // Button Match
+        buttonMatchGenerated = false;
+        buttonMatchResolved = false;
+        buttonMatchStartNano = 0;
+        buttonMatchTargetSeconds = 0;
+        buttonMatchFeedback = "";
+        buttonMatchFeedbackFrames = 0;
+        buttonMatchButtonRect.setBounds(0, 0, 0, 0);
+        
+     // Pattern Switched
+     // pattern switches task
+    	patternGenerated = false;
+    	patternSequence = new int[0];
+    	patternLength = 0;
+    	patternShowing = true;
+
+    	// timing (frames @ 60fps)
+    	patternFlashFrames = 30; // 0.5s
+    	patternGapFrames = 6; // small gap between flashes (optional)
+    	patternIndex = 0;
+    	patternFlashTimer = 0; // counts down within flash
+    	patternGapTimer = 0; // counts down between flashes
+    	patternInputIndex = 0;
+    	patternInputTimerFrames = 0;
+    	patternInputLimitFrames = 5 * 60; // 5 seconds
+    	patternChecked = false;
+    	patternSuccess = false; 
+
+    	// Pattern Switches
+    	patternGenerated = false;
+    	patternSequence = new int[0];
+    	patternLength = 0;
+    	patternShowing = true;
+    	patternIndex = 0;
+    	patternFlashTimer = 0;
+    	patternGapTimer = 0;
+    	patternInputIndex = 0;
+    	patternInputTimerFrames = 0;
+    	patternInputLimitFrames = 5 * 60;
+    	patternChecked = false;
+    	patternSuccess = false;
+    	
+        
+     // Vault Sequence
+        vaultGenerated = false;
+        vaultResolved = false;
+        vaultSequence = null;
+        vaultSeqLen = 0;
+        vaultProgressIndex = 0;
+        vaultStrikes = 0;
+        vaultTimerFrames = 0;
+        vaultTimeLimitFrames = 0;
+        vaultFeedback = "";
+        vaultFeedbackFrames = 0;
+        vaultFlavorRiddle = "";
+        if (vaultButtonRects != null) {
+            for (int i = 0; i < vaultButtonRects.length; i++) {
+                if (vaultButtonRects[i] != null) vaultButtonRects[i].setBounds(0,0,0,0);
+            }
+        }
+        
+
+        
     }
 
     public void handleTaskFailed(int cooldownSeconds, String popupMessage) {
