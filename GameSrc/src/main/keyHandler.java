@@ -194,6 +194,29 @@ public class keyHandler implements KeyListener {
 			}
 			
 		}
+        
+     // inside your keyPressed(KeyEvent e) handler:
+        if (gp.ui.titleScreenState == 4) {
+            int kc = e.getKeyCode();
+            if (kc == java.awt.event.KeyEvent.VK_UP) {
+            	gp.ui.instrScrollOffset -= gp.ui.instrScrollSpeed;
+            	gp.ui.clampInstrScroll();
+            } else if (kc == java.awt.event.KeyEvent.VK_DOWN) {
+            	gp.ui.instrScrollOffset += gp.ui.instrScrollSpeed;
+            	gp.ui.clampInstrScroll();
+            } else if (kc == java.awt.event.KeyEvent.VK_PAGE_UP) {
+            	gp.ui.instrScrollOffset -= gp.ui.instrViewportHeight; // page up
+            	gp.ui.clampInstrScroll();
+            } else if (kc == java.awt.event.KeyEvent.VK_PAGE_DOWN) {
+            	gp.ui.instrScrollOffset += gp.ui.instrViewportHeight; // page down
+            	gp.ui.clampInstrScroll();
+            } else if (kc == java.awt.event.KeyEvent.VK_HOME) {
+            	gp.ui.instrScrollOffset = 0;
+            } else if (kc == java.awt.event.KeyEvent.VK_END) {
+            	gp.ui.instrScrollOffset = Math.max(0, gp.ui.instrContentHeight - gp.ui.instrViewportHeight);
+            }
+        }
+
     }
 
     @Override

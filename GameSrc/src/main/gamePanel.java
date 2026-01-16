@@ -34,7 +34,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public int currentItemIndex = 0;
 	public int equippedSkinIndex = 0; // default
 	public String equippedSkin; // optional, just for readability
-	public int level = 1;
+	public int level = 4;
 	// mouse / selection state 
 	public int mouseX = 0, mouseY = 0;                  // last mouse coordinates on screen
 	public int hoveredTileCol = -1, hoveredTileRow = -1; // tile currently under mouse
@@ -175,6 +175,19 @@ public class gamePanel extends JPanel implements Runnable {
 		         }
 		     }
 		 });
+		 
+		// allow mouse wheel to scroll instructions
+		 // this assumes 'this' is a Component (e.g., JPanel) or you have access to the component to add the listener
+		 this.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+		     @Override
+		     public void mouseWheelMoved(java.awt.event.MouseWheelEvent e) {
+		         // only scroll when instruction screen is active
+		         if (ui.titleScreenState == 4) {
+		             ui.instrScrollOffset += e.getWheelRotation() * ui.instrScrollSpeed;
+		             ui.clampInstrScroll();
+		         }
+		     }
+		 });
 
 	    keyH = new keyHandler(this);
 	    addKeyListener(keyH);
@@ -253,8 +266,7 @@ public class gamePanel extends JPanel implements Runnable {
 		else if (slot == 3) {
 			if (saves.save3.fileExists()) {
 				saves.save3.loadGame(this);
-				player.updateInventory();
-				ui.showBoxMessage("Game Loaded from Slot 3!");
+				player.updateInventory();				ui.showBoxMessage("Game Loaded from Slot 3!");
 				gameState = playState;
 			}else {
 				ui.showBoxMessage("No save file found in Slot 2!");

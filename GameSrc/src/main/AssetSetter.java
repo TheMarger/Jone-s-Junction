@@ -17,20 +17,61 @@ public class AssetSetter {
 
 	gamePanel gp;
 	
+	public AssetSetter(gamePanel gp) {
+		this.gp = gp;
+	}
+	
+	
 	int[][][] TaskLocations = new int[][][] {
 		// Level 1 Tasks
 		{ {62,2550}, {1563,1715}, {2434,1015}, {1921,893} },
 		// Level 2 Tasks
-		{ {10,15}, {12,18}, {14,20}, {16,22} },
+		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} },
 		// Level 3 Tasks
 		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26} },
 		// Level 4 Tasks
 		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} }
 	};
 	
-	public AssetSetter(gamePanel gp) {
-		this.gp = gp;
-	}
+	int[][][] ItemLocations = new int[][][] {
+		// yellow key, key, green key, flashlight, blue key, pebble, can, tray, apple, bread, protein bar
+		
+		// Level 1 Items
+		{ {62,2550}, {1563,1715}, {2434,1015}, {1921,893} },
+		// Level 2 Tasks
+		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} },
+		// Level 3 Tasks
+		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26} },
+		// Level 4 Tasks
+		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} }
+		
+	};
+	
+	int[][][] NPCLocations = new int[][][] {	
+		// Billy Goat, Old Man Jone
+		// Level 1 NPCS
+		{ {384, 960}, {1792,704}},
+		// Level 2 NPCS
+		{ {1665,1023}, {1733,187}},
+		// Level 3 Tasks
+		{ {790,123}, {2563,2795}},
+		// Level 4 Tasks
+		{ {2166,1911}, {187,1963}}
+		
+	};
+	
+	int[][][] GaurdLocations = new int[][][] {		
+		// Level 1 Items
+		{ {62,2550}, {1563,1715}, {2434,1015}, {1921,893} },
+		// Level 2 Tasks
+		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} },
+		// Level 3 Tasks
+		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26} },
+		// Level 4 Tasks
+		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} }
+		
+	};
+	
 	
 	public void setAll() {
 		setItem();
@@ -150,13 +191,43 @@ public class AssetSetter {
 
 	
 	public void setNPC() {
-		gp.npc[0] = new OldManJone(gp);
-		gp.npc[0].worldX = gp.tileSize * 28;
-		gp.npc[0].worldY = gp.tileSize * 11;
+		if (gp.level == 1) {
+			gp.npc[1] = new BillyGoat(gp);
+			gp.npc[1].worldX = NPCLocations[0][0][0];
+			gp.npc[1].worldY = NPCLocations[0][0][1];
+			
+			gp.npc[0] = new OldManJone(gp);
+			gp.npc[0].worldX = NPCLocations[0][1][0];
+			gp.npc[0].worldY = NPCLocations[0][1][1];
+		}
+		if (gp.level == 2) {
+			gp.npc[1] = new BillyGoat(gp);
+			gp.npc[1].worldX = NPCLocations[1][0][0];
+			gp.npc[1].worldY = NPCLocations[1][0][1];
+			
+			gp.npc[0] = new OldManJone(gp);
+			gp.npc[0].worldX = NPCLocations[1][1][0];
+			gp.npc[0].worldY = NPCLocations[1][1][1];
+		}
+		if (gp.level == 3) {
+			gp.npc[1] = new BillyGoat(gp);
+			gp.npc[1].worldX = NPCLocations[2][0][0];
+			gp.npc[1].worldY = NPCLocations[2][0][1];
+			
+			gp.npc[0] = new OldManJone(gp);
+			gp.npc[0].worldX = NPCLocations[2][1][0];
+			gp.npc[0].worldY = NPCLocations[2][1][1];
+		}
+		if (gp.level == 4) {
+			gp.npc[1] = new BillyGoat(gp);
+			gp.npc[1].worldX = NPCLocations[3][0][0];
+			gp.npc[1].worldY = NPCLocations[3][0][1];
+			
+			gp.npc[0] = new OldManJone(gp);
+			gp.npc[0].worldX = NPCLocations[3][1][0];
+			gp.npc[0].worldY = NPCLocations[3][1][1];
+		}
 		
-		gp.npc[1] = new BillyGoat(gp);
-		gp.npc[1].worldX = gp.tileSize * 6;
-		gp.npc[1].worldY = gp.tileSize * 15;
 	}
 	
 	public void setGaurds() {

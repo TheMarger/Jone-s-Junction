@@ -2,6 +2,7 @@ package main; // package this class belongs to
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
@@ -84,6 +85,14 @@ public class UserInterface {
     private boolean riddleAnswerCorrect = false;
     private int riddleTimerFrames = 0;
     private int riddleTimeLimitFrames = 45 * 60;
+    
+ // Scroll state for the INSTRUCTIONS screen
+    public int instrScrollOffset = 0;
+    public int instrScrollSpeed = 28; // pixels per step (same as your line height)
+    public int instrContentHeight = 0;      // computed each frame
+    public int instrViewportHeight = 0;     // computed each frame
+
+
     
     
  // BUTTON MATCH TASK VARIABLES
@@ -272,6 +281,8 @@ public class UserInterface {
         } catch (Exception e) {
             // ignore if images not present during compile / quick tests
         }
+        
+        
 
         messageX = gp.tileSize/2;
         messageY = gp.tileSize*5;
@@ -348,6 +359,19 @@ public class UserInterface {
     				messageY = y;
     				
     }
+    
+
+    
+    void clampInstrScroll() {
+        if (instrContentHeight <= instrViewportHeight) {
+            instrScrollOffset = 0;
+        } else {
+            instrScrollOffset = Math.max(0, Math.min(instrScrollOffset, instrContentHeight - instrViewportHeight));
+        }
+    }
+
+
+
 
     // showInteract: enable the interact hint text
     public void showInteract() {
@@ -743,12 +767,12 @@ public class UserInterface {
         if (titleScreenState == 0) {
             if (uiUp) { // up navigation pressed
                 commandNum--; // move selection up
-                if (commandNum < 0) commandNum = 4; // wrap around top->bottom
+                if (commandNum < 0) commandNum = 5; // wrap around top->bottom
                 uiUp = false; // consume the input (edge-trigger)
             }
             if (uiDown) { // down navigation pressed
                 commandNum++; // move selection down
-                if (commandNum > 4) commandNum = 0; // wrap bottom->top
+                if (commandNum > 5) commandNum = 0; // wrap bottom->top
                 uiDown = false; // consume
             }
             if (uiConfirm) { // user activated the currently selected menu entry
@@ -1170,34 +1194,116 @@ public class UserInterface {
             }
         }
         else if (titleScreenState == 4) { // INSTRUCTIONS screen
-			g2.setColor(Color.black);
-			g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+            g2.setColor(Color.black);
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-			g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
-			String title = "INSTRUCTIONS";
-			int x = getXforCenteredText(title);
-			int y = gp.tileSize;
-			g2.setColor(Color.white);
-			g2.drawString(title, x, y);
+            // --- Title (fixed) ---
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
+            String title = "INSTRUCTIONS";
+            int x = getXforCenteredText(title);
+            int y = gp.tileSize;
+            g2.setColor(Color.white);
+            g2.drawString(title, x, y);
 
-			g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 24F));
-			String[] instructions = {
-				"Use WASD or Arrow keys to move.",
-				"Press SPACE to interact with objects/NPCs.",
-				"Open inventory with I key.",
-				"Access this instructions screen from the main menu.",
-				"Complete tasks to progress in the game."
-			};
-			int localY = y + gp.tileSize;
-			for (String line : instructions) {
-				int sx = gp.tileSize; // left margin
-				g2.drawString(line, sx, localY);
-				localY += gp.tileSize / 1.5; // vertical spacing
-			}
+            // --- Layout for scrollable body ---
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 18F));
+            String[] instructions = {
+                "Default Movement (Dynamic)\n" +
+                "Use W / A / S / D to move\n" +
+                "Hold SHIFT to sprint (uses stamina)\n" +
+                "Hold CTRL to crouch (quieter and safer)",
 
-			g2.drawString("ESCAPE to go back.", gp.tileSize, gp.screenHeight - gp.tileSize);
-		}
-        
+                "Stamina\n" +
+                "Sprinting drains stamina\n" +
+                "If stamina reaches 0, you slow down\n" +
+                "Eat food to restore stamina",
+
+                "Inventory\n" +
+                "You can hold up to 3 items\n" +
+                "Switch items using 1 / 2 / 3\n" +
+                "Selected item shows available actions",
+
+                "Interact\n" +
+                "Press E to interact\n" +
+                "- Talk to NPCs\n" +
+                "- Start tasks",
+
+                "Throwables\n" +
+                "Press Q to throw an item\n" +
+                "Click a tile within range\n" +
+                "Guards investigate the sound",
+
+                "Stealth\n" +
+                "Running near guards increases detection\n" +
+                "Crouch and use cover to stay hidden\n" +
+                "Use throwables to lure guards",
+
+                "Failing\n" +
+                "Failing tasks causes a cooldown\n" +
+                "Getting caught may lead to death or reset"
+            };
+
+            // body region (below title, above footer)
+            int bodyX = gp.tileSize;
+            int bodyYStart = y + gp.tileSize; // start below title
+            int bodyWidth = gp.screenWidth - gp.tileSize * 3; // leave space for scrollbar
+            int bodyHeight = gp.screenHeight - bodyYStart - gp.tileSize * 2; // leave bottom space for ESCAPE text
+            instrViewportHeight = bodyHeight; // remember for page up/down
+
+            int lineHeight = 28;
+
+            // Create a clipped graphics context so only the body area is affected by translate
+            Graphics2D g2Body = (Graphics2D) g2.create();
+            g2Body.setClip(bodyX, bodyYStart, bodyWidth, bodyHeight);
+            g2Body.translate(0, -instrScrollOffset); // scroll the body content
+
+            // draw the instructions inside clipped/translated context
+            int textX = bodyX;
+            int textY = bodyYStart;
+            for (String block : instructions) {
+                String[] lines = block.split("\n");
+                for (String line : lines) {
+                    g2Body.drawString(line, textX, textY);
+                    textY += lineHeight;
+                }
+                textY += lineHeight / 2; // extra spacing between sections
+            }
+
+            // compute content height for clamping
+            instrContentHeight = textY - bodyYStart;
+            g2Body.dispose();
+
+            // draw a simple scrollbar on the right of the body region (only if needed)
+            if (instrContentHeight > bodyHeight) {
+                int scrollbarX = bodyX + bodyWidth + gp.tileSize / 2;
+                int scrollbarY = bodyYStart;
+                int scrollbarW = gp.tileSize / 2;
+                int scrollbarH = bodyHeight;
+
+                // background track
+                g2.setColor(new Color(0x333333));
+                g2.fillRect(scrollbarX, scrollbarY, scrollbarW, scrollbarH);
+
+                // thumb (proportional)
+                float viewToContent = (float) bodyHeight / (float) instrContentHeight;
+                int thumbH = Math.max(20, (int) (scrollbarH * viewToContent));
+                float maxScroll = instrContentHeight - bodyHeight;
+                int thumbY = scrollbarY;
+                if (maxScroll > 0) {
+                    thumbY = scrollbarY + (int) ((instrScrollOffset / maxScroll) * (scrollbarH - thumbH));
+                }
+
+                g2.setColor(new Color(0xBBBBBB));
+                g2.fillRect(scrollbarX + 2, thumbY, scrollbarW - 4, thumbH);
+            }
+
+            // footer (fixed)
+            g2.setColor(Color.white);
+            g2.drawString("ESCAPE to go back", gp.tileSize, gp.screenHeight - gp.tileSize);
+        }
+
+
+
         else if (titleScreenState == 6) { // SAVE screen
 
             g2.setColor(new Color(0,0,0,200));
