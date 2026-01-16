@@ -34,7 +34,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public int currentItemIndex = 0;
 	public int equippedSkinIndex = 0; // default
 	public String equippedSkin; // optional, just for readability
-	public int level = 4;
+	public int level = 1;
 	// mouse / selection state 
 	public int mouseX = 0, mouseY = 0;                  // last mouse coordinates on screen
 	public int hoveredTileCol = -1, hoveredTileRow = -1; // tile currently under mouse
@@ -124,6 +124,10 @@ public class gamePanel extends JPanel implements Runnable {
 	public final int dialogueState = 3;
 	public final int deathState = 4;
 	public final int taskState = 5;
+	public boolean speedRunState = false;
+	
+	public int speedRunTimerFrames = 0;
+	public boolean speedRunLost = false;
 		
 	public TileManager tileM;
 	public UtilityTool uTool;
@@ -315,6 +319,7 @@ public class gamePanel extends JPanel implements Runnable {
 		if (gameState == playState) {
 			// Player
 			player.update();
+			
 			// NPCs
 			for (int i = 0; i < npc.length; i++) {
 				if (npc[i] != null) {
@@ -371,6 +376,9 @@ public class gamePanel extends JPanel implements Runnable {
         selectedThrowCol = -1;
         selectedThrowRow = -1;
         
+        speedRunTimerFrames = 0;
+        speedRunLost = false;
+        
 	    if (restartFromTitle) {
 	    	gameState = titleState;
 	    	ui.titleScreenState = 0;
@@ -390,6 +398,15 @@ public class gamePanel extends JPanel implements Runnable {
 		} else {
 			// Draw tiles
 			tileM.draw(g2);
+			
+			// Draw Time
+			if (speedRunState) {
+				ui.drawSpeedRunTimer(g2);
+				if (speedRunLost) {
+					eHandler.playerDied();
+				}
+				speedRunTimerFrames++;
+			}
 			
 			
 			// Draw items

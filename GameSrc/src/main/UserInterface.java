@@ -60,7 +60,6 @@ public class UserInterface {
 
     private boolean tsResult = false;
 
-
     // task / math variables
     private boolean taskGenerated = false;
     private String question = "";
@@ -778,8 +777,7 @@ public class UserInterface {
             if (uiConfirm) { // user activated the currently selected menu entry
                 switch (commandNum) {
                     case 0: // NEW GAME: switch to play state
-                        gp.gameState = gp.playState;
-                        gp.playMusic(0);
+                        titleScreenState = 5;
                         break;
                     case 1: // LOAD GAME: show load sub-screen
                         titleScreenState = 1;
@@ -926,6 +924,29 @@ public class UserInterface {
                 }
             }
             }
+        
+        if (titleScreenState == 5) {
+        	if(!awaitingKeybind) {
+        		if (uiRight) {
+        			gp.speedRunState = !gp.speedRunState;
+        			uiRight = false;
+        		}
+        		else if (uiLeft) {
+        			gp.speedRunState = !gp.speedRunState;
+        			uiLeft = false;
+        		}
+        		else if (uiConfirm) {
+        			gp.gameState = gp.playState;
+        			gp.speedRunTimerFrames = 0;
+        			gp.playMusic(0);
+        			uiConfirm = false;
+        		}
+        		else if (uiBack) {
+        			titleScreenState = 0;
+        			uiBack = false;
+        		}
+        	}
+        }
             if (titleScreenState == 6) {
 
                 if (!awaitingKeybind) {
@@ -1301,9 +1322,24 @@ public class UserInterface {
             g2.setColor(Color.white);
             g2.drawString("ESCAPE to go back", gp.tileSize, gp.screenHeight - gp.tileSize);
         }
+        
+        else if (titleScreenState == 5) {
+        	g2.setColor(new Color(0,0,0,200));
+            g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
+            String text = "SPEED RUN MODE:";
+            int x = gp.screenWidth / 2 - gp.tileSize * 3;
+            int y = gp.tileSize*2;
 
-
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));
+            g2.setColor(Color.white);
+            g2.drawString(text, x, y);
+            
+            text = "<     " + (gp.speedRunState ? "ON" : "False") + "     >";
+            
+            g2.drawString(text, x+gp.tileSize, y+gp.tileSize*2);
+        }
+        
         else if (titleScreenState == 6) { // SAVE screen
 
             g2.setColor(new Color(0,0,0,200));
@@ -1558,6 +1594,49 @@ public class UserInterface {
 		y += gp.tileSize; // inner padding
 		
 	}
+    
+    public void drawSpeedRunTimer(Graphics2D g2) {
+
+        int maxTimeSeconds = 0;
+
+        switch (gp.level) {
+            case 1 -> maxTimeSeconds = 300;
+            case 2 -> maxTimeSeconds = 360;
+            case 3 -> maxTimeSeconds = 420;
+            case 4 -> maxTimeSeconds = 10;
+        }
+
+        int maxFrames = maxTimeSeconds * 60;
+        int remainingFrames = Math.max(0, maxFrames - gp.speedRunTimerFrames);
+
+        int totalSeconds = remainingFrames / 60;
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
+        // Warning colors
+        if (totalSeconds <= 10) {
+            g2.setColor(Color.red);
+        } else if (totalSeconds <= 30) {
+            g2.setColor(Color.orange);
+        } else {
+            g2.setColor(Color.white);
+        }
+        
+        if (totalSeconds == 0) {
+        	gp.speedRunLost = true;
+        }
+
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28F));
+
+        String timeText = String.format("TIME %02d:%02d", minutes, seconds);
+        System.out.println(timeText);
+
+        int x = gp.screenWidth - 220;
+        int y = gp.screenHeight - 100;
+
+        g2.drawString(timeText, x, y);
+    }
+
     
  // ------------------------------------- TILE SELECT TASK SCREEN -------------------------------------
     public void drawTileSelectTask() {
