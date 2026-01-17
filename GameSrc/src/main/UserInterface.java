@@ -90,9 +90,6 @@ public class UserInterface {
     public int instrScrollSpeed = 28; // pixels per step (same as your line height)
     public int instrContentHeight = 0;      // computed each frame
     public int instrViewportHeight = 0;     // computed each frame
-
-
-    
     
  // BUTTON MATCH TASK VARIABLES
     private boolean buttonMatchGenerated = false;
@@ -137,28 +134,135 @@ public class UserInterface {
 	patternInputLimitFrames = 5 * 60;
 	patternChecked = false;
 	patternSuccess = false; }
+	
+	 // Logic panel task state
+	 private boolean logicGenerated = false;
+	 private int logicStatementCount = 6;
+	 private String[] logicStatements = new String[6];
+	 private boolean[] logicCorrectAnswers = new boolean[6]; // true or false
+	 private int[] logicPlayerAnswers = new int[6]; // -1 = unset, 0 = false, 1 = true
+	 private int logicTimerFrames = 0;
+	 private int logicTimeLimitFrames = 0;
+	 private int logicFlashFrames = 0;
+
+	 // Toggle switch hitboxes
+	 private Rectangle[] logicTrueSwitches = new Rectangle[6];
+	 private Rectangle[] logicFalseSwitches = new Rectangle[6];
+
+	 // Logic statement pool (statement, correct answer)
+	 private final String[][] LOGIC_STATEMENTS = {
+	     // Simple facts - TRUE
+	     {"All squares are rectangles.", "true"},
+	     {"Water is composed of hydrogen and oxygen.", "true"},
+	     {"The opposite of false is true.", "true"},
+	     {"A triangle has three sides.", "true"},
+	     {"All mammals are animals.", "true"},
+	     {"Fire requires oxygen to burn.", "true"},
+	     {"The Earth orbits the Sun.", "true"},
+	     {"Ice is frozen water.", "true"},
+	     {"A pentagon has five sides.", "true"},
+	     {"Humans need oxygen to breathe.", "true"},
+	     {"All birds have beaks.", "true"},
+	     {"The sum of 2 + 2 equals 4.", "true"},
+	     {"A circle has no corners.", "true"},
+	     {"All roses are flowers.", "true"},
+	     {"Sound travels through air.", "true"},
+	     {"A week has seven days.", "true"},
+	     {"All squares have four equal sides.", "true"},
+	     {"Light travels faster than sound.", "true"},
+	     {"A year has 365 days (non-leap).", "true"},
+	     {"All diamonds are carbon.", "true"},
+	     
+	     // Simple facts - FALSE
+	     {"All rectangles are squares.", "false"},
+	     {"All animals are mammals.", "false"},
+	     {"All birds can fly.", "false"},
+	     {"The Sun orbits the Earth.", "false"},
+	     {"All flowers are roses.", "false"},
+	     {"A square has three sides.", "false"},
+	     {"All fish live in freshwater.", "false"},
+	     {"Ice is hotter than steam.", "false"},
+	     {"A triangle has four corners.", "false"},
+	     {"All metals are magnetic.", "false"},
+	     {"Humans can breathe underwater without equipment.", "false"},
+	     {"The opposite of true is maybe.", "false"},
+	     {"All circles are squares.", "false"},
+	     {"Sound travels faster than light.", "false"},
+	     {"A pentagon has six sides.", "false"},
+	     {"All water is saltwater.", "false"},
+	     {"Fire can burn without oxygen.", "false"},
+	     {"A week has eight days.", "false"},
+	     {"All plants are trees.", "false"},
+	     {"All birds are penguins.", "false"},
+	     
+	     // Logical deductions - TRUE
+	     {"If all cats are animals, then some animals are cats.", "true"},
+	     {"If X > Y and Y > Z, then X > Z.", "true"},
+	     {"If it is raining, the ground is wet. It is raining. Therefore, the ground is wet.", "true"},
+	     {"All A are B. X is A. Therefore, X is B.", "true"},
+	     {"If today is Monday, tomorrow is Tuesday.", "true"},
+	     {"Either the light is on or off. The light is not on. Therefore, it is off.", "true"},
+	     {"If all students study, and John is a student, then John studies.", "true"},
+	     {"No circles are squares. X is a circle. Therefore, X is not a square.", "true"},
+	     {"All prime numbers greater than 2 are odd.", "true"},
+	     {"If a shape has four equal sides and four right angles, it is a square.", "true"},
+	     
+	     // Logical deductions - FALSE
+	     {"If some cats are animals, then all animals are cats.", "false"},
+	     {"If all birds can fly, and penguins are birds, then penguins can fly.", "false"},
+	     {"All A are B. Therefore, all B are A.", "false"},
+	     {"Some dogs are brown. Therefore, all dogs are brown.", "false"},
+	     {"If it is raining, the ground is wet. The ground is wet. Therefore, it is raining.", "false"},
+	     {"All squares are rectangles. Therefore, all rectangles are squares.", "false"},
+	     {"If X = Y, then X > Y.", "false"},
+	     {"Some fish can swim. Therefore, all animals can swim.", "false"},
+	     {"All cars have wheels. Some wheels are round. Therefore, all round things are cars.", "false"},
+	     {"If today is Monday, yesterday was Wednesday.", "false"},
+	     
+	     // Paradoxes and tricky statements - TRUE
+	     {"This statement has more than three words.", "true"},
+	     {"The statement 'All generalizations are false' is itself a generalization.", "true"},
+	     {"A set containing nothing is still a set.", "true"},
+	     {"Zero is neither positive nor negative.", "true"},
+	     {"A stopped clock is correct twice a day.", "true"},
+	     {"An empty statement can still be a statement.", "true"},
+	     
+	     // Paradoxes and tricky statements - FALSE
+	     {"This statement is false.", "false"}, // Classic liar paradox - treating as false
+	     {"The following statement is true. The previous statement is false.", "false"},
+	     {"Every rule has an exception, including this one.", "false"},
+	     {"Nothing is impossible.", "false"},
+	     {"All statements are true.", "false"},
+	     {"This statement cannot be proven.", "false"}
+	 };
 
     
  // VAULT SEQUENCE TASK VARIABLES
     private boolean vaultGenerated = false;
-    private boolean vaultResolved = false;
-
-    private int[] vaultSequence;          // the generated sequence (like 2,4,1,3)
-    private int vaultSeqLen = 0;          // length of sequence
-    private int vaultProgressIndex = 0;   // how many correct inputs so far
-
-    private int vaultStrikes = 0;         // mistakes
-    private int vaultMaxStrikes = 2;      // fail after 2 mistakes
 
     private int vaultTimerFrames = 0;
     private int vaultTimeLimitFrames = 0;
+    private int vaultWrongAnswers = 0;
+    // 4 riddles
+    private String[] vaultRiddleQ = new String[4];
+    private String[] vaultRiddleA = new String[4];
+    private String[] vaultInputs  = new String[]{"", "", "", ""};
+    private boolean[] vaultSolved = new boolean[]{false, false, false, false};
 
-    private Rectangle[] vaultButtonRects = new Rectangle[4];  // clickable tiles/buttons
+    // digits awarded
+    private int[] vaultDigits = new int[4];
+
+    // which riddle is currently shown (0..3)
+    private int vaultIndex = 0;
+
+    // final code entry
+    private boolean vaultEnteringCode = false;
+    private String vaultFinalInput = "";
+
+    // feedback
     private String vaultFeedback = "";
     private int vaultFeedbackFrames = 0;
 
-    // optional: reuse riddle pool as flavor text (not required but matches your "use same riddles" idea)
-    private String vaultFlavorRiddle = "";
     
     // riddle pool
     private final String[] RIDDLE_QUESTIONS = {
@@ -225,6 +329,93 @@ public class UserInterface {
         "the future",
         "a barber",
         "an envelope"
+    };
+    
+    // Fuse repair task state
+    private boolean fuseGenerated = false;
+    private int fuseNodeCount = 9;
+    private Color[] fuseLeftColors = new Color[9];
+    private Color[] fuseRightColors = new Color[9];
+    private int[] fuseRightOrder = new int[9]; // maps right index -> color index
+    private boolean[] fuseConnected = new boolean[9];
+    private int fuseSelectedLeft = -1; // -1 = none selected
+    private int fuseConnectionsMade = 0;
+    private int fuseTimerFrames = 0;
+    private int fuseTimeLimitFrames = 0;
+
+    // Available wire colors (9 distinct colors)
+    private final Color[] FUSE_COLORS = {
+        new Color(220, 60, 60),   // Red
+        new Color(60, 120, 220),  // Blue
+        new Color(80, 200, 80),   // Green
+        new Color(240, 200, 60),  // Yellow
+        new Color(200, 80, 200),  // Purple
+        new Color(240, 140, 60),  // Orange
+        new Color(100, 220, 220), // Cyan
+        new Color(240, 120, 200), // Pink
+        new Color(200, 200, 200)  // White/Gray
+    };
+
+    // Node hitboxes for click detection
+    private Rectangle[] fuseLeftNodes = new Rectangle[9];
+    private Rectangle[] fuseRightNodes = new Rectangle[9];
+
+    // Flash effect for wrong connection
+    private int fuseFlashFrames = 0;
+
+    
+ // Cooking task state
+    private boolean cookingGenerated = false;
+    private int cookingQuestionIndex = -1;
+    private int cookingCorrectAnswer = -1; // 0-3 for A-D
+    private int cookingSelectedAnswer = -1; // -1 = none selected
+    private boolean cookingAnswerSubmitted = false;
+    private boolean cookingAnswerCorrect = false;
+    private int cookingTimerFrames = 0;
+    private int cookingTimeLimitFrames = 0;
+
+    // Cooking question pool (questions, options, correct answer index)
+    private final String[][] COOKING_QUESTIONS = {
+        {"What temperature does water boil at (at sea level)?", "90°C", "100°C", "110°C", "95°C", "1"},
+        {"Which ingredient makes bread rise?", "Sugar", "Salt", "Yeast", "Flour", "2"},
+        {"What is the main ingredient in guacamole?", "Tomato", "Onion", "Avocado", "Lime", "2"},
+        {"At approximately what temperature does chocolate begin to melt?", "0–5°C", "15–18°C", "30–32°C", "40–45°C", "2"},
+        {"Which cooking method uses dry heat and circulating air to cook food?", "Boiling", "Baking", "Steaming", "Poaching", "1"},
+        {"Which knife is best for chopping vegetables?", "Bread knife", "Fillet knife", "Chef's knife", "Paring knife", "2"},
+        {"What does 'al dente' refer to?", "Overcooked rice", "Soft vegetables", "Pasta cooked firm to bite", "Crispy fried food", "2"},
+        {"Which of these is a dry-heat cooking technique?", "Steaming", "Grilling", "Poaching", "Boiling", "1"},
+        {"Which fat is commonly used for sautéing because of its high smoke point?", "Butter", "Vegetable oil", "Extra virgin olive oil", "Margarine", "1"},
+        {"What is the recommended minimum internal temperature for cooked chicken?", "55°C", "60°C", "74°C", "80°C", "2"},
+        {"What is the purpose of blanching vegetables?", "To fry them", "Brief cook to stop enzymes", "To freeze immediately", "To add sweetness", "1"},
+        {"Which of the following is a leavening agent?", "Salt", "Baking powder", "Water", "Cocoa", "1"},
+        {"What does 'mise en place' mean?", "Cook quickly", "Everything in its place", "Taste as you go", "Finish with sauce", "1"},
+        {"Which cut of meat is typically most tender?", "Shank", "Round", "Brisket", "Tenderloin", "3"},
+        {"Which of these is best for making mayonnaise?", "Boiled egg", "Raw egg yolk with oil", "Bread crumbs", "Grated cheese", "1"},
+        {"Which spice is the main ingredient in curry powder?", "Cumin", "Turmeric", "Cinnamon", "Oregano", "1"},
+        {"Which method cooks food by surrounding it with steam?", "Frying", "Steaming", "Grilling", "Roasting", "1"},
+        {"What ingredient is primarily responsible for browning via the Maillard reaction?", "Water", "Fat", "Proteins and sugars", "Acids", "2"},
+        {"Which of the following is a dry, cured pork product?", "Ham", "Prosciutto", "Fresh bacon", "Uncooked sausage", "1"},
+        {"Which of these is NOT a mother sauce in classical French cuisine?", "Béchamel", "Velouté", "Hollandaise", "Pesto", "3"},
+        {"What is the culinary term for cutting food into long, thin strips?", "Brunoise", "Chiffonade", "Julienne", "Dice", "2"},
+        {"Which cheese is traditionally used on pizza for its meltability?", "Cheddar", "Feta", "Mozzarella", "Parmesan", "2"},
+        {"What does it mean to 'deglaze' a pan?", "Clean with soap", "Add liquid to dissolve bits", "Flip food quickly", "Add flour to thicken", "1"},
+        {"Which flour has the highest protein content, typically used for bread?", "Cake flour", "Pastry flour", "Bread flour", "Rice flour", "2"},
+        {"What is the safe refrigerator temperature to slow bacterial growth?", "10°C", "7°C", "4°C or below", "8°C", "2"},
+        {"Which fruit is high in vitamin C and commonly used to prevent scurvy?", "Banana", "Apple", "Orange", "Pear", "2"},
+        {"What does 'folding' mean in baking?", "Rapidly beat", "Cut finely", "Gently combine to preserve air", "Stretch dough", "2"},
+        {"Which method uses water just below boiling to cook delicate foods?", "Boiling", "Frying", "Poaching", "Stewing", "2"},
+        {"Which of these is a common emulsifier used in cooking?", "Water", "Sugar", "Lecithin (egg yolk)", "Salt", "2"},
+        {"What kitchen tool measures dry ingredients most accurately?", "Tablespoon", "Cup", "Kitchen scale", "Measuring jug", "2"},
+        {"Which grain is used to make risotto?", "Long-grain rice", "Jasmine rice", "Arborio rice", "Basmati rice", "2"},
+        {"Which method is best for making stock from bones?", "Frying quickly", "Simmering for hours", "Freezing bones", "Microwaving", "1"},
+        {"Which herb is the primary ingredient in pesto?", "Parsley", "Cilantro", "Basil", "Thyme", "2"},
+        {"What's the common thickener in cream soups?", "Lemon juice", "Roux (butter + flour)", "Vinegar", "Soy sauce", "1"},
+        {"Which oil is traditionally used in Japanese tempura for frying?", "Olive oil", "Butter", "Vegetable oil", "Coconut oil", "2"},
+        {"Which of these indicates a cake is fully baked?", "Sinks in middle", "Top is wet", "Toothpick comes out clean", "Slips off pan", "2"},
+        {"Which foodborne pathogen is commonly associated with undercooked eggs?", "E. coli", "Salmonella", "Listeria", "Botulism", "1"},
+        {"What is 'umami'?", "A texture", "A bitter taste", "A savory taste", "A cooking method", "2"},
+        {"Which of the following is a quick method for tenderizing meat?", "Roasting whole", "Pounding with mallet", "Freezing only", "Deep-frying dry", "1"},
+        {"Which acid is commonly used to 'cook' fish in ceviche?", "Lactic acid", "Malic acid", "Citric acid (lime/lemon)", "Tartaric acid", "2"}
     };
 
     // Generic cooldown used across tasks (frames @ 60fps)
@@ -427,9 +618,12 @@ public class UserInterface {
                     case "Math Task" -> drawMathTask();
                     case "Riddle Task" -> drawRiddleTask();
                     case "Tile Select Task" -> drawTileSelectTask();
-                    case "Button Task" -> drawButtonMatchTask();
+                    case "Button Match Task" -> drawButtonMatchTask();
                     case "Vault Sequence Task" -> drawVaultSequenceTask();
-                    case "Fuse Repair Task" -> drawPatternSwitchTask();
+                    case "Pattern Switches Task" -> drawPatternSwitchTask();
+                    case "Cooking Task" -> drawCookingTask();
+                    case "Fuse Repair Task" -> drawFuseRepairTask();
+                    case "Logic Panel Task" -> drawLogicPanelTask();
                     // other task types fall back to math or can be added
                     default -> drawMathTask();
                 }
@@ -1002,12 +1196,11 @@ public class UserInterface {
 
         // ===== FRAME SIZE =====
         int frameWidth = padding * 2 + (slotSize * slots) + (slotGap * (slots - 1));
-
         int frameHeight = padding * 2 + slotSize;
 
-        // ===== FRAME POSITION (TOP RIGHT) =====
-        int frameX = gp.screenWidth - frameWidth - gp.tileSize / 2;
-        int frameY = gp.tileSize / 2;
+        // ===== FRAME POSITION (BOTTOM LEFT) =====
+        int frameX = gp.tileSize / 2;
+        int frameY = gp.screenHeight - frameHeight - gp.tileSize / 2;
 
         // ===== DRAW FRAME =====
         g2.setColor(new Color(0, 0, 0, 200));
@@ -1031,29 +1224,46 @@ public class UserInterface {
             g2.setColor(Color.white);
             g2.drawRoundRect(slotX, slotY, slotSize, slotSize, 10, 10);
         }
-        
-        // draw items in slots
+
+        // ===== DRAW ITEMS IN SLOTS =====
         for (int i = 0; i < gp.player.inventory.size() && i < slots; i++) {
-			Item item = gp.player.inventory.get(i);
-			int slotX = slotXstart + i * (slotSize + slotGap);
-			int slotY = slotYstart;
+            Item item = gp.player.inventory.get(i);
+            int slotX = slotXstart + i * (slotSize + slotGap);
+            int slotY = slotYstart;
 
-			g2.drawImage(item.image, slotX + 8, slotY + 8, slotSize - 16, slotSize - 16, null);
-		}
+            g2.drawImage(
+                item.image,
+                slotX + 8,
+                slotY + 8,
+                slotSize - 16,
+                slotSize - 16,
+                null
+            );
+        }
 
-        // draw cursor 
+        // ===== DRAW CURSOR / SELECTION =====
         if (slotRow > -1) {
-	        int cursorX = slotXstart + slotRow * (slotSize + slotGap);
-	        int cursorY = slotYstart;
-	        g2.setColor(Color.yellow);
-	        g2.drawRoundRect(cursorX - 4, cursorY - 4, slotSize + 8, slotSize + 8, 12, 12);
-	        if (gp.player.inventory.size() > slotRow) {
-	        	selectedItem = gp.player.inventory.get(slotRow);
-	        }
+            int cursorX = slotXstart + slotRow * (slotSize + slotGap);
+            int cursorY = slotYstart;
+
+            g2.setColor(Color.yellow);
+            g2.drawRoundRect(
+                cursorX - 4,
+                cursorY - 4,
+                slotSize + 8,
+                slotSize + 8,
+                12,
+                12
+            );
+
+            if (gp.player.inventory.size() > slotRow) {
+                selectedItem = gp.player.inventory.get(slotRow);
+            }
         } else {
-			selectedItem = null;
-		}
+            selectedItem = null;
+        }
     }
+
     
     // drawTitleScreen and other drawing methods (these render the visual UI)
     public void drawTitleScreen() {
@@ -1414,39 +1624,87 @@ public class UserInterface {
     }
     
     public void drawStaminaBar() {
-        int x =  gp.screenWidth - gp.tileSize * 3 - 40;
-        int y =  gp.tileSize + gp.tileSize + 15;
-        int width =  gp.tileSize * 3;
-        int height = 10;
 
-        // background
-        g2.setColor(new Color(0,0,0,160));
-        g2.fillRoundRect(x-4, y-4, width+8, height+8, 8, 8);
+        // ===== CONFIG =====
+        final int bars = 5;
+        final int barHeight = 10;
+        final int barGap = 6;
+        final int padding = 6;
 
-        // border
+        // ===== HOTBAR DIMENSIONS (MATCH INVENTORY) =====
+        final int slotSize = gp.tileSize;
+        final int slots = 3;
+        final int slotGap = 8;
+
+        int hotbarWidth =
+                padding * 2 +
+                (slotSize * slots) +
+                (slotGap * (slots - 1));
+
+        int hotbarX = gp.tileSize / 2;
+        int hotbarHeight = slotSize + padding * 2;
+        int hotbarY = gp.screenHeight - hotbarHeight - gp.tileSize / 2;
+
+        // ===== STAMINA BAR POSITION =====
+        int x = hotbarX;
+        int y = hotbarY - barHeight - 14; // spacing above hotbar
+
+        // ===== BAR SIZE =====
+        int barWidth = (hotbarWidth - (bars - 1) * barGap) / bars;
+
+        // ===== BACKGROUND =====
+        g2.setColor(new Color(0, 0, 0, 160));
+        g2.fillRoundRect(
+                x - padding,
+                y - padding,
+                hotbarWidth + padding * 2,
+                barHeight + padding * 2,
+                10, 10
+        );
+
         g2.setColor(Color.white);
-        g2.drawRoundRect(x-4, y-4, width+8, height+8, 8, 8);
+        g2.drawRoundRect(
+                x - padding,
+                y - padding,
+                hotbarWidth + padding * 2,
+                barHeight + padding * 2,
+                10, 10
+        );
 
-        // fill
+        // ===== STAMINA → BAR COUNT =====
         float ratio = 0f;
-        if (gp != null && gp.player != null && gp.player.maxStamina > 0f) {
+        if (gp.player != null && gp.player.maxStamina > 0f) {
             ratio = gp.player.stamina / gp.player.maxStamina;
-            if (ratio < 0f) ratio = 0f;
-            if (ratio > 1f) ratio = 1f;
-        }
-        int innerWidth = (int) (width * ratio);
-
-        // color: green -> yellow -> red by ratio
-        if (ratio > 0.6f) {
-            g2.setColor(new Color(80,200,120));
-        } else if (ratio > 0.25f) {
-            g2.setColor(new Color(240,200,80));
-        } else {
-            g2.setColor(new Color(220,80,80));
+            ratio = Math.max(0f, Math.min(1f, ratio));
         }
 
-        g2.fillRoundRect(x, y, innerWidth, height, 6, 6);
+        int filledBars = (int) Math.ceil(ratio * bars);
+
+        // ===== DRAW BARS =====
+        for (int i = 0; i < bars; i++) {
+
+            int barX = x + i * (barWidth + barGap);
+
+            if (i < filledBars) {
+                // Color by sprint effectiveness
+                if (filledBars >= 4) {
+                    g2.setColor(new Color(80, 200, 120)); // green (80–100%)
+                } else if (filledBars >= 2) {
+                    g2.setColor(new Color(240, 200, 80)); // yellow (40–60%)
+                } else {
+                    g2.setColor(new Color(220, 80, 80)); // red (20%)
+                }
+            } else {
+                g2.setColor(new Color(70, 70, 70, 180)); // empty
+            }
+
+            g2.fillRoundRect(barX, y, barWidth, barHeight, 6, 6);
+
+            g2.setColor(Color.white);
+            g2.drawRoundRect(barX, y, barWidth, barHeight, 6, 6);
+        }
     }
+
     
     public void drawTasksList() {
         if (gp == null || gp.player == null) return;
@@ -1629,7 +1887,7 @@ public class UserInterface {
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28F));
 
         String timeText = String.format("TIME %02d:%02d", minutes, seconds);
-        System.out.println(timeText);
+
 
         int x = gp.screenWidth - 220;
         int y = gp.screenHeight - 100;
@@ -2338,573 +2596,69 @@ public class UserInterface {
     }
     
     // ------------------------ DRAW Button Match  TASK ------------------------
+
+ // ------------------------ DRAW BUTTON MATCH TASK ------------------------
     public void drawButtonMatchTask() {
 
-        // If task is on cooldown, show message and block attempts
-        if (taskCooldownFrames > 0) {
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28f));
-            g2.setColor(Color.white);
-            g2.drawString("Task is cooling down...", gp.tileSize * 4, gp.tileSize * 4);
-            return;
-        }
-
-        // Generate the task once
-        if (!buttonMatchGenerated) {
-            buttonMatchGenerated = true;
-            buttonMatchResolved = false;
-
-            // random target time between 1.0s and 3.0s
-            buttonMatchTargetSeconds = 1.0 + (Math.random() * 2.0);
-            buttonMatchStartNano = System.nanoTime();
-
-            buttonMatchFeedback = "";
-            buttonMatchFeedbackFrames = 0;
-        }
-
-        // Draw background panel (simple)
-        int frameX = gp.tileSize * 2;
-        int frameY = gp.tileSize * 2;
-        int frameW = gp.screenWidth - gp.tileSize * 4;
-        int frameH = gp.screenHeight - gp.tileSize * 4;
-
-        g2.setColor(new Color(0, 0, 0, 200));
-        g2.fillRoundRect(frameX, frameY, frameW, frameH, 20, 20);
-
-        // Title + instructions
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 34f));
-        g2.setColor(Color.white);
-        g2.drawString("Button Match Task", frameX + gp.tileSize, frameY + gp.tileSize);
-
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22f));
-        g2.drawString("Click the button when the timer hits the target window.", frameX + gp.tileSize, frameY + gp.tileSize * 2);
-
-        // Compute elapsed time
-        double elapsed = (System.nanoTime() - buttonMatchStartNano) / 1_000_000_000.0;
-
-        // Draw timer info
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 22f));
-        g2.drawString("Time: " + String.format("%.2f", elapsed) + "s", frameX + gp.tileSize, frameY + gp.tileSize * 3);
-        g2.drawString("Target: " + String.format("%.2f", buttonMatchTargetSeconds) + "s", frameX + gp.tileSize, frameY + gp.tileSize * 4);
-        g2.drawString("Window: +/- " + String.format("%.2f", buttonMatchWindow) + "s", frameX + gp.tileSize, frameY + gp.tileSize * 5);
-
-        // Button rectangle (centered)
-        int btnW = gp.tileSize * 6;
-        int btnH = gp.tileSize * 2;
-        int btnX = frameX + (frameW / 2) - (btnW / 2);
-        int btnY = frameY + (frameH / 2) - (btnH / 2);
-
-        buttonMatchButtonRect.setBounds(btnX, btnY, btnW, btnH);
-
-        // Draw button
-        g2.setColor(Color.darkGray);
-        g2.fillRoundRect(btnX, btnY, btnW, btnH, 20, 20);
-
-        g2.setColor(Color.white);
-        g2.drawRoundRect(btnX, btnY, btnW, btnH, 20, 20);
-
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 26f));
-        g2.drawString("CLICK", btnX + gp.tileSize * 2, btnY + gp.tileSize + 10);
-
-        // If already resolved, just show feedback for a bit then exit task
-        if (buttonMatchResolved) {
-            if (buttonMatchFeedbackFrames > 0) buttonMatchFeedbackFrames--;
-
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28f));
-            g2.setColor(Color.white);
-            g2.drawString(buttonMatchFeedback, frameX + gp.tileSize, frameY + frameH - gp.tileSize * 2);
-
-            // After feedback ends, leave task screen
-            if (buttonMatchFeedbackFrames == 0) {
-                resetAllTaskState();
-                gp.gameState = gp.playState;
-            }
-            return;
-        }
-
-        // Detect click (same style as your other "click-based" UI features)
-        // IMPORTANT: this assumes you have gp.mouseClicked + gp.mouseX + gp.mouseY
-        if (gp.mouseClicked) {
-            gp.mouseClicked = false;
-
-            boolean clickedButton = buttonMatchButtonRect.contains(gp.mouseX, gp.mouseY);
-
-            if (clickedButton) {
-                double diff = Math.abs(elapsed - buttonMatchTargetSeconds);
-
-                if (diff <= buttonMatchWindow) {
-                    buttonMatchFeedback = "SUCCESS!";
-                    
-                } else {
-                    buttonMatchFeedback = "FAILED (too early/late)";
-                    taskCooldownFrames = DEFAULT_TASK_COOLDOWN_SECONDS * 60;
-                }
-
-                buttonMatchResolved = true;
-                buttonMatchFeedbackFrames = 60; // 1 second of feedback
-            }
-        }
-    }
-    
- // ------------------------ DRAW PATTERN SWITCHES TASK ------------------------
- 	public void drawPatternSwitchTask() {
-
- 		// Rendering
- 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
- 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
- 		// Dim background
- 		g2.setColor(new Color(0, 0, 0, 160));
- 		g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-
- 		// Panel layout
- 		int panelW = gp.tileSize * 10;
- 		int panelH = gp.tileSize * 7;
- 		int panelX = (gp.screenWidth - panelW) / 2;
- 		int panelY = (gp.screenHeight - panelH) / 2;
- 		int arc = 28;
-
- 		// drop shadow
- 		int shadowOffset = gp.tileSize / 8;
- 		g2.setColor(new Color(0, 0, 0, 120));
- 		g2.fillRoundRect(panelX + shadowOffset, panelY + shadowOffset, panelW, panelH, arc, arc);
-
- 		// panel gradient background
- 		GradientPaint back = new GradientPaint(panelX, panelY, new Color(60, 63, 65), panelX, panelY + panelH,
- 				new Color(42, 45, 48));
- 		g2.setPaint(back);
- 		g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
-
- 		// inner padding
- 		int pad = gp.tileSize / 3;
- 		int innerX = panelX + pad;
- 		int innerY = panelY + pad;
- 		int innerW = panelW - pad * 2;
-
- 		// Title with subtle shadow
- 		String title = "Pattern Switches";
- 		Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.9f);
- 		g2.setFont(titleFont);
- 		g2.setColor(new Color(0, 0, 0, 120));
- 		g2.drawString(title, innerX + 3, innerY + (int) (gp.tileSize * 0.9f) + 3);
- 		g2.setColor(new Color(230, 230, 230));
- 		g2.drawString(title, innerX, innerY + (int) (gp.tileSize * 0.9f));
-
- 		// Level badge
- 		String lvl = "Level " + gp.level;
- 		Font badgeFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.45f);
- 		int badgeW = gp.tileSize * 3;
- 		int badgeH = gp.tileSize / 2;
- 		int badgeX = panelX + panelW - pad - badgeW;
- 		int badgeY = innerY - gp.tileSize / 6;
- 		g2.setColor(new Color(255, 200, 60));
- 		g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, 12, 12);
- 		g2.setColor(Color.BLACK);
- 		g2.setFont(badgeFont);
- 		FontMetrics fmBadge = g2.getFontMetrics();
- 		int bx = badgeX + (badgeW - fmBadge.stringWidth(lvl)) / 2;
- 		int by = badgeY + ((badgeH - fmBadge.getHeight()) / 2) + fmBadge.getAscent();
- 		g2.drawString(lvl, bx, by);
-
- 		// instruction under title
- 		Font instrFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
- 		g2.setFont(instrFont);
- 		g2.setColor(new Color(200, 200, 200));
-
- 		String instr;
- 		if (patternShowing) {
- 			instr = "Memorize the flashes. Then repeat using keys 1, 2, 3, 4";
- 		} else if (!patternChecked) {
- 			instr = "Repeat the sequence: press 1, 2, 3, 4";
- 		} else {
- 			instr = "Press ENTER to continue";
- 		}
- 		g2.drawString(instr, innerX, innerY + (int) (gp.tileSize * 1.6f));
-
- 		// divider
- 		int dividerY = innerY + (int) (gp.tileSize * 1.9f);
- 		g2.setStroke(new BasicStroke(1f));
- 		g2.setColor(new Color(255, 255, 255, 30));
- 		g2.drawLine(innerX, dividerY, innerX + innerW, dividerY);
-
- 		// block input if active
- 		if (taskCooldownFrames > 0) {
- 			Font big = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
- 			g2.setFont(big);
- 			g2.setColor(new Color(180, 180, 180));
- 			String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
- 			int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
- 			int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
- 			g2.drawString(locked, lx, ly);
-
- 			// clear any input while locked
- 			gp.keyH.typedChar = 0;
- 			gp.keyH.backspacePressed = false;
- 			gp.keyH.enterPressed = false;
- 			gp.keyH.escapePressed = false;
- 			return;
- 		}
-
- 		// Escape to exit immediately
- 		if (gp.keyH.escapePressed) {
- 			gp.keyH.escapePressed = false;
- 			resetAllTaskState();
- 			gp.gameState = gp.playState;
- 			return;
- 		}
-
- 		// Generate pattern once on entry
- 		if (!patternGenerated) {
-
- 			// difficulty scaling by level
- 			if (gp.level <= 1) {
- 				patternLength = 4;
- 				patternInputLimitFrames = 5 * 60;
- 			} else if (gp.level == 2) {
- 				patternLength = 5;
- 				patternInputLimitFrames = 5 * 60;
- 			} else if (gp.level == 3) {
- 				patternLength = 6;
- 				patternInputLimitFrames = 6 * 60;
- 			} else {
- 				patternLength = 7;
- 				patternInputLimitFrames = 6 * 60;
- 			}
-
- 			patternSequence = new int[patternLength];
-
- 			// random 1..4
- 			for (int i = 0; i < patternLength; i++) {
- 				patternSequence[i] = (int) (Math.random() * 4) + 1;
- 			}
-
- 			// reset phase state
- 			patternGenerated = true;
- 			patternShowing = true;
-
- 			patternIndex = 0;
- 			patternFlashTimer = 0;
- 			patternGapTimer = 0;
-
- 			patternInputIndex = 0;
- 			patternInputTimerFrames = 0;
-
- 			patternChecked = false;
- 			patternSuccess = false;
-
- 			// clear any olinput
- 			gp.keyH.typedChar = 0;
- 			gp.keyH.backspacePressed = false;
- 			gp.keyH.enterPressed = false;
- 		}
-
- 		// GRID LAYOUT
- 		int gridSize = gp.tileSize * 4;
- 		int gridX = panelX + (panelW - gridSize) / 2;
- 		int gridY = dividerY + gp.tileSize / 2;
-
- 		int btnSize = gp.tileSize * 2 - gp.tileSize / 4;
- 		int gap = gp.tileSize / 4;
-
- 		// 1=top-left, 2=top-right, 3=bottom-left, 4=bottom-right
- 		int[] bxPos = new int[5];
- 		int[] byPos = new int[5];
- 		bxPos[1] = gridX;
- 		byPos[1] = gridY;
- 		bxPos[2] = gridX + btnSize + gap;
- 		byPos[2] = gridY;
- 		bxPos[3] = gridX;
- 		byPos[3] = gridY + btnSize + gap;
- 		bxPos[4] = gridX + btnSize + gap;
- 		byPos[4] = gridY + btnSize + gap;
-
- 		// Determine which button should be highlighted during show phase
- 		int highlight = -1;
-
- 		// SHOW PHASE
- 		if (patternShowing) {
-
- 			// start flash if idle
- 			if (patternFlashTimer <= 0 && patternGapTimer <= 0) {
- 				patternFlashTimer = patternFlashFrames;
- 			}
-
- 			// flashing
- 			if (patternFlashTimer > 0) {
- 				highlight = patternSequence[patternIndex];
- 				patternFlashTimer--;
- 				if (patternFlashTimer <= 0) {
- 					patternGapTimer = patternGapFrames;
- 				}
- 			} else if (patternGapTimer > 0) {
- 				patternGapTimer--;
- 				if (patternGapTimer <= 0) {
- 					patternIndex++;
- 					if (patternIndex >= patternLength) {
- 						// move to input phase
- 						patternShowing = false;
- 						patternIndex = 0;
- 						patternInputIndex = 0;
- 						patternInputTimerFrames = 0;
- 					}
- 				}
- 			}
- 		}
-
- 		// INPUT PHASE
- 		if (!patternShowing && !patternChecked) {
-
- 			// input timer
- 			patternInputTimerFrames++;
- 			if (patternInputTimerFrames > patternInputLimitFrames) {
- 				patternChecked = true;
- 				patternSuccess = false;
- 			}
-
- 			// accept only 1 -> 4
- 			char typed = gp.keyH.typedChar;
- 			if (typed != 0) {
-
- 				int pressed = -1;
- 				if (typed == '1')
- 					pressed = 1;
- 				if (typed == '2')
- 					pressed = 2;
- 				if (typed == '3')
- 					pressed = 3;
- 				if (typed == '4')
- 					pressed = 4;
-
- 				// consume typed char no matter what
- 				gp.keyH.typedChar = 0;
-
- 				if (pressed != -1) {
- 					if (pressed == patternSequence[patternInputIndex]) {
- 						patternInputIndex++;
- 						if (patternInputIndex >= patternLength) {
- 							patternChecked = true;
- 							patternSuccess = true;
- 						}
- 					} else {
- 						patternChecked = true;
- 						patternSuccess = false;
- 					}
- 				}
- 			}
- 		}
-
- 		// DRAW BUTTONS
- 		for (int i = 1; i <= 4; i++) {
-
- 			// base
- 			g2.setColor(new Color(30, 33, 36, 200));
- 			g2.fillRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 16, 16);
-
- 			// highlight fill (only during show phase)
- 			if (patternShowing && highlight == i) {
- 				g2.setColor(new Color(255, 220, 90, 80));
- 				g2.fillRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 16, 16);
- 			}
-
- 			// border
- 			g2.setStroke(new BasicStroke(2f));
- 			g2.setColor(new Color(120, 120, 120, 120));
- 			g2.drawRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 16, 16);
-
- 			// strong border while highlighted
- 			if (patternShowing && highlight == i) {
- 				g2.setStroke(new BasicStroke(4f));
- 				g2.setColor(new Color(255, 220, 90));
- 				g2.drawRoundRect(bxPos[i] - 2, byPos[i] - 2, btnSize + 4, btnSize + 4, 18, 18);
- 			}
-
- 			// number label
- 			Font numF = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.9f);
- 			g2.setFont(numF);
- 			g2.setColor(new Color(230, 230, 230, 220));
- 			String n = String.valueOf(i);
- 			FontMetrics nfm = g2.getFontMetrics();
- 			int nx = bxPos[i] + (btnSize - nfm.stringWidth(n)) / 2;
- 			int ny = byPos[i] + (btnSize - nfm.getHeight()) / 2 + nfm.getAscent();
- 			g2.drawString(n, nx, ny);
- 		}
-
- 		// Timeduring input
- 		if (!patternShowing && !patternChecked) {
- 			Font smallF = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
- 			g2.setFont(smallF);
- 			g2.setColor(new Color(220, 220, 220));
-
- 			int secLeft = (patternInputLimitFrames - patternInputTimerFrames + 59) / 60;
- 			if (secLeft < 0)
- 				secLeft = 0;
-
- 			String timeText = "Time: " + secLeft + " s";
- 			FontMetrics tfm = g2.getFontMetrics();
- 			int tx = panelX + panelW - pad - tfm.stringWidth(timeText);
- 			int ty = innerY + (int) (gp.tileSize * 0.9f);
- 			g2.drawString(timeText, tx, ty);
-
- 			// timer bar
- 			int barW = tfm.stringWidth(timeText);
- 			int barH = Math.max(6, tfm.getHeight() / 5);
- 			int barX = tx;
- 			int barY = ty + 6;
-
- 			float ratio = 1f;
- 			if (patternInputLimitFrames > 0)
- 				ratio = 1f - ((float) patternInputTimerFrames / (float) patternInputLimitFrames);
- 			if (ratio < 0f)
- 				ratio = 0f;
- 			if (ratio > 1f)
- 				ratio = 1f;
-
- 			g2.setColor(new Color(0, 0, 0, 130));
- 			g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
-
- 			Color col = ratio > 0.6f ? new Color(120, 220, 140)
- 					: ratio > 0.25f ? new Color(240, 200, 80) : new Color(240, 120, 120);
-
- 			int fillW = Math.max(2, (int) (barW * ratio));
- 			g2.setColor(col);
- 			g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
- 			g2.setColor(new Color(255, 255, 255, 70));
- 			g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
- 		}
-
- 		// PROGRESS 
- 		int dotsY = gridY + gridSize + gp.tileSize / 4;
- 		int dotSize = gp.tileSize / 5;
- 		int dotGap = 6;
- 		int totalDotsW = patternLength * dotSize + (patternLength - 1) * dotGap;
- 		int dotsX = panelX + (panelW - totalDotsW) / 2;
-
- 		for (int i = 0; i < patternLength; i++) {
- 			boolean on = (!patternShowing && i < patternInputIndex);
- 			g2.setColor(on ? new Color(120, 220, 140) : new Color(120, 120, 120, 140));
- 			int dx = dotsX + i * (dotSize + dotGap);
- 			g2.fillOval(dx, dotsY, dotSize, dotSize);
- 		}
- 		// FEEDBACK (when checked)
- 		if (patternChecked) {
-
- 			Font fbF = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
- 			g2.setFont(fbF);
-
- 			String fb = patternSuccess ? "✔ Correct" : "Incorrect. The task failed. Re-entry required.";
- 			g2.setColor(patternSuccess ? new Color(120, 220, 140) : new Color(240, 120, 120));
-
- 			int fbx = panelX + (panelW - g2.getFontMetrics().stringWidth(fb)) / 2;
- 			int fby = panelY + panelH - gp.tileSize * 2;
- 			g2.drawString(fb, fbx, fby);
-
- 			Font hintF = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
- 			g2.setFont(hintF);
- 			g2.setColor(new Color(200, 200, 200, 180));
-
- 			String hint = "Press ENTER to continue";
- 			int hx = panelX + (panelW - g2.getFontMetrics().stringWidth(hint)) / 2;
- 			g2.drawString(hint, hx, fby + gp.tileSize / 2);
-
- 			// ENTER 
- 			if (gp.keyH.enterPressed) {
- 				gp.keyH.enterPressed = false;
- 				if (patternSuccess) {
- 					handleTaskSuccess("Task Completed!");
- 				} else {
- 					handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
- 							"Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
- 				}
- 				return;
- 			}
-
- 		} else {
- 			// helper hint
- 			String hint = "Press 1,2,3,4 in order";
- 			g2.setFont(instrFont);
- 			g2.setColor(new Color(200, 200, 200, 160));
- 			FontMetrics hfm = g2.getFontMetrics();
- 			int hx = panelX + (panelW - hfm.stringWidth(hint)) / 2;
- 			g2.drawString(hint, hx, panelY + panelH - pad);
- 		}
- 	}
-    
- // ------------------------ DRAW VAULT SEQUENCE TASK ------------------------
-    public void drawVaultSequenceTask() {
-
-        // Cooldown block
-        if (taskCooldownFrames > 0) {
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, 28f));
-            g2.setColor(Color.white);
-            g2.drawString("Task is cooling down...", gp.tileSize * 4, gp.tileSize * 4);
-
-            // eat clicks so player can’t spam
-            gp.mouseClicked = false;
-            return;
-        }
-
-        // Rendering hints (same style as your other tasks)
+        // ==================== RENDERING SETUP ====================
+        // Enable anti-aliasing for smooth graphics
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        // Dim background
-        g2.setColor(new Color(0, 0, 0, 160));
+        // Dim background overlay with subtle fade
+        g2.setColor(new Color(0, 0, 0, 180));
         g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-        // Panel layout
-        int panelW = gp.tileSize * 11;
+        // ==================== PANEL DIMENSIONS ====================
+        int panelW = gp.tileSize * 10;
         int panelH = gp.tileSize * 7;
         int panelX = (gp.screenWidth - panelW) / 2;
         int panelY = (gp.screenHeight - panelH) / 2;
-        int arc = 26;
+        int arc = 30;
+        int pad = gp.tileSize / 3;
 
-        // Shadow + background
-        g2.setColor(new Color(0,0,0,120));
-        g2.fillRoundRect(panelX+6, panelY+6, panelW, panelH, arc, arc);
-        g2.setColor(new Color(30, 30, 36, 240));
+        // ==================== PANEL VISUAL EFFECTS ====================
+        // Multi-layered shadow for depth
+        g2.setColor(new Color(0, 0, 0, 140));
+        g2.fillRoundRect(panelX + 8, panelY + 8, panelW, panelH, arc, arc);
+        g2.setColor(new Color(0, 0, 0, 80));
+        g2.fillRoundRect(panelX + 4, panelY + 4, panelW, panelH, arc, arc);
+
+        // Modern dark gradient background
+        GradientPaint bgGradient = new GradientPaint(
+            panelX, panelY, new Color(35, 40, 50),
+            panelX, panelY + panelH, new Color(25, 28, 35)
+        );
+        g2.setPaint(bgGradient);
         g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
 
-        // Title
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f));
-        g2.setColor(Color.white);
-        g2.drawString("Vault Sequence", panelX + gp.tileSize, panelY + gp.tileSize);
+        // Accent border with glow effect
+        g2.setColor(new Color(100, 150, 255, 120));
+        g2.setStroke(new BasicStroke(2.5f));
+        g2.drawRoundRect(panelX, panelY, panelW, panelH, arc, arc);
 
-        // Initialize task once
-        if (!vaultGenerated) {
-            vaultGenerated = true;
-            vaultResolved = false;
+        // ==================== COOLDOWN STATE ====================
+        if (taskCooldownFrames > 0) {
+            // Display centered cooldown message
+            Font cooldownFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+            g2.setFont(cooldownFont);
+            g2.setColor(new Color(240, 100, 100));
+            
+            String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+            int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+            int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+            g2.drawString(locked, lx, ly);
 
-            // sequence length by level (adjust if you want)
-            vaultSeqLen = (gp.level <= 1) ? 3 :
-                          (gp.level == 2) ? 4 :
-                          (gp.level == 3) ? 5 : 6;
-
-            vaultSequence = new int[vaultSeqLen];
-
-            // generate random values 1..4
-            for (int i = 0; i < vaultSeqLen; i++) {
-                vaultSequence[i] = 1 + (int)(Math.random() * 4);
-            }
-
-            vaultProgressIndex = 0;
-            vaultStrikes = 0;
-            vaultFeedback = "";
-            vaultFeedbackFrames = 0;
-
-            // time limit (you can tweak)
-            vaultTimeLimitFrames = (gp.level <= 1) ? 30 * 60 : 45 * 60;
-            vaultTimerFrames = vaultTimeLimitFrames;
-
-            // optional: pick a flavor riddle from your pool (reuses your existing arrays)
-            int idx = (int)(Math.random() * RIDDLE_QUESTIONS.length);
-            vaultFlavorRiddle = RIDDLE_QUESTIONS[idx];
-
-            // setup rectangles array
-            for (int i = 0; i < vaultButtonRects.length; i++) {
-                if (vaultButtonRects[i] == null) vaultButtonRects[i] = new Rectangle();
-            }
+            // Block all inputs during cooldown
+            gp.mouseClicked = false;
+            gp.keyH.typedChar = 0;
+            gp.keyH.backspacePressed = false;
+            gp.keyH.enterPressed = false;
+            gp.keyH.escapePressed = false;
+            return;
         }
 
-        // Escape abort (your global escape handler already exists, but this keeps it consistent)
+        // ==================== ESCAPE TO EXIT ====================
         if (gp.keyH.escapePressed) {
             gp.keyH.escapePressed = false;
             resetAllTaskState();
@@ -2912,134 +2666,1941 @@ public class UserInterface {
             return;
         }
 
-        // Timer tick
-        if (vaultTimerFrames > 0 && !vaultResolved) vaultTimerFrames--;
-        if (vaultTimerFrames <= 0 && !vaultResolved) {
-            handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Vault failed. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+        // ==================== TITLE SECTION ====================
+        String title = "Button Match";
+        Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.95f);
+        g2.setFont(titleFont);
+        
+        int titleY = panelY + (int)(gp.tileSize * 0.9);
+        
+        // Title shadow for depth
+        g2.setColor(new Color(0, 0, 0, 100));
+        g2.drawString(title, panelX + pad + 2, titleY + 2);
+        
+        // Title with gradient effect
+        g2.setColor(new Color(230, 240, 255));
+        g2.drawString(title, panelX + pad, titleY);
+
+        // ==================== DIVIDER LINE ====================
+        int dividerY = titleY + (int)(gp.tileSize * 0.5);
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.setColor(new Color(255, 255, 255, 40));
+        g2.drawLine(panelX + pad, dividerY, panelX + panelW - pad, dividerY);
+
+        // ==================== INITIALIZATION ====================
+        if (!buttonMatchGenerated) {
+            buttonMatchGenerated = true;
+            buttonMatchResolved = false;
+            buttonMatchStartNano = System.nanoTime();
+            buttonMatchFeedback = "";
+            buttonMatchFeedbackFrames = 0;
+        }
+
+        // ==================== TIMER CALCULATION ====================
+        // Calculate elapsed time and remaining countdown
+        double elapsed = (System.nanoTime() - buttonMatchStartNano) / 1_000_000_000.0;
+        double remaining = 5.0 - elapsed;
+
+        // Auto-fail if time expires without input
+        if (!buttonMatchResolved && remaining <= 0) {
+            handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+                "Too slow. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
             return;
         }
 
-        // Show small flavor line (uses your riddle pool)
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.28f));
-        g2.setColor(new Color(200, 200, 200));
-        g2.drawString("Hint: " + vaultFlavorRiddle, panelX + gp.tileSize, panelY + (int)(gp.tileSize * 1.6));
+        // ==================== INSTRUCTIONS ====================
+        Font infoFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.38f);
+        g2.setFont(infoFont);
+        g2.setColor(new Color(200, 210, 230));
 
-        // Show progress + strikes
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f));
-        g2.setColor(Color.white);
-        g2.drawString("Progress: " + vaultProgressIndex + " / " + vaultSeqLen, panelX + gp.tileSize, panelY + (int)(gp.tileSize * 2.4));
-        g2.setColor(new Color(240, 120, 120));
-        g2.drawString("Strikes: " + vaultStrikes + " / " + vaultMaxStrikes, panelX + gp.tileSize, panelY + (int)(gp.tileSize * 2.9));
+        String instruction = "Press ENTER to stop the timer at exactly 0.00s";
+        String target = "Target Window: \u00B10.10 seconds";
 
-        // Time top-right
-        g2.setColor(new Color(220,220,220));
-        String timeText = "Time: " + ((vaultTimerFrames + 59) / 60) + " s";
-        int tW = g2.getFontMetrics().stringWidth(timeText);
-        g2.drawString(timeText, panelX + panelW - gp.tileSize - tW, panelY + (int)(gp.tileSize * 1.0));
+        int instructY = dividerY + (int)(gp.tileSize * 0.7);
+        int targetY = instructY + g2.getFontMetrics().getHeight() + 5;
 
-        // Draw 4 buttons (2x2 grid)
-        int btnSize = gp.tileSize * 2;
-        int gap = gp.tileSize / 2;
+        // Center-align instructions
+        int instructX = panelX + (panelW - g2.getFontMetrics().stringWidth(instruction)) / 2;
+        int targetX = panelX + (panelW - g2.getFontMetrics().stringWidth(target)) / 2;
 
-        int gridW = btnSize * 2 + gap;
-        int gridH = btnSize * 2 + gap;
+        g2.drawString(instruction, instructX, instructY);
+        
+        g2.setColor(new Color(120, 220, 140));
+        g2.drawString(target, targetX, targetY);
 
-        int gridX = panelX + (panelW - gridW) / 2;
-        int gridY = panelY + (int)(gp.tileSize * 3.2);
+        // ==================== COUNTDOWN DISPLAY ====================
+        Font timerFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 1.6f);
+        g2.setFont(timerFont);
+        
+        // Dynamic color based on time remaining
+        Color timerColor;
+        if (remaining > 2.0) {
+            timerColor = new Color(120, 220, 140); // Green
+        } else if (remaining > 1.0) {
+            timerColor = new Color(240, 200, 100); // Yellow
+        } else {
+            timerColor = new Color(240, 120, 120); // Red
+        }
+        
+        String countdownText = String.format("%.2f", Math.max(0, remaining));
+        int countdownX = panelX + (panelW - g2.getFontMetrics().stringWidth(countdownText)) / 2;
+        int countdownY = targetY + (int)(gp.tileSize * 1.3);
 
-        // positions: 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right
-        Rectangle r1 = vaultButtonRects[0];
-        Rectangle r2 = vaultButtonRects[1];
-        Rectangle r3 = vaultButtonRects[2];
-        Rectangle r4 = vaultButtonRects[3];
+        // Timer glow effect
+        g2.setColor(new Color(timerColor.getRed(), timerColor.getGreen(), 
+                             timerColor.getBlue(), 60));
+        g2.drawString(countdownText, countdownX + 3, countdownY + 3);
+        
+        g2.setColor(timerColor);
+        g2.drawString(countdownText, countdownX, countdownY);
 
-        r1.setBounds(gridX, gridY, btnSize, btnSize);
-        r2.setBounds(gridX + btnSize + gap, gridY, btnSize, btnSize);
-        r3.setBounds(gridX, gridY + btnSize + gap, btnSize, btnSize);
-        r4.setBounds(gridX + btnSize + gap, gridY + btnSize + gap, btnSize, btnSize);
+        // ==================== PROGRESS BAR ====================
+        int barW = gp.tileSize * 7;
+        int barH = gp.tileSize / 5;
+        int barX = panelX + (panelW - barW) / 2;
+        int barY = countdownY + (int)(gp.tileSize * 0.5);
 
-        // draw helper
-        drawVaultButton(r1, "1");
-        drawVaultButton(r2, "2");
-        drawVaultButton(r3, "3");
-        drawVaultButton(r4, "4");
+        // Calculate fill percentage
+        float ratio = (float)Math.max(0.0, Math.min(1.0, remaining / 5.0));
 
-        // instruction
-        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.32f));
-        g2.setColor(new Color(200,200,200));
-        g2.drawString("Click the buttons in the correct order.", panelX + gp.tileSize, panelY + panelH - gp.tileSize);
+        // Background track with inner shadow
+        g2.setColor(new Color(20, 25, 30, 200));
+        g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
 
-        // If resolved, show feedback then finish
-        if (vaultResolved) {
-            if (vaultFeedbackFrames > 0) vaultFeedbackFrames--;
+        // Animated fill bar with gradient
+        int fillW = Math.max(4, (int)(barW * ratio));
+        GradientPaint barGradient = new GradientPaint(
+            barX, barY, timerColor,
+            barX + fillW, barY, new Color(timerColor.getRed(), 
+                                          timerColor.getGreen(), 
+                                          timerColor.getBlue(), 180)
+        );
+        g2.setPaint(barGradient);
+        g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
 
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.55f));
-            g2.setColor(vaultStrikes >= vaultMaxStrikes ? new Color(240,120,120) : new Color(120,220,140));
+        // Subtle border highlight
+        g2.setColor(new Color(255, 255, 255, 50));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
 
-            int fW = g2.getFontMetrics().stringWidth(vaultFeedback);
-            g2.drawString(vaultFeedback, panelX + (panelW - fW)/2, panelY + (int)(gp.tileSize * 3.0));
+        // ==================== INTERACTIVE BUTTON ====================
+        int btnW = gp.tileSize * 6;
+        int btnH = (int)(gp.tileSize * 1.3);
+        int btnX = panelX + (panelW - btnW) / 2;
+        int btnY = barY + (int)(gp.tileSize * 0.8);
 
-            if (vaultFeedbackFrames == 0) {
-                if (vaultStrikes >= vaultMaxStrikes) {
-                    handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Vault failed. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+        // Store button bounds for mouse interaction
+        buttonMatchButtonRect.setBounds(btnX, btnY, btnW, btnH);
+
+        // Button shadow
+        g2.setColor(new Color(0, 0, 0, 120));
+        g2.fillRoundRect(btnX + 3, btnY + 3, btnW, btnH, 22, 22);
+
+        // Button gradient background
+        GradientPaint btnGradient = new GradientPaint(
+            btnX, btnY, new Color(50, 55, 65),
+            btnX, btnY + btnH, new Color(35, 40, 50)
+        );
+        g2.setPaint(btnGradient);
+        g2.fillRoundRect(btnX, btnY, btnW, btnH, 22, 22);
+
+        // Button accent border
+        g2.setStroke(new BasicStroke(2.5f));
+        g2.setColor(new Color(100, 150, 255, 140));
+        g2.drawRoundRect(btnX, btnY, btnW, btnH, 22, 22);
+
+        // Button text with icon
+        g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.55f));
+        g2.setColor(new Color(240, 245, 255));
+        String btnText = "⏎ PRESS ENTER";
+        int btx = btnX + (btnW - g2.getFontMetrics().stringWidth(btnText)) / 2;
+        int bty = btnY + (btnH - g2.getFontMetrics().getHeight()) / 2 + g2.getFontMetrics().getAscent();
+        g2.drawString(btnText, btx, bty);
+
+        // ==================== FEEDBACK DISPLAY ====================
+        int feedbackY = btnY + btnH + (int)(gp.tileSize * 0.7);
+
+        if (buttonMatchResolved) {
+            // Display result with color-coded feedback
+            Font feedbackFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.6f);
+            g2.setFont(feedbackFont);
+            
+            Color feedbackColor = buttonMatchFeedback.startsWith("✔") ? 
+                new Color(120, 220, 140) : new Color(240, 120, 120);
+            
+            // Feedback glow
+            g2.setColor(new Color(feedbackColor.getRed(), feedbackColor.getGreen(), 
+                                 feedbackColor.getBlue(), 80));
+            int fw = g2.getFontMetrics().stringWidth(buttonMatchFeedback);
+            int fx = panelX + (panelW - fw) / 2;
+            g2.drawString(buttonMatchFeedback, fx + 2, feedbackY + 2);
+            
+            g2.setColor(feedbackColor);
+            g2.drawString(buttonMatchFeedback, fx, feedbackY);
+
+            // Continue prompt
+            g2.setFont(infoFont);
+            g2.setColor(new Color(200, 210, 230, 200));
+            String hint = "Press ENTER to continue";
+            int hw = g2.getFontMetrics().stringWidth(hint);
+            g2.drawString(hint, panelX + (panelW - hw) / 2, feedbackY + (int)(gp.tileSize * 0.6));
+
+            // Handle continuation input
+            if (gp.keyH.enterPressed) {
+                gp.keyH.enterPressed = false;
+
+                if (buttonMatchFeedback.startsWith("✔")) {
+                    handleTaskSuccess("Task Completed!");
                 } else {
-                    handleTaskSuccess("Vault unlocked!");
+                    handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+                        "Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
                 }
             }
             return;
         }
 
-        // Handle click input
+        // ==================== INPUT HANDLING ====================
+        boolean pressed = false;
+
+        // Mouse click detection on button area
         if (gp.mouseClicked) {
             gp.mouseClicked = false;
+            if (buttonMatchButtonRect.contains(gp.mouseX, gp.mouseY)) {
+                pressed = true;
+            }
+        }
 
-            int clicked = 0;
-            if (r1.contains(gp.mouseX, gp.mouseY)) clicked = 1;
-            else if (r2.contains(gp.mouseX, gp.mouseY)) clicked = 2;
-            else if (r3.contains(gp.mouseX, gp.mouseY)) clicked = 3;
-            else if (r4.contains(gp.mouseX, gp.mouseY)) clicked = 4;
+        // Keyboard ENTER input (primary method)
+        if (gp.keyH.enterPressed) {
+            gp.keyH.enterPressed = false;
+            pressed = true;
+        }
 
-            if (clicked != 0) {
-                int expected = vaultSequence[vaultProgressIndex];
+        // ==================== RESULT CALCULATION ====================
+        if (pressed) {
+            // Calculate accuracy - target is 0.00 seconds
+            double accuracy = Math.abs(remaining - 0.0);
 
-                if (clicked == expected) {
-                    vaultProgressIndex++;
+            // Check if within acceptable window
+            if (accuracy <= buttonMatchWindow) {
+                buttonMatchFeedback = String.format("✔ PERFECT! (%.3fs precision)", accuracy);
+            } else {
+                buttonMatchFeedback = String.format("✖ MISSED (%.3fs off target)", accuracy);
+            }
 
-                    // completed whole sequence
-                    if (vaultProgressIndex >= vaultSeqLen) {
-                        vaultFeedback = "SUCCESS!";
-                        vaultResolved = true;
-                        vaultFeedbackFrames = 60;
-                    }
-                } else {
-                    vaultStrikes++;
+            buttonMatchResolved = true;
+            buttonMatchFeedbackFrames = 60;
+        }
 
-                    if (vaultStrikes >= vaultMaxStrikes) {
-                        vaultFeedback = "FAILED!";
-                        vaultResolved = true;
-                        vaultFeedbackFrames = 60;
+        // ==================== BOTTOM HINT ====================
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.32f));
+        g2.setColor(new Color(180, 190, 210, 180));
+        String hint = "Stop the timer at 0.00s • Accuracy window: \u00B10.10s • ESC to exit";
+        int hw = g2.getFontMetrics().stringWidth(hint);
+        g2.drawString(hint, panelX + (panelW - hw) / 2, panelY + panelH - pad / 2);
+    }
+
+    
+ // ------------------------ DRAW PATTERN SWITCHES TASK ------------------------
+    public void drawPatternSwitchTask() {
+
+        // ==================== RENDERING SETUP ====================
+        // Enable anti-aliasing for smooth graphics
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Dim background overlay with subtle fade
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // ==================== PANEL DIMENSIONS ====================
+        int panelW = gp.tileSize * 10;
+        int panelH = gp.tileSize * 7;
+        int panelX = (gp.screenWidth - panelW) / 2;
+        int panelY = (gp.screenHeight - panelH) / 2;
+        int arc = 30;
+        int pad = gp.tileSize / 3;
+
+        // ==================== PANEL VISUAL EFFECTS ====================
+        // Multi-layered shadow for depth
+        g2.setColor(new Color(0, 0, 0, 140));
+        g2.fillRoundRect(panelX + 8, panelY + 8, panelW, panelH, arc, arc);
+        g2.setColor(new Color(0, 0, 0, 80));
+        g2.fillRoundRect(panelX + 4, panelY + 4, panelW, panelH, arc, arc);
+
+        // Modern dark gradient background
+        GradientPaint bgGradient = new GradientPaint(
+            panelX, panelY, new Color(35, 40, 50),
+            panelX, panelY + panelH, new Color(25, 28, 35)
+        );
+        g2.setPaint(bgGradient);
+        g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+        // Accent border with glow effect
+        g2.setColor(new Color(150, 100, 255, 120));
+        g2.setStroke(new BasicStroke(2.5f));
+        g2.drawRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+        // Inner content area
+        int innerX = panelX + pad;
+        int innerY = panelY + pad;
+        int innerW = panelW - pad * 2;
+
+        // ==================== TITLE SECTION ====================
+        String title = "Pattern Switches";
+        Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.95f);
+        g2.setFont(titleFont);
+        
+        int titleY = innerY + (int)(gp.tileSize * 0.9f);
+        
+        // Title shadow for depth
+        g2.setColor(new Color(0, 0, 0, 100));
+        g2.drawString(title, innerX + 2, titleY + 2);
+        
+        // Title with gradient effect
+        g2.setColor(new Color(230, 240, 255));
+        g2.drawString(title, innerX, titleY);
+
+        // ==================== LEVEL BADGE ====================
+        String lvl = "Level " + gp.level;
+        Font badgeFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.42f);
+        FontMetrics badgeFM = g2.getFontMetrics(badgeFont);
+        
+        int badgeW = (int)(gp.tileSize * 2.8);
+        int badgeH = (int)(gp.tileSize * 0.55);
+        int badgeX = panelX + panelW - pad - badgeW;
+        int badgeY = innerY - gp.tileSize / 8;
+
+        // Badge shadow
+        g2.setColor(new Color(0, 0, 0, 100));
+        g2.fillRoundRect(badgeX + 2, badgeY + 2, badgeW, badgeH, 14, 14);
+
+        // Badge gradient background
+        GradientPaint badgeGradient = new GradientPaint(
+            badgeX, badgeY, new Color(255, 200, 60),
+            badgeX, badgeY + badgeH, new Color(255, 170, 30)
+        );
+        g2.setPaint(badgeGradient);
+        g2.fillRoundRect(badgeX, badgeY, badgeW, badgeH, 14, 14);
+
+        // Badge border
+        g2.setColor(new Color(255, 220, 100));
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawRoundRect(badgeX, badgeY, badgeW, badgeH, 14, 14);
+
+        // Badge text
+        g2.setFont(badgeFont);
+        g2.setColor(new Color(40, 35, 20));
+        int bx = badgeX + (badgeW - badgeFM.stringWidth(lvl)) / 2;
+        int by = badgeY + ((badgeH - badgeFM.getHeight()) / 2) + badgeFM.getAscent();
+        g2.drawString(lvl, bx, by);
+
+        // ==================== DYNAMIC INSTRUCTIONS ====================
+        Font instrFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.36f);
+        g2.setFont(instrFont);
+        g2.setColor(new Color(200, 210, 230));
+
+        String instr;
+        if (patternShowing) {
+            instr = "Memorize the pattern • Watch the flashing sequence";
+        } else if (!patternChecked) {
+            instr = "Repeat the sequence using keys 1, 2, 3, 4";
+        } else {
+            instr = "Press ENTER to continue";
+        }
+        
+        int instrY = innerY + (int)(gp.tileSize * 1.55f);
+        g2.drawString(instr, innerX, instrY);
+
+        // ==================== DIVIDER LINE ====================
+        int dividerY = instrY + (int)(gp.tileSize * 0.35f);
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.setColor(new Color(255, 255, 255, 40));
+        g2.drawLine(innerX, dividerY, innerX + innerW, dividerY);
+
+        // ==================== COOLDOWN STATE ====================
+        if (taskCooldownFrames > 0) {
+            // Display centered cooldown message
+            Font cooldownFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+            g2.setFont(cooldownFont);
+            g2.setColor(new Color(240, 100, 100));
+            
+            String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+            int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+            int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+            g2.drawString(locked, lx, ly);
+
+            // Block all inputs during cooldown
+            gp.keyH.typedChar = 0;
+            gp.keyH.backspacePressed = false;
+            gp.keyH.enterPressed = false;
+            gp.keyH.escapePressed = false;
+            return;
+        }
+
+        // ==================== ESCAPE TO EXIT ====================
+        if (gp.keyH.escapePressed) {
+            gp.keyH.escapePressed = false;
+            resetAllTaskState();
+            gp.gameState = gp.playState;
+            return;
+        }
+
+        // ==================== INITIALIZATION ====================
+        if (!patternGenerated) {
+            
+            // ==================== DIFFICULTY SCALING ====================
+            // Adjust pattern length and time limit based on level
+            if (gp.level <= 1) {
+                patternLength = 4;
+                patternInputLimitFrames = 5 * 60;
+            } else if (gp.level == 2) {
+                patternLength = 5;
+                patternInputLimitFrames = 5 * 60;
+            } else if (gp.level == 3) {
+                patternLength = 6;
+                patternInputLimitFrames = 6 * 60;
+            } else {
+                patternLength = 7;
+                patternInputLimitFrames = 6 * 60;
+            }
+
+            // Generate random sequence (1-4 for each position)
+            patternSequence = new int[patternLength];
+            for (int i = 0; i < patternLength; i++) {
+                patternSequence[i] = (int)(Math.random() * 4) + 1;
+            }
+
+            // Initialize phase states
+            patternGenerated = true;
+            patternShowing = true;
+            patternIndex = 0;
+            patternFlashTimer = 0;
+            patternGapTimer = 0;
+            patternInputIndex = 0;
+            patternInputTimerFrames = 0;
+            patternChecked = false;
+            patternSuccess = false;
+
+            // Clear any pending input
+            gp.keyH.typedChar = 0;
+            gp.keyH.backspacePressed = false;
+            gp.keyH.enterPressed = false;
+        }
+
+        // ==================== GRID LAYOUT SETUP ====================
+        int gridSize = gp.tileSize * 4;
+        int gridX = panelX + (panelW - gridSize) / 2;
+        int gridY = dividerY + (int)(gp.tileSize * 0.6);
+
+        int btnSize = gp.tileSize * 2 - gp.tileSize / 4;
+        int gap = gp.tileSize / 4;
+
+        // Calculate button positions (1=top-left, 2=top-right, 3=bottom-left, 4=bottom-right)
+        int[] bxPos = new int[5];
+        int[] byPos = new int[5];
+        bxPos[1] = gridX;
+        byPos[1] = gridY;
+        bxPos[2] = gridX + btnSize + gap;
+        byPos[2] = gridY;
+        bxPos[3] = gridX;
+        byPos[3] = gridY + btnSize + gap;
+        bxPos[4] = gridX + btnSize + gap;
+        byPos[4] = gridY + btnSize + gap;
+
+        // ==================== PATTERN SHOWING PHASE ====================
+        int highlight = -1; // Track which button should be highlighted
+
+        if (patternShowing) {
+            
+            // Start flash if idle
+            if (patternFlashTimer <= 0 && patternGapTimer <= 0) {
+                patternFlashTimer = patternFlashFrames;
+            }
+
+            // Handle flashing animation
+            if (patternFlashTimer > 0) {
+                highlight = patternSequence[patternIndex];
+                patternFlashTimer--;
+                
+                // Transition to gap after flash completes
+                if (patternFlashTimer <= 0) {
+                    patternGapTimer = patternGapFrames;
+                }
+            } 
+            // Handle gap between flashes
+            else if (patternGapTimer > 0) {
+                patternGapTimer--;
+                
+                if (patternGapTimer <= 0) {
+                    patternIndex++;
+                    
+                    // Move to input phase when sequence complete
+                    if (patternIndex >= patternLength) {
+                        patternShowing = false;
+                        patternIndex = 0;
+                        patternInputIndex = 0;
+                        patternInputTimerFrames = 0;
                     }
                 }
             }
         }
+
+        // ==================== PATTERN INPUT PHASE ====================
+        if (!patternShowing && !patternChecked) {
+            
+            // Increment input timer
+            patternInputTimerFrames++;
+            
+            // Auto-fail if time limit exceeded
+            if (patternInputTimerFrames > patternInputLimitFrames) {
+                patternChecked = true;
+                patternSuccess = false;
+            }
+
+            // Process keyboard input (1-4 keys only)
+            char typed = gp.keyH.typedChar;
+            if (typed != 0) {
+                int pressed = -1;
+                
+                // Map character to button number
+                if (typed == '1') pressed = 1;
+                else if (typed == '2') pressed = 2;
+                else if (typed == '3') pressed = 3;
+                else if (typed == '4') pressed = 4;
+
+                // Always consume the typed character
+                gp.keyH.typedChar = 0;
+
+                // Validate input if it's a valid button
+                if (pressed != -1) {
+                    if (pressed == patternSequence[patternInputIndex]) {
+                        // Correct input - advance
+                        patternInputIndex++;
+                        
+                        // Check if pattern completed successfully
+                        if (patternInputIndex >= patternLength) {
+                            patternChecked = true;
+                            patternSuccess = true;
+                        }
+                    } else {
+                        // Wrong input - fail immediately
+                        patternChecked = true;
+                        patternSuccess = false;
+                    }
+                }
+            }
+        }
+
+        // ==================== DRAW INTERACTIVE BUTTONS ====================
+        for (int i = 1; i <= 4; i++) {
+            
+            // Button shadow
+            g2.setColor(new Color(0, 0, 0, 120));
+            g2.fillRoundRect(bxPos[i] + 3, byPos[i] + 3, btnSize, btnSize, 18, 18);
+
+            // Base button gradient
+            GradientPaint btnGradient = new GradientPaint(
+                bxPos[i], byPos[i], new Color(50, 55, 65),
+                bxPos[i], byPos[i] + btnSize, new Color(35, 40, 50)
+            );
+            g2.setPaint(btnGradient);
+            g2.fillRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 18, 18);
+
+            // Highlight effect during pattern show phase
+            if (patternShowing && highlight == i) {
+                // Bright yellow glow overlay
+                GradientPaint glowGradient = new GradientPaint(
+                    bxPos[i], byPos[i], new Color(255, 230, 120, 150),
+                    bxPos[i], byPos[i] + btnSize, new Color(255, 200, 80, 100)
+                );
+                g2.setPaint(glowGradient);
+                g2.fillRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 18, 18);
+            }
+
+            // Standard border
+            g2.setStroke(new BasicStroke(2f));
+            g2.setColor(new Color(100, 120, 150, 140));
+            g2.drawRoundRect(bxPos[i], byPos[i], btnSize, btnSize, 18, 18);
+
+            // Enhanced border during highlight
+            if (patternShowing && highlight == i) {
+                g2.setStroke(new BasicStroke(4f));
+                g2.setColor(new Color(255, 230, 120));
+                g2.drawRoundRect(bxPos[i] - 2, byPos[i] - 2, btnSize + 4, btnSize + 4, 20, 20);
+                
+                // Outer glow ring
+                g2.setStroke(new BasicStroke(2f));
+                g2.setColor(new Color(255, 230, 120, 80));
+                g2.drawRoundRect(bxPos[i] - 5, byPos[i] - 5, btnSize + 10, btnSize + 10, 23, 23);
+            }
+
+            // Button number label
+            Font numFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 1.0f);
+            g2.setFont(numFont);
+            
+            Color numColor = (patternShowing && highlight == i) ? 
+                new Color(40, 35, 20) : new Color(230, 240, 255);
+            g2.setColor(numColor);
+            
+            String n = String.valueOf(i);
+            FontMetrics nfm = g2.getFontMetrics();
+            int nx = bxPos[i] + (btnSize - nfm.stringWidth(n)) / 2;
+            int ny = byPos[i] + (btnSize - nfm.getHeight()) / 2 + nfm.getAscent();
+            g2.drawString(n, nx, ny);
+        }
+
+        // ==================== TIMER DISPLAY (INPUT PHASE ONLY) ====================
+        if (!patternShowing && !patternChecked) {
+            Font timerFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.38f);
+            g2.setFont(timerFont);
+            
+            // Calculate remaining time
+            int secLeft = (patternInputLimitFrames - patternInputTimerFrames + 59) / 60;
+            if (secLeft < 0) secLeft = 0;
+
+            // Color-code timer based on remaining time
+            Color timerColor;
+            if (secLeft > 3) {
+                timerColor = new Color(180, 220, 180);
+            } else if (secLeft > 1) {
+                timerColor = new Color(240, 200, 100);
+            } else {
+                timerColor = new Color(240, 120, 120);
+            }
+            
+            g2.setColor(timerColor);
+            String timeText = "⏱ " + secLeft + "s";
+            FontMetrics tfm = g2.getFontMetrics();
+            int tx = panelX + panelW - pad - tfm.stringWidth(timeText);
+            int ty = titleY;
+            g2.drawString(timeText, tx, ty);
+
+            // Timer progress bar
+            int barW = tfm.stringWidth(timeText);
+            int barH = Math.max(6, tfm.getHeight() / 5);
+            int barX = tx;
+            int barY = ty + 6;
+
+            // Calculate fill ratio
+            float ratio = 1f;
+            if (patternInputLimitFrames > 0) {
+                ratio = 1f - ((float)patternInputTimerFrames / (float)patternInputLimitFrames);
+            }
+            ratio = Math.max(0f, Math.min(1f, ratio));
+
+            // Bar background
+            g2.setColor(new Color(20, 25, 30, 200));
+            g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
+
+            // Animated fill with gradient
+            int fillW = Math.max(2, (int)(barW * ratio));
+            GradientPaint barGradient = new GradientPaint(
+                barX, barY, timerColor,
+                barX + fillW, barY, new Color(timerColor.getRed(), 
+                                              timerColor.getGreen(), 
+                                              timerColor.getBlue(), 150)
+            );
+            g2.setPaint(barGradient);
+            g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
+
+            // Bar border
+            g2.setColor(new Color(255, 255, 255, 50));
+            g2.setStroke(new BasicStroke(1f));
+            g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
+        }
+
+        // ==================== PROGRESS INDICATOR DOTS ====================
+        int dotsY = gridY + gridSize + (int)(gp.tileSize * 0.4);
+        int dotSize = gp.tileSize / 5;
+        int dotGap = 8;
+        int totalDotsW = patternLength * dotSize + (patternLength - 1) * dotGap;
+        int dotsX = panelX + (panelW - totalDotsW) / 2;
+
+        for (int i = 0; i < patternLength; i++) {
+            int dx = dotsX + i * (dotSize + dotGap);
+            
+            // Determine dot state
+            boolean filled = (!patternShowing && i < patternInputIndex);
+            
+            // Dot shadow
+            g2.setColor(new Color(0, 0, 0, 80));
+            g2.fillOval(dx + 2, dotsY + 2, dotSize, dotSize);
+            
+            // Dot fill
+            if (filled) {
+                g2.setColor(new Color(120, 220, 140));
+            } else {
+                g2.setColor(new Color(80, 85, 95));
+            }
+            g2.fillOval(dx, dotsY, dotSize, dotSize);
+            
+            // Dot border
+            g2.setColor(filled ? new Color(150, 240, 170) : new Color(100, 110, 125, 120));
+            g2.setStroke(new BasicStroke(1.5f));
+            g2.drawOval(dx, dotsY, dotSize, dotSize);
+        }
+
+        // ==================== FEEDBACK DISPLAY ====================
+        if (patternChecked) {
+            
+            Font feedbackFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.65f);
+            g2.setFont(feedbackFont);
+
+            String feedback = patternSuccess ? "✔ Perfect Match!" : "✖ Pattern Failed";
+            Color feedbackColor = patternSuccess ? new Color(120, 220, 140) : new Color(240, 120, 120);
+            
+            int fbx = panelX + (panelW - g2.getFontMetrics().stringWidth(feedback)) / 2;
+            int fby = panelY + panelH - (int)(gp.tileSize * 1.8);
+
+            // Feedback glow
+            g2.setColor(new Color(feedbackColor.getRed(), feedbackColor.getGreen(), 
+                                 feedbackColor.getBlue(), 80));
+            g2.drawString(feedback, fbx + 2, fby + 2);
+            
+            g2.setColor(feedbackColor);
+            g2.drawString(feedback, fbx, fby);
+
+            // Continue prompt
+            Font hintFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
+            g2.setFont(hintFont);
+            g2.setColor(new Color(200, 210, 230, 200));
+
+            String hint = "Press ENTER to continue";
+            int hx = panelX + (panelW - g2.getFontMetrics().stringWidth(hint)) / 2;
+            g2.drawString(hint, hx, fby + (int)(gp.tileSize * 0.6));
+
+            // Handle continuation
+            if (gp.keyH.enterPressed) {
+                gp.keyH.enterPressed = false;
+                
+                if (patternSuccess) {
+                    handleTaskSuccess("Task Completed!");
+                } else {
+                    handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+                        "Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+                }
+                return;
+            }
+
+        } else {
+            // ==================== BOTTOM HELP TEXT ====================
+            String hint = "Watch carefully • Press keys 1-4 in order • ESC to exit";
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.32f));
+            g2.setColor(new Color(180, 190, 210, 180));
+            FontMetrics hfm = g2.getFontMetrics();
+            int hx = panelX + (panelW - hfm.stringWidth(hint)) / 2;
+            g2.drawString(hint, hx, panelY + panelH - pad / 2);
+        }
     }
+ // ------------------------ DRAW VAULT SEQUENCE TASK ------------------------
+ 	public void drawVaultSequenceTask() {
 
-    // helper for drawing the vault buttons
-    private void drawVaultButton(Rectangle r, String label) {
-        g2.setColor(new Color(60, 60, 70));
-        g2.fillRoundRect(r.x, r.y, r.width, r.height, 18, 18);
+ 	    // Cooldown block (MATCHES other tasks)
+ 	    if (taskCooldownFrames > 0) {
 
-        g2.setColor(Color.white);
-        g2.setStroke(new BasicStroke(2f));
-        g2.drawRoundRect(r.x, r.y, r.width, r.height, 18, 18);
+ 	        // Rendering hints (keep consistent)
+ 	        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+ 	        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.6f));
-        FontMetrics fm = g2.getFontMetrics();
-        int lx = r.x + (r.width - fm.stringWidth(label)) / 2;
-        int ly = r.y + (r.height - fm.getHeight()) / 2 + fm.getAscent();
-        g2.drawString(label, lx, ly);
-    }
+ 	        // Dim background with smoother fade
+ 	        g2.setColor(new Color(0, 0, 0, 180));
+ 	        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
+ 	        // Panel size (same as Riddle/Vault panel)
+ 	        int panelW = gp.tileSize * 10;
+ 	        int panelH = gp.tileSize * 6;
+ 	        int panelX = (gp.screenWidth - panelW) / 2;
+ 	        int panelY = (gp.screenHeight - panelH) / 2;
+ 	        int arc = 30;
+
+ 	        // Enhanced shadow with gradient effect
+ 	        g2.setColor(new Color(0, 0, 0, 140));
+ 	        g2.fillRoundRect(panelX + 8, panelY + 8, panelW, panelH, arc, arc);
+ 	        g2.setColor(new Color(0, 0, 0, 80));
+ 	        g2.fillRoundRect(panelX + 4, panelY + 4, panelW, panelH, arc, arc);
+ 	        
+ 	        // Modern dark background
+ 	        g2.setColor(new Color(25, 28, 35, 250));
+ 	        g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+ 	        // Centered cooldown text
+ 	        Font big = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+ 	        g2.setFont(big);
+ 	        g2.setColor(new Color(220, 80, 80));
+
+ 	        String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+ 	        int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+ 	        int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+ 	        g2.drawString(locked, lx, ly);
+
+ 	        // Eat input so nothing types during cooldown
+ 	        gp.keyH.typedChar = 0;
+ 	        gp.keyH.backspacePressed = false;
+ 	        gp.keyH.enterPressed = false;
+ 	        gp.keyH.escapePressed = false;
+
+ 	        return;
+ 	    }
+
+ 	    // Rendering hints
+ 	    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+ 	    g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+ 	    // Dim background with smoother fade
+ 	    g2.setColor(new Color(0, 0, 0, 180));
+ 	    g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+ 	    // Panel dimensions
+ 	    int panelW = gp.tileSize * 10;
+ 	    int panelH = gp.tileSize * 6;
+ 	    int panelX = (gp.screenWidth - panelW) / 2;
+ 	    int panelY = (gp.screenHeight - panelH) / 2;
+ 	    int arc = 30;
+
+ 	    // Enhanced shadow with gradient effect
+ 	    g2.setColor(new Color(0, 0, 0, 140));
+ 	    g2.fillRoundRect(panelX + 8, panelY + 8, panelW, panelH, arc, arc);
+ 	    g2.setColor(new Color(0, 0, 0, 80));
+ 	    g2.fillRoundRect(panelX + 4, panelY + 4, panelW, panelH, arc, arc);
+ 	    
+ 	    // Modern dark background
+ 	    g2.setColor(new Color(25, 28, 35, 250));
+ 	    g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+ 	    // Accent border
+ 	    g2.setColor(new Color(100, 120, 200, 100));
+ 	    g2.setStroke(new BasicStroke(2f));
+ 	    g2.drawRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+ 	    // Title with glow effect
+ 	    g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.85f));
+ 	    String title = "Vault Sequence";
+ 	    int titleX = panelX + gp.tileSize/2;
+ 	    int titleY = panelY + (int)(gp.tileSize * 0.9);
+ 	    
+ 	    // Title glow
+ 	    g2.setColor(new Color(100, 120, 200, 80));
+ 	    g2.drawString(title, titleX + 1, titleY + 1);
+ 	    g2.setColor(new Color(230, 240, 255));
+ 	    g2.drawString(title, titleX, titleY);
+
+ 	    // Generate vault once
+ 	    if (!vaultGenerated) {
+ 	        vaultGenerated = true;
+
+ 	        // time limit
+ 	        vaultTimeLimitFrames = 45 * 60;
+ 	        vaultTimerFrames = vaultTimeLimitFrames;
+
+ 	        // Initialize wrong answer counter
+ 	        vaultWrongAnswers = 0;
+
+ 	        // pick 4 UNIQUE riddles from your pool
+ 	        java.util.HashSet<Integer> used = new java.util.HashSet<>();
+ 	        for (int i = 0; i < 4; i++) {
+ 	            int idx;
+ 	            do {
+ 	                idx = (int)(Math.random() * RIDDLE_QUESTIONS.length);
+ 	            } while (used.contains(idx));
+ 	            used.add(idx);
+
+ 	            vaultRiddleQ[i] = RIDDLE_QUESTIONS[idx];
+ 	            vaultRiddleA[i] = RIDDLE_ANSWERS[idx];
+
+ 	            // assign a random digit 0-9 for each riddle
+ 	            vaultDigits[i] = (int)(Math.random() * 10);
+
+ 	            vaultInputs[i] = "";
+ 	            vaultSolved[i] = false;
+ 	        }
+
+ 	        vaultIndex = 0;
+ 	        vaultEnteringCode = false;
+ 	        vaultFinalInput = "";
+
+ 	        vaultFeedback = "";
+ 	        vaultFeedbackFrames = 0;
+ 	    }
+
+ 	    // Escape abort
+ 	    if (gp.keyH.escapePressed) {
+ 	        gp.keyH.escapePressed = false;
+ 	        resetAllTaskState();
+ 	        gp.gameState = gp.playState;
+ 	        return;
+ 	    }
+
+ 	    // Timer tick
+ 	    if (vaultTimerFrames > 0) vaultTimerFrames--;
+ 	    if (vaultTimerFrames <= 0) {
+ 	        handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Vault failed. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+ 	        return;
+ 	    }
+
+ 	    // Time display - top right with modern styling
+ 	    g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.38f));
+ 	    int timeSeconds = (vaultTimerFrames + 59) / 60;
+ 	    Color timeColor = timeSeconds <= 10 ? new Color(240, 100, 100) : new Color(180, 220, 180);
+ 	    g2.setColor(timeColor);
+ 	    String timeText = "⏱ " + timeSeconds + "s";
+ 	    int tW = g2.getFontMetrics().stringWidth(timeText);
+ 	    g2.drawString(timeText, panelX + panelW - gp.tileSize/2 - tW, panelY + (int)(gp.tileSize * 0.9));
+
+ 	    // Progress indicators with visual styling
+ 	    int solvedCount = 0;
+ 	    for (boolean b : vaultSolved) if (b) solvedCount++;
+
+ 	    int progressY = panelY + (int)(gp.tileSize * 1.4);
+ 	    
+ 	    // Riddle progress
+ 	    g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f));
+ 	    g2.setColor(new Color(180, 200, 230));
+ 	    g2.drawString("Riddle: " + (vaultIndex + 1) + " / 4", panelX + gp.tileSize/2, progressY);
+ 	    
+ 	    // Solved count with color coding
+ 	    progressY += (int)(gp.tileSize * 0.4);
+ 	    Color solvedColor = solvedCount == 4 ? new Color(120, 220, 140) : new Color(200, 200, 200);
+ 	    g2.setColor(solvedColor);
+ 	    g2.drawString("Solved: " + solvedCount + " / 4", panelX + gp.tileSize/2, progressY);
+ 	    
+ 	    // Wrong answers indicator
+ 	    progressY += (int)(gp.tileSize * 0.4);
+ 	    Color wrongColor = vaultWrongAnswers == 1 ? new Color(240, 180, 100) : 
+ 	                       vaultWrongAnswers >= 2 ? new Color(240, 100, 100) : new Color(200, 200, 200);
+ 	    g2.setColor(wrongColor);
+ 	    g2.drawString("Mistakes: " + vaultWrongAnswers + " / 2", panelX + gp.tileSize/2, progressY);
+
+ 	    // If feedback is active, show it and freeze input briefly
+ 	    if (vaultFeedbackFrames > 0) {
+ 	        vaultFeedbackFrames--;
+
+ 	        g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.42f));
+ 	        Color feedbackColor = vaultFeedback.startsWith("✔") ? new Color(120, 220, 140) : 
+ 	                             new Color(240, 120, 120);
+ 	        
+ 	        // Feedback glow effect
+ 	        g2.setColor(new Color(feedbackColor.getRed(), feedbackColor.getGreen(), 
+ 	                             feedbackColor.getBlue(), 60));
+ 	        int fW = g2.getFontMetrics().stringWidth(vaultFeedback);
+ 	        int fX = panelX + (panelW - fW)/2;
+ 	        int fY = panelY + (int)(gp.tileSize * 3.0);
+ 	        g2.drawString(vaultFeedback, fX + 2, fY + 2);
+ 	        
+ 	        g2.setColor(feedbackColor);
+ 	        g2.drawString(vaultFeedback, fX, fY);
+
+ 	        // eat input while feedback is showing
+ 	        gp.keyH.typedChar = 0;
+ 	        gp.keyH.backspacePressed = false;
+ 	        gp.keyH.enterPressed = false;
+ 	        return;
+ 	    }
+
+ 	    // =========================
+ 	    // STAGE A: Solve 4 riddles
+ 	    // =========================
+ 	    if (!vaultEnteringCode) {
+
+ 	        // Draw current riddle question with better spacing
+ 	        int qX = panelX + gp.tileSize/2;
+ 	        int qY = panelY + (int)(gp.tileSize * 2.6);
+ 	        int qWArea = panelW - gp.tileSize;
+
+ 	        Font qFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.42f);
+ 	        g2.setFont(qFont);
+ 	        g2.setColor(new Color(240, 245, 255));
+
+ 	        java.util.List<String> qLines = wrapText(vaultRiddleQ[vaultIndex], g2.getFontMetrics(), qWArea);
+ 	        int lineH = g2.getFontMetrics().getHeight();
+ 	        int drawY = qY;
+ 	        for (String line : qLines) {
+ 	            g2.drawString(line, qX, drawY);
+ 	            drawY += lineH;
+ 	        }
+
+ 	        // Modern input box with gradient
+ 	        int boxW = panelW - gp.tileSize;
+ 	        int boxH = (int)(gp.tileSize * 1.1);
+ 	        int boxX = panelX + gp.tileSize/2;
+ 	        int boxY = panelY + panelH - (int)(gp.tileSize * 1.6);
+
+ 	        // Input box gradient background
+ 	        GradientPaint gradient = new GradientPaint(
+ 	            boxX, boxY, new Color(245, 248, 255),
+ 	            boxX, boxY + boxH, new Color(235, 240, 250)
+ 	        );
+ 	        g2.setPaint(gradient);
+ 	        g2.fillRoundRect(boxX, boxY, boxW, boxH, 16, 16);
+ 	        
+ 	        // Input box border with accent
+ 	        g2.setColor(new Color(100, 120, 200, 120));
+ 	        g2.setStroke(new BasicStroke(2.5f));
+ 	        g2.drawRoundRect(boxX, boxY, boxW, boxH, 16, 16);
+
+ 	        // Show typed input
+ 	        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.50f));
+ 	        g2.setColor(new Color(30, 35, 45));
+
+ 	        String curInput = vaultInputs[vaultIndex];
+ 	        if (curInput.isEmpty()) {
+ 	            g2.setColor(new Color(150, 160, 180));
+ 	            curInput = "Type your answer...";
+ 	        }
+ 	        
+ 	        FontMetrics ifm = g2.getFontMetrics();
+ 	        int itx = boxX + gp.tileSize/3;
+ 	        int ity = boxY + ((boxH - ifm.getHeight()) / 2) + ifm.getAscent();
+ 	        g2.drawString(curInput, itx, ity);
+
+ 	        // Handle typing
+ 	        char typed = gp.keyH.typedChar;
+ 	        if (typed != 0) {
+ 	            if (Character.isLetterOrDigit(typed) || Character.isWhitespace(typed) || isPunctuation(typed)) {
+ 	                vaultInputs[vaultIndex] += typed;
+ 	            }
+ 	            gp.keyH.typedChar = 0;
+ 	        }
+
+ 	        if (gp.keyH.backspacePressed) {
+ 	            if (vaultInputs[vaultIndex].length() > 0) {
+ 	                vaultInputs[vaultIndex] = vaultInputs[vaultIndex].substring(0, vaultInputs[vaultIndex].length() - 1);
+ 	            }
+ 	            gp.keyH.backspacePressed = false;
+ 	        }
+
+ 	        // Submit with ENTER
+ 	        if (gp.keyH.enterPressed) {
+ 	            gp.keyH.enterPressed = false;
+
+ 	            String user = normalizeAnswer(vaultInputs[vaultIndex]);
+ 	            String correct = normalizeAnswer(vaultRiddleA[vaultIndex]);
+
+ 	            if (user.equals(correct)) {
+ 	                vaultSolved[vaultIndex] = true;
+ 	                vaultFeedback = "✔ Correct! Digit: " + vaultDigits[vaultIndex];
+ 	                vaultFeedbackFrames = 90;
+
+ 	                // move to next unsolved riddle
+ 	                int next = -1;
+ 	                for (int i = 0; i < 4; i++) {
+ 	                    if (!vaultSolved[i]) { next = i; break; }
+ 	                }
+
+ 	                if (next == -1) {
+ 	                    // all solved -> move to code entry
+ 	                    vaultEnteringCode = true;
+ 	                } else {
+ 	                    vaultIndex = next;
+ 	                }
+ 	            } else {
+ 	                // Wrong answer - increment counter
+ 	                vaultWrongAnswers++;
+ 	                
+ 	                if (vaultWrongAnswers >= 2) {
+ 	                    // Failed - 2 wrong answers
+ 	                    handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Too many mistakes. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+ 	                    return;
+ 	                } else {
+ 	                    // Show feedback and advance to next riddle
+ 	                    vaultFeedback = "✖ Wrong. Moving to next riddle...";
+ 	                    vaultFeedbackFrames = 90;
+ 	                    
+ 	                    // Find next unsolved riddle
+ 	                    int next = -1;
+ 	                    for (int i = 0; i < 4; i++) {
+ 	                        if (!vaultSolved[i] && i != vaultIndex) { 
+ 	                            next = i; 
+ 	                            break; 
+ 	                        }
+ 	                    }
+ 	                    
+ 	                    // If no other unsolved riddles, stay on current
+ 	                    if (next != -1) {
+ 	                        vaultIndex = next;
+ 	                    }
+ 	                }
+ 	            }
+ 	        }
+
+ 	        // Helper text with modern styling
+ 	        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.32f));
+ 	        g2.setColor(new Color(180, 190, 210));
+ 	        String helpText = "Type answer and press ENTER  •  ESC to exit";
+ 	        int helpW = g2.getFontMetrics().stringWidth(helpText);
+ 	        g2.drawString(helpText, panelX + (panelW - helpW)/2, panelY + panelH - gp.tileSize/5);
+
+ 	        return;
+ 	    }
+
+ 	    // =========================
+ 	    // STAGE B: Enter final code
+ 	    // =========================
+ 	    g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.45f));
+ 	    g2.setColor(new Color(230, 240, 255));
+
+ 	    String prompt = "Enter the 4-digit code:";
+ 	    int promptW = g2.getFontMetrics().stringWidth(prompt);
+ 	    g2.drawString(prompt, panelX + (panelW - promptW)/2, panelY + (int)(gp.tileSize * 2.7));
+
+ 	    // show earned digits with visual styling
+ 	    String digitsLine = vaultDigits[0] + "  " + vaultDigits[1] + "  " + vaultDigits[2] + "  " + vaultDigits[3];
+ 	    g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.55f));
+ 	    g2.setColor(new Color(120, 220, 140));
+ 	    int digitsW = g2.getFontMetrics().stringWidth(digitsLine);
+ 	    g2.drawString(digitsLine, panelX + (panelW - digitsW)/2, panelY + (int)(gp.tileSize * 3.4));
+
+ 	    // Final input box with enhanced styling
+ 	    int boxW = (int)(gp.tileSize * 4.5);
+ 	    int boxH = (int)(gp.tileSize * 1.2);
+ 	    int boxX = panelX + (panelW - boxW)/2;
+ 	    int boxY = panelY + panelH - (int)(gp.tileSize * 2.0);
+
+ 	    // Gradient background
+ 	    GradientPaint gradient = new GradientPaint(
+ 	        boxX, boxY, new Color(245, 248, 255),
+ 	        boxX, boxY + boxH, new Color(235, 240, 250)
+ 	    );
+ 	    g2.setPaint(gradient);
+ 	    g2.fillRoundRect(boxX, boxY, boxW, boxH, 18, 18);
+ 	    
+ 	    g2.setColor(new Color(100, 120, 200, 140));
+ 	    g2.setStroke(new BasicStroke(3f));
+ 	    g2.drawRoundRect(boxX, boxY, boxW, boxH, 18, 18);
+
+ 	    // input text - centered
+ 	    g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.75f));
+ 	    g2.setColor(new Color(30, 35, 45));
+ 	    FontMetrics fm = g2.getFontMetrics();
+
+ 	    String displayCode = vaultFinalInput.isEmpty() ? "____" : vaultFinalInput;
+ 	    int codeW = fm.stringWidth(displayCode);
+ 	    int itx = boxX + (boxW - codeW)/2;
+ 	    int ity = boxY + ((boxH - fm.getHeight()) / 2) + fm.getAscent();
+ 	    g2.drawString(displayCode, itx, ity);
+
+ 	    // typing: digits only, max 4
+ 	    char typed = gp.keyH.typedChar;
+ 	    if (typed != 0) {
+ 	        if (Character.isDigit(typed) && vaultFinalInput.length() < 4) {
+ 	            vaultFinalInput += typed;
+ 	        }
+ 	        gp.keyH.typedChar = 0;
+ 	    }
+
+ 	    if (gp.keyH.backspacePressed) {
+ 	        if (vaultFinalInput.length() > 0) {
+ 	            vaultFinalInput = vaultFinalInput.substring(0, vaultFinalInput.length() - 1);
+ 	        }
+ 	        gp.keyH.backspacePressed = false;
+ 	    }
+
+ 	    // submit final code
+ 	    if (gp.keyH.enterPressed) {
+ 	        gp.keyH.enterPressed = false;
+
+ 	        String correctCode = "" + vaultDigits[0] + vaultDigits[1] + vaultDigits[2] + vaultDigits[3];
+
+ 	        if (vaultFinalInput.equals(correctCode)) {
+ 	            handleTaskSuccess("Vault unlocked!");
+ 	        } else {
+ 	            handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, "Wrong code. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+ 	        }
+ 	        return;
+ 	    }
+
+ 	    g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.32f));
+ 	    g2.setColor(new Color(180, 190, 210));
+ 	    String helpText = "Enter 4 digits then press ENTER  •  ESC to exit";
+ 	    int helpW = g2.getFontMetrics().stringWidth(helpText);
+ 	    g2.drawString(helpText, panelX + (panelW - helpW)/2, panelY + panelH - gp.tileSize/5);
+ 	}
+
+ 	public void drawLogicPanelTask() {
+
+ 	    // ==================== RENDERING SETUP ====================
+ 	    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+ 	    g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+ 	    // Dim background overlay
+ 	    g2.setColor(new Color(0, 0, 0, 180));
+ 	    g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+ 	    // ==================== PANEL DIMENSIONS ====================
+ 	    int panelW = gp.tileSize * 12;
+ 	    int panelH = gp.tileSize * 9;
+ 	    int panelX = (gp.screenWidth - panelW) / 2;
+ 	    int panelY = (gp.screenHeight - panelH) / 2;
+ 	    int arc = 30;
+ 	    int pad = gp.tileSize / 3;
+
+ 	    // ==================== PANEL VISUAL EFFECTS ====================
+ 	    // Multi-layered shadow for depth
+ 	    g2.setColor(new Color(0, 0, 0, 140));
+ 	    g2.fillRoundRect(panelX + 8, panelY + 8, panelW, panelH, arc, arc);
+ 	    g2.setColor(new Color(0, 0, 0, 80));
+ 	    g2.fillRoundRect(panelX + 4, panelY + 4, panelW, panelH, arc, arc);
+
+ 	    // Dark tech panel gradient
+ 	    GradientPaint bgGradient = new GradientPaint(
+ 	        panelX, panelY, new Color(30, 35, 45),
+ 	        panelX, panelY + panelH, new Color(20, 25, 35)
+ 	    );
+ 	    g2.setPaint(bgGradient);
+ 	    g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+ 	    // Accent border (green tech theme)
+ 	    g2.setColor(new Color(100, 255, 150, 120));
+ 	    g2.setStroke(new BasicStroke(2.5f));
+ 	    g2.drawRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+ 	    // ==================== RED FLASH EFFECT ====================
+ 	    if (logicFlashFrames > 0) {
+ 	        logicFlashFrames--;
+ 	        int alpha = (int)(200 * (logicFlashFrames / 30.0));
+ 	        g2.setColor(new Color(255, 50, 50, Math.max(0, Math.min(255, alpha))));
+ 	        g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+ 	    }
+
+ 	    // ==================== COOLDOWN STATE ====================
+ 	    if (taskCooldownFrames > 0) {
+ 	        Font cooldownFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+ 	        g2.setFont(cooldownFont);
+ 	        g2.setColor(new Color(240, 100, 100));
+ 	        
+ 	        String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+ 	        int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+ 	        int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+ 	        g2.drawString(locked, lx, ly);
+
+ 	        gp.mouseClicked = false;
+ 	        gp.keyH.typedChar = 0;
+ 	        gp.keyH.backspacePressed = false;
+ 	        gp.keyH.enterPressed = false;
+ 	        gp.keyH.escapePressed = false;
+ 	        return;
+ 	    }
+
+ 	    // ==================== ESCAPE TO EXIT ====================
+ 	    if (gp.keyH.escapePressed) {
+ 	        gp.keyH.escapePressed = false;
+ 	        resetAllTaskState();
+ 	        gp.gameState = gp.playState;
+ 	        return;
+ 	    }
+
+ 	    // ==================== TITLE SECTION ====================
+ 	    String title = "⚙ Logic Panel";
+ 	    Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.90f);
+ 	    g2.setFont(titleFont);
+ 	    
+ 	    int titleY = panelY + (int)(gp.tileSize * 0.85);
+ 	    
+ 	    // Title shadow
+ 	    g2.setColor(new Color(0, 0, 0, 100));
+ 	    g2.drawString(title, panelX + pad + 2, titleY + 2);
+ 	    
+ 	    // Title with tech green color
+ 	    g2.setColor(new Color(180, 255, 200));
+ 	    g2.drawString(title, panelX + pad, titleY);
+
+ 	    // ==================== DIVIDER LINE ====================
+ 	    int dividerY = titleY + (int)(gp.tileSize * 0.4);
+ 	    g2.setStroke(new BasicStroke(1.5f));
+ 	    g2.setColor(new Color(100, 255, 150, 60));
+ 	    g2.drawLine(panelX + pad, dividerY, panelX + panelW - pad, dividerY);
+
+ 	    // ==================== INITIALIZATION ====================
+ 	    if (!logicGenerated) {
+ 	        // Pick 6 random unique statements
+ 	        java.util.List<Integer> availableIndices = new java.util.ArrayList<>();
+ 	        for (int i = 0; i < LOGIC_STATEMENTS.length; i++) {
+ 	            availableIndices.add(i);
+ 	        }
+ 	        java.util.Collections.shuffle(availableIndices);
+ 	        
+ 	        for (int i = 0; i < logicStatementCount; i++) {
+ 	            int idx = availableIndices.get(i);
+ 	            logicStatements[i] = LOGIC_STATEMENTS[idx][0];
+ 	            logicCorrectAnswers[i] = LOGIC_STATEMENTS[idx][1].equals("true");
+ 	            logicPlayerAnswers[i] = -1; // Unset
+ 	            logicTrueSwitches[i] = new Rectangle();
+ 	            logicFalseSwitches[i] = new Rectangle();
+ 	        }
+
+ 	        // Set timer based on level
+ 	        if (gp.level <= 1) {
+ 	            logicTimeLimitFrames = 90 * 60; // 90s
+ 	        } else if (gp.level == 2) {
+ 	            logicTimeLimitFrames = 75 * 60; // 75s
+ 	        } else if (gp.level == 3) {
+ 	            logicTimeLimitFrames = 60 * 60; // 60s
+ 	        } else {
+ 	            logicTimeLimitFrames = 50 * 60; // 50s
+ 	        }
+ 	        
+ 	        logicTimerFrames = logicTimeLimitFrames;
+ 	        logicFlashFrames = 0;
+ 	        logicGenerated = true;
+ 	    }
+
+ 	    // ==================== TIMER TICK ====================
+ 	    if (logicTimerFrames > 0) {
+ 	        logicTimerFrames--;
+ 	    }
+ 	    
+ 	    if (logicTimerFrames <= 0) {
+ 	        handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, 
+ 	            "Time's up! Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+ 	        return;
+ 	    }
+
+ 	    // ==================== TIMER DISPLAY ====================
+ 	    Font timerFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.38f);
+ 	    g2.setFont(timerFont);
+ 	    
+ 	    int timeSeconds = (logicTimerFrames + 59) / 60;
+ 	    Color timerColor = timeSeconds <= 15 ? new Color(240, 100, 100) : 
+ 	                       timeSeconds <= 30 ? new Color(240, 200, 100) :
+ 	                       new Color(180, 220, 180);
+ 	    
+ 	    g2.setColor(timerColor);
+ 	    String timeText = "⏱ " + timeSeconds + "s";
+ 	    int tW = g2.getFontMetrics().stringWidth(timeText);
+ 	    g2.drawString(timeText, panelX + panelW - pad - tW, titleY);
+
+ 	    // Timer bar
+ 	    int barW = tW;
+ 	    int barH = g2.getFontMetrics().getHeight() / 5;
+ 	    int barX = panelX + panelW - pad - tW;
+ 	    int barY = titleY + 6;
+
+ 	    float ratio = (float)logicTimerFrames / (float)logicTimeLimitFrames;
+ 	    ratio = Math.max(0f, Math.min(1f, ratio));
+
+ 	    g2.setColor(new Color(20, 25, 30, 200));
+ 	    g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
+
+ 	    int fillW = Math.max(2, (int)(barW * ratio));
+ 	    GradientPaint barGradient = new GradientPaint(
+ 	        barX, barY, timerColor,
+ 	        barX + fillW, barY, new Color(timerColor.getRed(), 
+ 	                                      timerColor.getGreen(), 
+ 	                                      timerColor.getBlue(), 150)
+ 	    );
+ 	    g2.setPaint(barGradient);
+ 	    g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
+
+ 	    g2.setColor(new Color(255, 255, 255, 50));
+ 	    g2.setStroke(new BasicStroke(1f));
+ 	    g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
+
+ 	    // ==================== PROGRESS DISPLAY ====================
+ 	    int answeredCount = 0;
+ 	    for (int i = 0; i < logicStatementCount; i++) {
+ 	        if (logicPlayerAnswers[i] != -1) answeredCount++;
+ 	    }
+ 	    
+ 	    Font progressFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.35f);
+ 	    g2.setFont(progressFont);
+ 	    
+ 	    Color progressColor = answeredCount == 6 ? new Color(120, 220, 140) : 
+ 	                         new Color(180, 200, 230);
+ 	    g2.setColor(progressColor);
+ 	    
+ 	    String progressText = "Answered: " + answeredCount + " / 6";
+ 	    g2.drawString(progressText, panelX + pad, titleY);
+
+ 	    // ==================== STATEMENT ROWS ====================
+ 	    int rowHeight = (int)(gp.tileSize * 1.1);
+ 	    int rowGap = (int)(gp.tileSize * 0.1);
+ 	    int startY = dividerY + (int)(gp.tileSize * 0.5);
+ 	    
+ 	    Font statementFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.30f);
+ 	    g2.setFont(statementFont);
+
+ 	    for (int i = 0; i < logicStatementCount; i++) {
+ 	        int rowY = startY + i * (rowHeight + rowGap);
+ 	        int rowX = panelX + pad;
+ 	        int rowW = panelW - pad * 2;
+
+ 	        // Row background
+ 	        g2.setColor(new Color(40, 45, 55, 200));
+ 	        g2.fillRoundRect(rowX, rowY, rowW, rowHeight, 12, 12);
+ 	        
+ 	        // Row border
+ 	        g2.setColor(new Color(100, 255, 150, 40));
+ 	        g2.setStroke(new BasicStroke(1.5f));
+ 	        g2.drawRoundRect(rowX, rowY, rowW, rowHeight, 12, 12);
+
+ 	        // Statement text
+ 	        g2.setColor(new Color(220, 230, 240));
+ 	        String statement = logicStatements[i];
+ 	        
+ 	        // Wrap text if too long
+ 	        int maxWidth = rowW - (int)(gp.tileSize * 3.5);
+ 	        java.util.List<String> lines = wrapText(statement, g2.getFontMetrics(), maxWidth);
+ 	        
+ 	        int textY = rowY + (rowHeight - lines.size() * g2.getFontMetrics().getHeight()) / 2 + 
+ 	                    g2.getFontMetrics().getAscent();
+ 	        int textX = rowX + (int)(gp.tileSize * 0.3);
+ 	        
+ 	        for (String line : lines) {
+ 	            g2.drawString(line, textX, textY);
+ 	            textY += g2.getFontMetrics().getHeight();
+ 	        }
+
+ 	        // ==================== TOGGLE SWITCHES ====================
+ 	        int switchW = (int)(gp.tileSize * 1.2);
+ 	        int switchH = (int)(gp.tileSize * 0.6);
+ 	        int switchGap = (int)(gp.tileSize * 0.2);
+ 	        
+ 	        int switchesX = rowX + rowW - (switchW * 2 + switchGap) - (int)(gp.tileSize * 0.3);
+ 	        int switchY = rowY + (rowHeight - switchH) / 2;
+
+ 	        // FALSE switch (left)
+ 	        logicFalseSwitches[i].setBounds(switchesX, switchY, switchW, switchH);
+ 	        
+ 	        boolean falseSelected = (logicPlayerAnswers[i] == 0);
+ 	        
+ 	        // Switch background
+ 	        Color falseBg = falseSelected ? new Color(240, 100, 100, 200) : 
+ 	                                       new Color(60, 65, 75, 200);
+ 	        g2.setColor(falseBg);
+ 	        g2.fillRoundRect(switchesX, switchY, switchW, switchH, 10, 10);
+ 	        
+ 	        // Switch border
+ 	        g2.setColor(falseSelected ? new Color(255, 150, 150) : new Color(100, 110, 120));
+ 	        g2.setStroke(new BasicStroke(falseSelected ? 2.5f : 1.5f));
+ 	        g2.drawRoundRect(switchesX, switchY, switchW, switchH, 10, 10);
+ 	        
+ 	        // Text
+ 	        Font switchFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.28f);
+ 	        g2.setFont(switchFont);
+ 	        g2.setColor(falseSelected ? Color.white : new Color(180, 185, 190));
+ 	        String falseText = "FALSE";
+ 	        int ftx = switchesX + (switchW - g2.getFontMetrics().stringWidth(falseText)) / 2;
+ 	        int fty = switchY + (switchH - g2.getFontMetrics().getHeight()) / 2 + 
+ 	                  g2.getFontMetrics().getAscent();
+ 	        g2.drawString(falseText, ftx, fty);
+
+ 	        // TRUE switch (right)
+ 	        int trueX = switchesX + switchW + switchGap;
+ 	        logicTrueSwitches[i].setBounds(trueX, switchY, switchW, switchH);
+ 	        
+ 	        boolean trueSelected = (logicPlayerAnswers[i] == 1);
+ 	        
+ 	        // Switch background
+ 	        Color trueBg = trueSelected ? new Color(100, 200, 120, 200) : 
+ 	                                     new Color(60, 65, 75, 200);
+ 	        g2.setColor(trueBg);
+ 	        g2.fillRoundRect(trueX, switchY, switchW, switchH, 10, 10);
+ 	        
+ 	        // Switch border
+ 	        g2.setColor(trueSelected ? new Color(150, 255, 180) : new Color(100, 110, 120));
+ 	        g2.setStroke(new BasicStroke(trueSelected ? 2.5f : 1.5f));
+ 	        g2.drawRoundRect(trueX, switchY, switchW, switchH, 10, 10);
+ 	        
+ 	        // Text
+ 	        g2.setFont(switchFont);
+ 	        g2.setColor(trueSelected ? Color.white : new Color(180, 185, 190));
+ 	        String trueText = "TRUE";
+ 	        int ttx = trueX + (switchW - g2.getFontMetrics().stringWidth(trueText)) / 2;
+ 	        int tty = switchY + (switchH - g2.getFontMetrics().getHeight()) / 2 + 
+ 	                  g2.getFontMetrics().getAscent();
+ 	        g2.drawString(trueText, ttx, tty);
+ 	    }
+
+ 	    // ==================== INPUT HANDLING ====================
+ 	    // NOTE: previously the code unconditionally cleared gp.mouseClicked when entering this block,
+ 	    // which prevented the submit button from ever seeing the click. We now only consume the
+ 	    // click if it actually hit one of the TRUE/FALSE switches. If it didn't, we leave the
+ 	    // click state intact so the submit button can handle it below.
+ 	    if (gp.mouseClicked) {
+ 	        boolean consumed = false;
+ 	        for (int i = 0; i < logicStatementCount; i++) {
+ 	            // Check TRUE switch
+ 	            if (logicTrueSwitches[i].contains(gp.mouseX, gp.mouseY)) {
+ 	                logicPlayerAnswers[i] = 1;
+ 	                consumed = true;
+ 	                break;
+ 	            }
+
+ 	            // Check FALSE switch
+ 	            if (logicFalseSwitches[i].contains(gp.mouseX, gp.mouseY)) {
+ 	                logicPlayerAnswers[i] = 0;
+ 	                consumed = true;
+ 	                break;
+ 	            }
+ 	        }
+
+ 	        if (consumed) {
+ 	            gp.mouseClicked = false; // consume click when it actually hit a switch
+ 	            return; // return early to avoid also triggering submit on the same frame
+ 	        }
+ 	        // if not consumed, leave gp.mouseClicked true so submit handling below can detect it
+ 	    }
+
+ 	    // ==================== SUBMIT BUTTON ====================
+ 	    int submitW = (int)(gp.tileSize * 4);
+ 	    int submitH = (int)(gp.tileSize * 0.8);
+ 	    int submitX = panelX + (panelW - submitW) / 2;
+ 	    int submitY = startY + 6 * (rowHeight + rowGap) + (int)(gp.tileSize * 0.3);
+
+ 	    Rectangle submitButton = new Rectangle(submitX, submitY, submitW, submitH);
+
+ 	    // Check if all answered
+ 	    boolean allAnswered = (answeredCount == 6);
+
+ 	    // Button background
+ 	    Color submitBg = allAnswered ? new Color(100, 200, 120, 220) : 
+ 	                                  new Color(80, 85, 95, 180);
+ 	    g2.setColor(submitBg);
+ 	    g2.fillRoundRect(submitX, submitY, submitW, submitH, 14, 14);
+
+ 	    // Button border
+ 	    g2.setColor(allAnswered ? new Color(150, 255, 180) : new Color(100, 110, 120));
+ 	    g2.setStroke(new BasicStroke(2f));
+ 	    g2.drawRoundRect(submitX, submitY, submitW, submitH, 14, 14);
+
+ 	    // Button text
+ 	    Font submitFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.45f);
+ 	    g2.setFont(submitFont);
+ 	    g2.setColor(allAnswered ? Color.white : new Color(140, 145, 150));
+ 	    String submitText = "SUBMIT";
+ 	    int stx = submitX + (submitW - g2.getFontMetrics().stringWidth(submitText)) / 2;
+ 	    int sty = submitY + (submitH - g2.getFontMetrics().getHeight()) / 2 + 
+ 	              g2.getFontMetrics().getAscent();
+ 	    g2.drawString(submitText, stx, sty);
+
+ 	    // ==================== SUBMIT HANDLING ====================
+ 	    // Handle submit - note gp.mouseClicked may still be true here if the click didn't hit switches
+ 	    if (allAnswered && gp.mouseClicked) {
+ 	        if (submitButton.contains(gp.mouseX, gp.mouseY)) {
+ 	            gp.mouseClicked = false; // Consume click
+ 	            
+ 	            // Check if all answers are correct
+ 	            boolean allCorrect = true;
+ 	            for (int i = 0; i < logicStatementCount; i++) {
+ 	                boolean playerSaysTrue = (logicPlayerAnswers[i] == 1);
+ 	                if (playerSaysTrue != logicCorrectAnswers[i]) {
+ 	                    allCorrect = false;
+ 	                    break;
+ 	                }
+ 	            }
+
+ 	            if (allCorrect) {
+ 	                handleTaskSuccess("Logic panel verified!");
+ 	            } else {
+ 	                // Show red flash and fail
+ 	                logicFlashFrames = 30;
+ 	                handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+ 	                    "One or more answers are incorrect. Try again in " + 
+ 	                    DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+ 	            }
+ 	            return; // Exit to prevent further processing
+ 	        }
+ 	    }
+
+ 	    // ==================== INSTRUCTIONS ====================
+ 	    Font hintFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.28f);
+ 	    g2.setFont(hintFont);
+ 	    g2.setColor(new Color(180, 190, 210, 180));
+ 	    
+ 	    String hint = allAnswered ? "Click SUBMIT to verify all answers" :
+ 	                               "Click TRUE or FALSE for each statement";
+ 	    
+ 	    int hw = g2.getFontMetrics().stringWidth(hint);
+ 	    g2.drawString(hint, panelX + (panelW - hw) / 2, panelY + panelH - pad / 3);
+ 	}
+
+	 // ==================== DRAW FUSE REPAIR TASK ====================
+	 public void drawFuseRepairTask() {
+	
+	     // ==================== RENDERING SETUP ====================
+	     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	     g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+	
+	     // Dim background overlay
+	     g2.setColor(new Color(0, 0, 0, 180));
+	     g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+	
+	     // ==================== PANEL DIMENSIONS ====================
+	     int panelW = gp.tileSize * 11;
+	     int panelH = gp.tileSize * 8;
+	     int panelX = (gp.screenWidth - panelW) / 2;
+	     int panelY = (gp.screenHeight - panelH) / 2;
+	     int arc = 30;
+	     int pad = gp.tileSize / 3;
+	
+	     // ==================== PANEL VISUAL EFFECTS ====================
+	     // Multi-layered shadow for depth
+	     g2.setColor(new Color(0, 0, 0, 140));
+	     g2.fillRoundRect(panelX + 8, panelY + 8, panelW, panelH, arc, arc);
+	     g2.setColor(new Color(0, 0, 0, 80));
+	     g2.fillRoundRect(panelX + 4, panelY + 4, panelW, panelH, arc, arc);
+	
+	     // Dark electrical-themed gradient background
+	     GradientPaint bgGradient = new GradientPaint(
+	         panelX, panelY, new Color(25, 30, 40),
+	         panelX, panelY + panelH, new Color(15, 20, 28)
+	     );
+	     g2.setPaint(bgGradient);
+	     g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+	
+	     // Accent border (electric blue theme)
+	     g2.setColor(new Color(60, 180, 255, 120));
+	     g2.setStroke(new BasicStroke(2.5f));
+	     g2.drawRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+	
+	     // ==================== RED FLASH EFFECT ====================
+	     if (fuseFlashFrames > 0) {
+	         fuseFlashFrames--;
+	         int alpha = (int)(200 * (fuseFlashFrames / 30.0)); // Fade out over 30 frames
+	         g2.setColor(new Color(255, 50, 50, Math.max(0, Math.min(255, alpha))));
+	         g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+	     }
+	
+	     // ==================== COOLDOWN STATE ====================
+	     if (taskCooldownFrames > 0) {
+	         Font cooldownFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+	         g2.setFont(cooldownFont);
+	         g2.setColor(new Color(240, 100, 100));
+	         
+	         String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+	         int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+	         int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+	         g2.drawString(locked, lx, ly);
+	
+	         gp.mouseClicked = false;
+	         gp.keyH.typedChar = 0;
+	         gp.keyH.backspacePressed = false;
+	         gp.keyH.enterPressed = false;
+	         gp.keyH.escapePressed = false;
+	         return;
+	     }
+	
+	     // ==================== ESCAPE TO EXIT ====================
+	     if (gp.keyH.escapePressed) {
+	         gp.keyH.escapePressed = false;
+	         resetAllTaskState();
+	         gp.gameState = gp.playState;
+	         return;
+	     }
+	
+	     // ==================== TITLE SECTION ====================
+	     String title = "⚡ Fuse Repair";
+	     Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.90f);
+	     g2.setFont(titleFont);
+	     
+	     int titleY = panelY + (int)(gp.tileSize * 0.85);
+	     
+	     // Title shadow
+	     g2.setColor(new Color(0, 0, 0, 100));
+	     g2.drawString(title, panelX + pad + 2, titleY + 2);
+	     
+	     // Title with electric blue color
+	     g2.setColor(new Color(160, 220, 255));
+	     g2.drawString(title, panelX + pad, titleY);
+	
+	     // ==================== DIVIDER LINE ====================
+	     int dividerY = titleY + (int)(gp.tileSize * 0.4);
+	     g2.setStroke(new BasicStroke(1.5f));
+	     g2.setColor(new Color(60, 180, 255, 60));
+	     g2.drawLine(panelX + pad, dividerY, panelX + panelW - pad, dividerY);
+	
+	     // ==================== INITIALIZATION ====================
+	     if (!fuseGenerated) {
+	         // Reset state
+	         fuseSelectedLeft = -1;
+	         fuseConnectionsMade = 0;
+	         fuseFlashFrames = 0;
+	         
+	         // Initialize arrays
+	         for (int i = 0; i < fuseNodeCount; i++) {
+	             fuseLeftColors[i] = FUSE_COLORS[i];
+	             fuseConnected[i] = false;
+	             fuseLeftNodes[i] = new Rectangle();
+	             fuseRightNodes[i] = new Rectangle();
+	         }
+	
+	         // Shuffle right side
+	         java.util.List<Integer> indices = new java.util.ArrayList<>();
+	         for (int i = 0; i < fuseNodeCount; i++) indices.add(i);
+	         java.util.Collections.shuffle(indices);
+	         
+	         for (int i = 0; i < fuseNodeCount; i++) {
+	             fuseRightOrder[i] = indices.get(i);
+	             fuseRightColors[i] = FUSE_COLORS[fuseRightOrder[i]];
+	         }
+	
+	         // Set timer based on level
+	         if (gp.level <= 1) {
+	             fuseTimeLimitFrames = 60 * 60; // 60s
+	         } else if (gp.level == 2) {
+	             fuseTimeLimitFrames = 50 * 60; // 50s
+	         } else if (gp.level == 3) {
+	             fuseTimeLimitFrames = 40 * 60; // 40s
+	         } else {
+	             fuseTimeLimitFrames = 35 * 60; // 35s
+	         }
+	         
+	         fuseTimerFrames = fuseTimeLimitFrames;
+	         fuseGenerated = true;
+	     }
+	
+	     // ==================== TIMER TICK ====================
+	     if (fuseTimerFrames > 0) {
+	         fuseTimerFrames--;
+	     }
+	     
+	     if (fuseTimerFrames <= 0) {
+	         handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, 
+	             "Time's up! Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+	         return;
+	     }
+	
+	     // ==================== TIMER DISPLAY ====================
+	     Font timerFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.38f);
+	     g2.setFont(timerFont);
+	     
+	     int timeSeconds = (fuseTimerFrames + 59) / 60;
+	     Color timerColor = timeSeconds <= 10 ? new Color(240, 100, 100) : 
+	                        timeSeconds <= 20 ? new Color(240, 200, 100) :
+	                        new Color(180, 220, 180);
+	     
+	     g2.setColor(timerColor);
+	     String timeText = "⏱ " + timeSeconds + "s";
+	     int tW = g2.getFontMetrics().stringWidth(timeText);
+	     g2.drawString(timeText, panelX + panelW - pad - tW, titleY);
+	
+	     // Timer bar
+	     int barW = tW;
+	     int barH = g2.getFontMetrics().getHeight() / 5;
+	     int barX = panelX + panelW - pad - tW;
+	     int barY = titleY + 6;
+	
+	     float ratio = (float)fuseTimerFrames / (float)fuseTimeLimitFrames;
+	     ratio = Math.max(0f, Math.min(1f, ratio));
+	
+	     g2.setColor(new Color(20, 25, 30, 200));
+	     g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
+	
+	     int fillW = Math.max(2, (int)(barW * ratio));
+	     GradientPaint barGradient = new GradientPaint(
+	         barX, barY, timerColor,
+	         barX + fillW, barY, new Color(timerColor.getRed(), 
+	                                       timerColor.getGreen(), 
+	                                       timerColor.getBlue(), 150)
+	     );
+	     g2.setPaint(barGradient);
+	     g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
+	
+	     g2.setColor(new Color(255, 255, 255, 50));
+	     g2.setStroke(new BasicStroke(1f));
+	     g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
+	
+	     // ==================== PROGRESS DISPLAY ====================
+	     Font progressFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.38f);
+	     g2.setFont(progressFont);
+	     
+	     Color progressColor = fuseConnectionsMade == 9 ? new Color(120, 220, 140) : 
+	                          new Color(180, 200, 230);
+	     g2.setColor(progressColor);
+	     
+	     String progressText = "Connections: " + fuseConnectionsMade + " / 9";
+	     g2.drawString(progressText, panelX + pad, titleY);
+	
+	     // ==================== NODE LAYOUT ====================
+	     int nodeSize = (int)(gp.tileSize * 0.6);
+	     int nodeGap = (int)(gp.tileSize * 0.15);
+	     
+	     int leftColX = panelX + (int)(gp.tileSize * 1.5);
+	     int rightColX = panelX + panelW - (int)(gp.tileSize * 1.5) - nodeSize;
+	     
+	     int startY = dividerY + (int)(gp.tileSize * 0.8);
+	     int totalNodesHeight = (nodeSize * fuseNodeCount) + (nodeGap * (fuseNodeCount - 1));
+	     int availableHeight = panelH - (startY - panelY) - (int)(gp.tileSize * 1.2);
+	     int centerOffset = (availableHeight - totalNodesHeight) / 2;
+	     int firstNodeY = startY + centerOffset;
+	
+	     // ==================== DRAW WIRES (COMPLETED CONNECTIONS) ====================
+	     g2.setStroke(new BasicStroke(3f));
+	     
+	     for (int i = 0; i < fuseNodeCount; i++) {
+	         if (fuseConnected[i]) {
+	             // Find matching right node
+	             int rightIdx = -1;
+	             for (int j = 0; j < fuseNodeCount; j++) {
+	                 if (fuseRightOrder[j] == i) {
+	                     rightIdx = j;
+	                     break;
+	                 }
+	             }
+	             
+	             if (rightIdx != -1) {
+	                 int leftY = firstNodeY + i * (nodeSize + nodeGap) + nodeSize / 2;
+	                 int rightY = firstNodeY + rightIdx * (nodeSize + nodeGap) + nodeSize / 2;
+	                 
+	                 int leftX = leftColX + nodeSize;
+	                 int rightX = rightColX;
+	                 
+	                 // Draw wire with glow effect
+	                 Color wireColor = fuseLeftColors[i];
+	                 
+	                 // Outer glow
+	                 g2.setColor(new Color(wireColor.getRed(), wireColor.getGreen(), 
+	                                      wireColor.getBlue(), 60));
+	                 g2.setStroke(new BasicStroke(7f));
+	                 g2.drawLine(leftX, leftY, rightX, rightY);
+	                 
+	                 // Inner wire
+	                 g2.setColor(wireColor);
+	                 g2.setStroke(new BasicStroke(3f));
+	                 g2.drawLine(leftX, leftY, rightX, rightY);
+	             }
+	         }
+	     }
+	
+	     // ==================== DRAW PREVIEW WIRE (WHEN LEFT NODE SELECTED) ====================
+	     if (fuseSelectedLeft != -1 && !fuseConnected[fuseSelectedLeft]) {
+	         int leftY = firstNodeY + fuseSelectedLeft * (nodeSize + nodeGap) + nodeSize / 2;
+	         int leftX = leftColX + nodeSize;
+	         
+	         // Draw dotted line to mouse
+	         g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, 
+	                                      BasicStroke.JOIN_ROUND, 1.0f, 
+	                                      new float[]{8f, 8f}, 0f));
+	         
+	         Color previewColor = fuseLeftColors[fuseSelectedLeft];
+	         g2.setColor(new Color(previewColor.getRed(), previewColor.getGreen(), 
+	                              previewColor.getBlue(), 180));
+	         g2.drawLine(leftX, leftY, gp.mouseX, gp.mouseY);
+	     }
+	
+	     // ==================== DRAW NODES ====================
+	     for (int i = 0; i < fuseNodeCount; i++) {
+	         int nodeY = firstNodeY + i * (nodeSize + nodeGap);
+	         
+	         // LEFT NODE
+	         fuseLeftNodes[i].setBounds(leftColX, nodeY, nodeSize, nodeSize);
+	         
+	         boolean leftConnected = fuseConnected[i];
+	         boolean leftSelected = (fuseSelectedLeft == i);
+	         
+	         // Node shadow
+	         g2.setColor(new Color(0, 0, 0, 120));
+	         g2.fillOval(leftColX + 3, nodeY + 3, nodeSize, nodeSize);
+	         
+	         // Node background
+	         if (leftConnected) {
+	             g2.setColor(new Color(40, 45, 50));
+	         } else if (leftSelected) {
+	             g2.setColor(new Color(60, 70, 85));
+	         } else {
+	             g2.setColor(new Color(50, 55, 60));
+	         }
+	         g2.fillOval(leftColX, nodeY, nodeSize, nodeSize);
+	         
+	         // Node color ring
+	         g2.setStroke(new BasicStroke(leftSelected ? 5f : 3f));
+	         g2.setColor(fuseLeftColors[i]);
+	         g2.drawOval(leftColX + 3, nodeY + 3, nodeSize - 6, nodeSize - 6);
+	         
+	         // Inner glow for selected
+	         if (leftSelected && !leftConnected) {
+	             g2.setColor(new Color(fuseLeftColors[i].getRed(), 
+	                                  fuseLeftColors[i].getGreen(), 
+	                                  fuseLeftColors[i].getBlue(), 100));
+	             g2.fillOval(leftColX + 8, nodeY + 8, nodeSize - 16, nodeSize - 16);
+	         }
+	         
+	         // RIGHT NODE
+	         fuseRightNodes[i].setBounds(rightColX, nodeY, nodeSize, nodeSize);
+	         
+	         int colorIdx = fuseRightOrder[i];
+	         boolean rightConnected = fuseConnected[colorIdx];
+	         
+	         // Node shadow
+	         g2.setColor(new Color(0, 0, 0, 120));
+	         g2.fillOval(rightColX + 3, nodeY + 3, nodeSize, nodeSize);
+	         
+	         // Node background
+	         g2.setColor(rightConnected ? new Color(40, 45, 50) : new Color(50, 55, 60));
+	         g2.fillOval(rightColX, nodeY, nodeSize, nodeSize);
+	         
+	         // Node color ring
+	         g2.setStroke(new BasicStroke(3f));
+	         g2.setColor(fuseRightColors[i]);
+	         g2.drawOval(rightColX + 3, nodeY + 3, nodeSize - 6, nodeSize - 6);
+	     }
+	
+	     // ==================== INPUT HANDLING ====================
+	     if (gp.mouseClicked) {
+	         gp.mouseClicked = false;
+	         
+	         // Check left nodes
+	         for (int i = 0; i < fuseNodeCount; i++) {
+	             if (fuseLeftNodes[i].contains(gp.mouseX, gp.mouseY) && !fuseConnected[i]) {
+	                 if (fuseSelectedLeft == i) {
+	                     fuseSelectedLeft = -1; // Deselect if clicking same node
+	                 } else {
+	                     fuseSelectedLeft = i;
+	                 }
+	                 return;
+	             }
+	         }
+	         
+	         // Check right nodes (only if left is selected)
+	         if (fuseSelectedLeft != -1) {
+	             for (int i = 0; i < fuseNodeCount; i++) {
+	                 if (fuseRightNodes[i].contains(gp.mouseX, gp.mouseY)) {
+	                     int rightColorIdx = fuseRightOrder[i];
+	                     
+	                     // Check if this is the correct match
+	                     if (rightColorIdx == fuseSelectedLeft) {
+	                         // CORRECT CONNECTION
+	                         fuseConnected[fuseSelectedLeft] = true;
+	                         fuseConnectionsMade++;
+	                         fuseSelectedLeft = -1;
+	                         
+	                         // Check for completion
+	                         if (fuseConnectionsMade == 9) {
+	                             handleTaskSuccess("Fuse repaired!");
+	                         }
+	                     } else {
+	                         // WRONG CONNECTION - IMMEDIATE FAIL
+	                         fuseFlashFrames = 30;
+	                         
+	                         // Small delay before fail to show flash
+	                         new Thread(() -> {
+	                             try {
+	                                 Thread.sleep(500);
+	                                 handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+	                                     "Incorrect connection. Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+	                             } catch (InterruptedException e) {
+	                                 e.printStackTrace();
+	                             }
+	                         }).start();
+	                     }
+	                     return;
+	                 }
+	             }
+	         }
+	     }
+	
+	     // ==================== INSTRUCTIONS ====================
+	     Font hintFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.30f);
+	     g2.setFont(hintFont);
+	     g2.setColor(new Color(180, 190, 210, 180));
+	     
+	     String hint = fuseSelectedLeft == -1 ? 
+	         "Click a node on the left, then its matching color on the right • ESC to exit" :
+	         "Click the matching color on the right • Click same node to deselect";
+	     
+	     int hw = g2.getFontMetrics().stringWidth(hint);
+	     g2.drawString(hint, panelX + (panelW - hw) / 2, panelY + panelH - pad / 2);
+	 }
 
     // ------------------------ DRAW RIDDLE TASK ------------------------
     public void drawRiddleTask() {
@@ -3313,6 +4874,351 @@ public class UserInterface {
         g2.setColor(new Color(255,255,255,80));
         g2.drawRoundRect(barX, barY, textWidth, barH, barH, barH);
     }
+    
+ // ==================== DRAW COOKING TASK (Add to UserInterface.java) ====================
+    public void drawCookingTask() {
+
+        // ==================== RENDERING SETUP ====================
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Dim background overlay
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+
+        // ==================== PANEL DIMENSIONS ====================
+        int panelW = gp.tileSize * 10;
+        int panelH = gp.tileSize * 7;
+        int panelX = (gp.screenWidth - panelW) / 2;
+        int panelY = (gp.screenHeight - panelH) / 2;
+        int arc = 30;
+        int pad = gp.tileSize / 3;
+
+        // ==================== PANEL VISUAL EFFECTS ====================
+        // Multi-layered shadow for depth
+        g2.setColor(new Color(0, 0, 0, 140));
+        g2.fillRoundRect(panelX + 8, panelY + 8, panelW, panelH, arc, arc);
+        g2.setColor(new Color(0, 0, 0, 80));
+        g2.fillRoundRect(panelX + 4, panelY + 4, panelW, panelH, arc, arc);
+
+        // Warm cooking-themed gradient background
+        GradientPaint bgGradient = new GradientPaint(
+            panelX, panelY, new Color(45, 35, 30),
+            panelX, panelY + panelH, new Color(30, 25, 22)
+        );
+        g2.setPaint(bgGradient);
+        g2.fillRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+        // Accent border (warm orange/red theme)
+        g2.setColor(new Color(255, 140, 60, 120));
+        g2.setStroke(new BasicStroke(2.5f));
+        g2.drawRoundRect(panelX, panelY, panelW, panelH, arc, arc);
+
+        // ==================== COOLDOWN STATE ====================
+        if (taskCooldownFrames > 0) {
+            Font cooldownFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.7f);
+            g2.setFont(cooldownFont);
+            g2.setColor(new Color(240, 100, 100));
+            
+            String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+            int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
+            int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
+            g2.drawString(locked, lx, ly);
+
+            gp.mouseClicked = false;
+            gp.keyH.typedChar = 0;
+            gp.keyH.backspacePressed = false;
+            gp.keyH.enterPressed = false;
+            gp.keyH.escapePressed = false;
+            return;
+        }
+
+        // ==================== ESCAPE TO EXIT ====================
+        if (gp.keyH.escapePressed) {
+            gp.keyH.escapePressed = false;
+            resetAllTaskState();
+            gp.gameState = gp.playState;
+            return;
+        }
+
+        // ==================== TITLE SECTION ====================
+        String title = "🍳 Cooking Quiz";
+        Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.90f);
+        g2.setFont(titleFont);
+        
+        int titleY = panelY + (int)(gp.tileSize * 0.85);
+        
+        // Title shadow
+        g2.setColor(new Color(0, 0, 0, 100));
+        g2.drawString(title, panelX + pad + 2, titleY + 2);
+        
+        // Title with warm color
+        g2.setColor(new Color(255, 220, 180));
+        g2.drawString(title, panelX + pad, titleY);
+
+        // ==================== DIVIDER LINE ====================
+        int dividerY = titleY + (int)(gp.tileSize * 0.4);
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.setColor(new Color(255, 140, 60, 60));
+        g2.drawLine(panelX + pad, dividerY, panelX + panelW - pad, dividerY);
+
+        // ==================== INITIALIZATION ====================
+        if (!cookingGenerated) {
+            // Pick random question
+            cookingQuestionIndex = (int)(Math.random() * COOKING_QUESTIONS.length);
+            cookingCorrectAnswer = Integer.parseInt(COOKING_QUESTIONS[cookingQuestionIndex][5]);
+            cookingSelectedAnswer = -1;
+            cookingAnswerSubmitted = false;
+            cookingAnswerCorrect = false;
+            
+            // Set timer based on level
+            if (gp.level <= 1) {
+                cookingTimeLimitFrames = 30 * 60; // 30s
+            } else if (gp.level == 2) {
+                cookingTimeLimitFrames = 25 * 60; // 25s
+            } else if (gp.level == 3) {
+                cookingTimeLimitFrames = 20 * 60; // 20s
+            } else {
+                cookingTimeLimitFrames = 15 * 60; // 15s
+            }
+            
+            cookingTimerFrames = cookingTimeLimitFrames;
+            cookingGenerated = true;
+        }
+
+        // ==================== TIMER TICK ====================
+        if (cookingTimerFrames > 0 && !cookingAnswerSubmitted) {
+            cookingTimerFrames--;
+        }
+        
+        if (cookingTimerFrames <= 0 && !cookingAnswerSubmitted) {
+            handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, 
+                "Time's up! Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+            return;
+        }
+
+        // ==================== TIMER DISPLAY ====================
+        Font timerFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.38f);
+        g2.setFont(timerFont);
+        
+        int timeSeconds = (cookingTimerFrames + 59) / 60;
+        Color timerColor = timeSeconds <= 5 ? new Color(240, 100, 100) : 
+                           timeSeconds <= 10 ? new Color(240, 200, 100) :
+                           new Color(180, 220, 180);
+        
+        g2.setColor(timerColor);
+        String timeText = "⏱ " + timeSeconds + "s";
+        int tW = g2.getFontMetrics().stringWidth(timeText);
+        g2.drawString(timeText, panelX + panelW - pad - tW, titleY);
+
+        // Timer bar
+        int barW = tW;
+        int barH = g2.getFontMetrics().getHeight() / 5;
+        int barX = panelX + panelW - pad - tW;
+        int barY = titleY + 6;
+
+        float ratio = (float)cookingTimerFrames / (float)cookingTimeLimitFrames;
+        ratio = Math.max(0f, Math.min(1f, ratio));
+
+        g2.setColor(new Color(20, 25, 30, 200));
+        g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
+
+        int fillW = Math.max(2, (int)(barW * ratio));
+        GradientPaint barGradient = new GradientPaint(
+            barX, barY, timerColor,
+            barX + fillW, barY, new Color(timerColor.getRed(), 
+                                          timerColor.getGreen(), 
+                                          timerColor.getBlue(), 150)
+        );
+        g2.setPaint(barGradient);
+        g2.fillRoundRect(barX, barY, fillW, barH, barH, barH);
+
+        g2.setColor(new Color(255, 255, 255, 50));
+        g2.setStroke(new BasicStroke(1f));
+        g2.drawRoundRect(barX, barY, barW, barH, barH, barH);
+
+        // ==================== QUESTION DISPLAY ====================
+        int questionY = dividerY + (int)(gp.tileSize * 0.6);
+        int questionW = panelW - pad * 2;
+
+        Font questionFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.42f);
+        g2.setFont(questionFont);
+        g2.setColor(new Color(255, 235, 210));
+
+        String question = COOKING_QUESTIONS[cookingQuestionIndex][0];
+        java.util.List<String> questionLines = wrapText(question, g2.getFontMetrics(), questionW);
+        
+        int qY = questionY;
+        for (String line : questionLines) {
+            int lineW = g2.getFontMetrics().stringWidth(line);
+            g2.drawString(line, panelX + (panelW - lineW) / 2, qY);
+            qY += g2.getFontMetrics().getHeight();
+        }
+
+        // ==================== ANSWER OPTIONS ====================
+        int optionsY = qY + (int)(gp.tileSize * 0.3);
+        int optionH = (int)(gp.tileSize * 0.8);
+        int optionGap = (int)(gp.tileSize * 0.2);
+
+        Font optionFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.38f);
+        g2.setFont(optionFont);
+
+        String[] optionLabels = {"A", "B", "C", "D"};
+        
+        for (int i = 0; i < 4; i++) {
+            int optY = optionsY + i * (optionH + optionGap);
+            int optX = panelX + pad;
+            int optW = panelW - pad * 2;
+
+            // Determine option state
+            boolean isSelected = (cookingSelectedAnswer == i);
+            boolean isCorrect = (cookingCorrectAnswer == i);
+            boolean showResult = cookingAnswerSubmitted;
+
+            // Option background color
+            Color bgColor;
+            if (showResult && isCorrect) {
+                bgColor = new Color(60, 120, 60, 200); // Green for correct
+            } else if (showResult && isSelected && !isCorrect) {
+                bgColor = new Color(120, 40, 40, 200); // Red for wrong selection
+            } else if (isSelected && !showResult) {
+                bgColor = new Color(80, 100, 150, 200); // Blue for current selection
+            } else {
+                bgColor = new Color(50, 50, 55, 200); // Default gray
+            }
+
+            // Draw option box with shadow
+            g2.setColor(new Color(0, 0, 0, 100));
+            g2.fillRoundRect(optX + 3, optY + 3, optW, optionH, 16, 16);
+
+            g2.setColor(bgColor);
+            g2.fillRoundRect(optX, optY, optW, optionH, 16, 16);
+
+            // Border
+            Color borderColor;
+            if (showResult && isCorrect) {
+                borderColor = new Color(120, 220, 140);
+            } else if (showResult && isSelected && !isCorrect) {
+                borderColor = new Color(240, 120, 120);
+            } else if (isSelected && !showResult) {
+                borderColor = new Color(150, 180, 255);
+            } else {
+                borderColor = new Color(100, 100, 110, 140);
+            }
+
+            g2.setColor(borderColor);
+            g2.setStroke(new BasicStroke(isSelected ? 3f : 2f));
+            g2.drawRoundRect(optX, optY, optW, optionH, 16, 16);
+
+            // Option text
+            g2.setColor(new Color(240, 240, 250));
+            String optionText = optionLabels[i] + ") " + COOKING_QUESTIONS[cookingQuestionIndex][i + 1];
+            
+            FontMetrics ofm = g2.getFontMetrics();
+            int textX = optX + (int)(gp.tileSize * 0.3);
+            int textY = optY + (optionH - ofm.getHeight()) / 2 + ofm.getAscent();
+            g2.drawString(optionText, textX, textY);
+
+            // Checkmark for correct answer (after submission)
+            if (showResult && isCorrect) {
+                g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.5f));
+                g2.setColor(new Color(120, 220, 140));
+                g2.drawString("✓", optX + optW - (int)(gp.tileSize * 0.6), textY);
+            }
+        }
+
+        // ==================== INPUT HANDLING ====================
+        if (!cookingAnswerSubmitted) {
+            // Keyboard input (1-4 or A-D)
+            char typed = gp.keyH.typedChar;
+            if (typed != 0) {
+                gp.keyH.typedChar = 0;
+                
+                if (typed == '1' || typed == 'a' || typed == 'A') cookingSelectedAnswer = 0;
+                else if (typed == '2' || typed == 'b' || typed == 'B') cookingSelectedAnswer = 1;
+                else if (typed == '3' || typed == 'c' || typed == 'C') cookingSelectedAnswer = 2;
+                else if (typed == '4' || typed == 'd' || typed == 'D') cookingSelectedAnswer = 3;
+            }
+
+            // Mouse click on options
+            if (gp.mouseClicked) {
+                gp.mouseClicked = false;
+                
+                for (int i = 0; i < 4; i++) {
+                    int optY = optionsY + i * (optionH + optionGap);
+                    int optX = panelX + pad;
+                    int optW = panelW - pad * 2;
+                    
+                    if (gp.mouseX >= optX && gp.mouseX <= optX + optW &&
+                        gp.mouseY >= optY && gp.mouseY <= optY + optionH) {
+                        cookingSelectedAnswer = i;
+                        break;
+                    }
+                }
+            }
+
+            // Submit with ENTER
+            if (gp.keyH.enterPressed && cookingSelectedAnswer != -1) {
+                gp.keyH.enterPressed = false;
+                cookingAnswerSubmitted = true;
+                cookingAnswerCorrect = (cookingSelectedAnswer == cookingCorrectAnswer);
+            }
+        }
+
+        // ==================== FEEDBACK DISPLAY ====================
+        if (cookingAnswerSubmitted) {
+            int feedbackY = optionsY + 4 * (optionH + optionGap) + (int)(gp.tileSize * 0.3);
+            
+            Font feedbackFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.55f);
+            g2.setFont(feedbackFont);
+            
+            String feedback = cookingAnswerCorrect ? "✓ Correct!" : "✗ Incorrect";
+            Color feedbackColor = cookingAnswerCorrect ? 
+                new Color(120, 220, 140) : new Color(240, 120, 120);
+            
+            // Feedback glow
+            g2.setColor(new Color(feedbackColor.getRed(), feedbackColor.getGreen(), 
+                                 feedbackColor.getBlue(), 80));
+            int fw = g2.getFontMetrics().stringWidth(feedback);
+            int fx = panelX + (panelW - fw) / 2;
+            g2.drawString(feedback, fx + 2, feedbackY + 2);
+            
+            g2.setColor(feedbackColor);
+            g2.drawString(feedback, fx, feedbackY);
+
+            // Continue prompt
+            Font hintFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.32f);
+            g2.setFont(hintFont);
+            g2.setColor(new Color(200, 210, 230, 200));
+            
+            String hint = "Press ENTER to continue";
+            int hw = g2.getFontMetrics().stringWidth(hint);
+            g2.drawString(hint, panelX + (panelW - hw) / 2, feedbackY + (int)(gp.tileSize * 0.5));
+
+            // Handle continuation
+            if (gp.keyH.enterPressed) {
+                gp.keyH.enterPressed = false;
+                
+                if (cookingAnswerCorrect) {
+                    handleTaskSuccess("Task Completed!");
+                } else {
+                    handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS,
+                        "Task Failed, Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+                }
+                return;
+            }
+        } else {
+            // ==================== BOTTOM HELP TEXT ====================
+            String hint = cookingSelectedAnswer == -1 ? 
+                "Click an option or press 1-4 • ESC to exit" :
+                "Press ENTER to submit • ESC to exit";
+            
+            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.30f));
+            g2.setColor(new Color(180, 190, 210, 180));
+            int hw = g2.getFontMetrics().stringWidth(hint);
+            g2.drawString(hint, panelX + (panelW - hw) / 2, panelY + panelH - pad / 2);
+        }
+    }
 
 
     // ------------------------ HELPERS ------------------------
@@ -3339,6 +5245,14 @@ public class UserInterface {
         riddleAnswerCorrect = false;
         riddleTimerFrames = 0;
         riddleTimeLimitFrames = 0;
+        // Logic Panel Task
+        logicGenerated = false;
+        logicTimerFrames = 0;
+        logicTimeLimitFrames = 0;
+        logicFlashFrames = 0;
+        for (int i = 0; i < 6; i++) {
+            logicPlayerAnswers[i] = -1;
+        }
         // tile select
         tileSelectGenerated = false;
         tsPhase = 0;
@@ -3357,6 +5271,17 @@ public class UserInterface {
         buttonMatchFeedback = "";
         buttonMatchFeedbackFrames = 0;
         buttonMatchButtonRect.setBounds(0, 0, 0, 0);
+        
+        // Fuse Repair Task
+        fuseGenerated = false;
+        fuseSelectedLeft = -1;
+        fuseConnectionsMade = 0;
+        fuseTimerFrames = 0;
+        fuseTimeLimitFrames = 0;
+        fuseFlashFrames = 0;
+        for (int i = 0; i < 9; i++) {
+            fuseConnected[i] = false;
+        }
         
      // Pattern Switched
      // pattern switches task
@@ -3391,24 +5316,44 @@ public class UserInterface {
     	patternChecked = false;
     	patternSuccess = false;
     	
+    	// Cooking Task
+    	cookingGenerated = false;
+    	cookingQuestionIndex = -1;
+    	cookingCorrectAnswer = -1;
+    	cookingSelectedAnswer = -1;
+    	cookingAnswerSubmitted = false;
+    	cookingAnswerCorrect = false;
+    	cookingTimerFrames = 0;
+    	cookingTimeLimitFrames = 0;
+    	
         
-     // Vault Sequence
-        vaultGenerated = false;
-        vaultResolved = false;
-        vaultSequence = null;
-        vaultSeqLen = 0;
-        vaultProgressIndex = 0;
-        vaultStrikes = 0;
-        vaultTimerFrames = 0;
-        vaultTimeLimitFrames = 0;
-        vaultFeedback = "";
-        vaultFeedbackFrames = 0;
-        vaultFlavorRiddle = "";
-        if (vaultButtonRects != null) {
-            for (int i = 0; i < vaultButtonRects.length; i++) {
-                if (vaultButtonRects[i] != null) vaultButtonRects[i].setBounds(0,0,0,0);
-            }
-        }
+        
+	 // VAULT SEQUENCE (4 RIDDLES -> 4 DIGITS -> FINAL CODE)
+	   vaultGenerated = false;
+
+	    vaultTimerFrames = 0;
+	    vaultTimeLimitFrames = 0;
+
+	    // 4 riddles
+	    vaultRiddleQ = new String[4];
+	    vaultRiddleA = new String[4];
+	    vaultInputs  = new String[]{"", "", "", ""};
+	    vaultSolved = new boolean[]{false, false, false, false};
+
+	    // digits awarded
+	    vaultDigits = new int[4];
+
+	    // which riddle is currently shown (0..3)
+	    vaultIndex = 0;
+
+	    // final code entry
+	    vaultEnteringCode = false;
+	    vaultFinalInput = "";
+
+	    // feedback
+	    vaultFeedback = "";
+	    vaultFeedbackFrames = 0;
+
         
 
         
@@ -3711,6 +5656,22 @@ public class UserInterface {
             textY += fm.getHeight();
         }
     }
+    
+    private String normalizeAnswer(String s) {
+        if (s == null) return "";
+        s = s.trim().toLowerCase();
+
+        // remove leading articles to make answers forgiving (optional but helps a lot)
+        if (s.startsWith("a ")) s = s.substring(2);
+        else if (s.startsWith("an ")) s = s.substring(3);
+        else if (s.startsWith("the ")) s = s.substring(4);
+
+        // collapse multiple spaces
+        s = s.replaceAll("\\s+", " ");
+
+        return s;
+    }
+
 
 
     // getXforCenteredText: compute X so given text is horizontally centered on screen

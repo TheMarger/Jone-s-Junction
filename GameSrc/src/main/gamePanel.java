@@ -26,6 +26,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public final int maxScreenRow = 12;
 	public final int screenWidth = tileSize * maxScreenCol; // 768 pixels
 	public final int screenHeight = tileSize * maxScreenRow; // 576 pixels
+	public boolean playingMusic = false;
 	
 	public final int maxWorldCol = 50;
 	public final int maxWorldRow = 50;
@@ -455,10 +456,15 @@ public class gamePanel extends JPanel implements Runnable {
 	}
 	
 	public void playMusic(int i) {
-		music.setFile(i);
-		music.setVolume(0.6f);
-		music.play();
-		music.loop();
+		if (!playingMusic) {
+			music.setFile(i);
+			music.setVolume(0.6f);
+			music.play();
+			music.loop();
+			playingMusic = true;
+		} else {
+			return;
+		}
 	}
 	
 	public int getEmptyItemSlot() {
