@@ -35,7 +35,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public int currentItemIndex = 0;
 	public int equippedSkinIndex = 0; // default
 	public String equippedSkin; // optional, just for readability
-	public int level = 1;
+	public int level = 2;
 	// mouse / selection state 
 	public int mouseX = 0, mouseY = 0;                  // last mouse coordinates on screen
 	public int hoveredTileCol = -1, hoveredTileRow = -1; // tile currently under mouse
