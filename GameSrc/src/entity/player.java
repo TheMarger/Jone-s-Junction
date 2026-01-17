@@ -98,8 +98,6 @@ public class player extends entity {
     }
     
     public void setItems() {
-    	inventory.add(new greenKey(gp));
-    	inventory.add(new redKey(gp));
     	inventory.add(new blueKey(gp));
     	updateInventory();
     }
@@ -168,7 +166,7 @@ public class player extends entity {
         direction = "down";
         level = gp.level;
         stamina = maxStamina;
-        tasksComplete = true;
+        tasksComplete = false;
         collisionOn = true;
         
         getPlayerImage(); // load images for current skin

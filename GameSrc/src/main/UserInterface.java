@@ -1160,7 +1160,7 @@ public class UserInterface {
 
                 if (!awaitingKeybind) {
 
-                    if (uiUp) {
+                    if (uiUp) { 
                         commandNum--;
                         if (commandNum < 0) {
 							commandNum = 3;
@@ -5386,20 +5386,43 @@ public class UserInterface {
     }
 
     public void handleTaskSuccess(String popupMessage) {
+
         resetAllTaskState();
-        showBoxMessage(popupMessage, gp.screenWidth / 2 - gp.tileSize * 2, gp.screenHeight / 2 - gp.tileSize);
+        showBoxMessage(
+            popupMessage,
+            gp.screenWidth / 2 - gp.tileSize * 2,
+            gp.screenHeight / 2 - gp.tileSize
+        );
+
         boxMessageOn = true;
         messageCounter = 0;
         messageDuration = 120;
+
         try {
             if (gp.player != null) {
                 int idx = gp.player.curTaskIndex;
+
+                // Mark current task complete
                 if (idx >= 0 && idx < gp.player.tasksList.size()) {
                     gp.player.tasksList.get(idx).setCompleted(true);
-                    if (idx >= 0 && idx < gp.tasks.length) gp.tasks[idx] = null;
+                    if (idx < gp.tasks.length) {
+                        gp.tasks[idx] = null;
+                    }
                 }
+
+                // ==================== CHECK ALL TASKS ====================
+                boolean allCompleted = true;
+                for (Task task : gp.player.tasksList) {
+                    if (!task.isCompleted()) {
+                        allCompleted = false;
+                        break;
+                    }
+                }
+
+                gp.player.tasksComplete = allCompleted;
             }
         } catch (Exception ignored) {}
+
         gp.gameState = gp.playState;
     }
 
