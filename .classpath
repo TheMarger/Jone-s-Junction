@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="EntityStructure/src"/>
+	<classpathentry kind="src" path="Game/src"/>
+	<classpathentry kind="src" path="GameSrc/src"/>
+	<classpathentry kind="src" path="GameSrc - Copy/src"/>
+	<classpathentry kind="src" path="Item/src"/>
+	<classpathentry kind="src" path="Jone&apos;s Junction/src"/>
+	<classpathentry kind="src" path="Level/src"/>
+	<classpathentry kind="src" path="MapLoading/src"/>
+	<classpathentry kind="src" path="saveSystem/src"/>
+	<classpathentry kind="src" path="Tasks/EventSlotMachine/src"/>
+	<classpathentry kind="src" path="Tile/src"/>
+	<classpathentry kind="output" path="Item/bin"/>
+</classpath>

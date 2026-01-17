@@ -17,6 +17,9 @@ import saves.save3;
 import task.Task;
 import Item.*;
 import Item.Throwable;
+import task.CookingTaskUI;
+import task.FuseRepairTaskUI;
+import task.LogicPanelTaskUI;
 
 public class UserInterface {
 
@@ -26,6 +29,13 @@ public class UserInterface {
     BufferedImage keyImage, greenKeyImage, redKeyImage, torchImage, blueKeyImage;
     BufferedImage skinPreview;
 
+    //Fuse Repair
+    public FuseRepairTaskUI fuseRepairTaskUI = new FuseRepairTaskUI();
+    //Cooking task
+    private CookingTaskUI cookingTaskUI = new CookingTaskUI();
+    //Logic Panel
+    private LogicPanelTaskUI logicPanelTaskUI = new LogicPanelTaskUI();
+    
     // messages / UI
     public boolean messageOn = false;
     public boolean boxMessageOn = false;
@@ -429,7 +439,9 @@ public class UserInterface {
                     case "Tile Select Task" -> drawTileSelectTask();
                     case "Button Task" -> drawButtonMatchTask();
                     case "Vault Sequence Task" -> drawVaultSequenceTask();
-                    case "Fuse Repair Task" -> drawPatternSwitchTask();
+                    case "Cooking Task" -> cookingTaskUI.updateAndDraw(g2, gp, this);
+                    case "Fuse Repair Task" -> fuseRepairTaskUI.updateAndDraw(g2, gp, this);
+                    case "Logic Panel Task" -> logicPanelTaskUI.updateAndDraw(g2, gp, this);
                     // other task types fall back to math or can be added
                     default -> drawMathTask();
                 }
@@ -3322,6 +3334,15 @@ public class UserInterface {
     }
 
     private void resetAllTaskState() {
+    	//Cooking
+    	cookingTaskUI.reset();
+    	
+    	//Logic Panel
+    	logicPanelTaskUI.reset();
+    	
+    	//Fuse Repair
+    	fuseRepairTaskUI.reset();
+
         // Math
         taskGenerated = false;
         playerInput = "";
@@ -3737,6 +3758,11 @@ public class UserInterface {
             e.printStackTrace();
         }
     }
+    
+    public int getTaskCooldownFrames() {
+        return taskCooldownFrames;
+    }
+
 
 
 
