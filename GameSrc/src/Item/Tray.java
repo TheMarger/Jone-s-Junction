@@ -13,10 +13,10 @@ public class Tray extends Throwable {
         name = "Tray";
         allowedRadiusTiles = 3;     
         throwSoundIndex = 7;         
-        sizeX = 32;
+        sizeX = 48;
         sizeY = 32;
          try {
-			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/items/Plate Nachos.png")), sizeX, sizeY);
+			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/items/Tray.png")), sizeX, sizeY);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
