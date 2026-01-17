@@ -7,8 +7,8 @@ public class Flashlight extends Item {
 	public Flashlight(gamePanel gp) {
 		super(gp);
 		name = "Flashlight";
-		sizeX = 24;
-		sizeY = 24;
+		sizeX = 28;
+		sizeY = 28;
 		try {
 			image = javax.imageio.ImageIO.read(getClass().getResourceAsStream("/items/flashlight.png"));
 			uTool.scaleImage(image, sizeX, sizeY);
