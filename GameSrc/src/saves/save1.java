@@ -9,15 +9,12 @@ import main.AssetSetter;
 import main.gamePanel;
 import task.*;
 
-/**
- * save2 - Saves task types, positions, and completion status
- */
 public class save1 {
 
     private static final String SAVE_FILE = "save1.dat";
 
     private static class SaveData implements Serializable {
-        private static final long serialVersionUID = 1L; // Changed version for new format
+        private static final long serialVersionUID = 1L;
 
         int level;
         int playerWorldX;
@@ -38,11 +35,10 @@ public class save1 {
 
         int[] keybinds;
 
-        // Enhanced task data
-        String[] taskTypes;      // Class names (e.g., "MathTask", "VaultSequenceTask")
-        int[] taskWorldX;        // X positions
-        int[] taskWorldY;        // Y positions
-        boolean[] taskCompleted; // Completion flags
+        String[] taskTypes;
+        int[] taskWorldX;
+        int[] taskWorldY;
+        boolean[] taskCompleted;
     }
 
     // ---------------- SAVE ----------------
@@ -52,14 +48,16 @@ public class save1 {
             oos.writeObject(s);
             System.out.println("✓ Game saved to " + SAVE_FILE);
             System.out.println("  - Level: " + s.level);
-            System.out.println("  - Tasks saved: " + (s.taskTypes != null ? s.taskTypes.length : 0));
-            if (s.taskTypes != null && s.taskTypes.length > 0) {
-                for (int i = 0; i < s.taskTypes.length; i++) {
-                    System.out.println("    • " + s.taskTypes[i] + 
-                        " at (" + s.taskWorldX[i] + "," + s.taskWorldY[i] + ") = " + 
-                        (s.taskCompleted[i] ? "✓" : "○"));
+            System.out.println("  - Equipped skin: " + s.equippedSkinIndex);
+            System.out.println("  - Unlocked skins:");
+            if (s.unlockedSkins != null) {
+                for (int i = 0; i < s.unlockedSkins.length; i++) {
+                    if (s.unlockedSkins[i]) {
+                        System.out.println("    ✓ Skin " + i);
+                    }
                 }
             }
+            System.out.println("  - Tasks saved: " + (s.taskTypes != null ? s.taskTypes.length : 0));
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("✗ Failed to save game: " + e.getMessage());
@@ -84,9 +82,8 @@ public class save1 {
 
             System.out.println("✓ Loading save from " + SAVE_FILE);
             System.out.println("  - Level: " + s.level);
-            System.out.println("  - Tasks to restore: " + (s.taskTypes != null ? s.taskTypes.length : 0));
+            System.out.println("  - Equipped skin: " + s.equippedSkinIndex);
 
-            // Apply the snapshot
             applySnapshotToGame(s, gp);
 
             System.out.println("✓ Game loaded successfully");
@@ -161,10 +158,8 @@ public class save1 {
             s.selectedSlot = 0;
         }
 
-        // Skins
-        if (gp != null && gp.player != null && gp.player.unlockedSkins != null) {
-            s.unlockedSkins = Arrays.copyOf(gp.player.unlockedSkins, gp.player.unlockedSkins.length);
-        } else if (gp != null && gp.skins != null) {
+        // Skins - READ FROM gp.skins (the source of truth)
+        if (gp != null && gp.skins != null) {
             s.unlockedSkins = new boolean[gp.skins.length];
             for (int i = 0; i < gp.skins.length; i++) {
                 try {
@@ -185,7 +180,7 @@ public class save1 {
             s.keybinds = new int[0];
         }
 
-        // ---------------- ENHANCED TASK SAVING ----------------
+        // Tasks
         ArrayList<String> types = new ArrayList<>();
         ArrayList<Integer> xPositions = new ArrayList<>();
         ArrayList<Integer> yPositions = new ArrayList<>();
@@ -195,7 +190,6 @@ public class save1 {
             for (Task t : gp.player.tasksList) {
                 if (t == null) continue;
                 
-                // Save the class type (e.g., "MathTask")
                 String className = t.getClass().getSimpleName();
                 types.add(className);
                 xPositions.add(t.worldX);
@@ -221,6 +215,21 @@ public class save1 {
     // ---------------- APPLY SNAPSHOT ----------------
     private static void applySnapshotToGame(SaveData s, gamePanel gp) {
         if (s == null || gp == null) return;
+
+        // ===== SKINS FIRST - UPDATE gp.skins BEFORE ANYTHING ELSE =====
+        if (s.unlockedSkins != null && s.unlockedSkins.length > 0 && gp.skins != null) {
+            System.out.println("  Restoring skin unlock states:");
+            for (int i = 0; i < s.unlockedSkins.length && i < gp.skins.length; i++) {
+                String oldState = gp.skins[i][1][0];
+                gp.skins[i][1][0] = s.unlockedSkins[i] ? "unlocked" : "locked";
+                System.out.println("    " + gp.skins[i][0][0] + ": " + oldState + " → " + gp.skins[i][1][0]);
+            }
+            
+            gp.equippedSkinIndex = s.equippedSkinIndex;
+            try {
+                gp.equippedSkin = gp.skins[s.equippedSkinIndex][0][0];
+            } catch (Throwable ignored) {}
+        }
 
         // Level/Map
         if (s.level >= 1 && s.level != gp.level) {
@@ -257,16 +266,14 @@ public class save1 {
             gp.player.hasBread = s.hasBread;
             gp.player.hasProteinBar = s.hasProteinBar;
             gp.player.hasFlashlight = s.hasFlashlight;
-        }
-
-        // Skins
-        if (s.unlockedSkins != null && gp.player != null) {
-            gp.player.unlockedSkins = Arrays.copyOf(s.unlockedSkins, s.unlockedSkins.length);
-            gp.player.equippedSkinIndex = s.equippedSkinIndex;
-            gp.equippedSkinIndex = s.equippedSkinIndex;
-            try {
-                gp.equippedSkin = gp.skins[s.equippedSkinIndex][0][0];
-            } catch (Throwable ignored) {}
+            
+            // UPDATE PLAYER SKINS (gp.skins is already updated above)
+            if (s.unlockedSkins != null && s.unlockedSkins.length > 0) {
+                gp.player.unlockedSkins = Arrays.copyOf(s.unlockedSkins, s.unlockedSkins.length);
+                gp.player.equippedSkinIndex = s.equippedSkinIndex;
+                gp.player.equippedSkin = gp.equippedSkin;
+                gp.player.getPlayerImage();
+            }
         }
 
         // Keybinds
@@ -315,17 +322,15 @@ public class save1 {
             } catch (Throwable ignored) {}
         }
 
-        // ---------------- RESTORE TASKS EXACTLY ----------------
+        // Tasks restore
         if (s.taskTypes != null && s.taskTypes.length > 0) {
             System.out.println("  Restoring " + s.taskTypes.length + " tasks...");
 
-            // Clear existing tasks
             gp.player.tasksList.clear();
             for (int i = 0; i < gp.tasks.length; i++) {
                 gp.tasks[i] = null;
             }
 
-            // Recreate each saved task
             for (int i = 0; i < s.taskTypes.length; i++) {
                 String taskType = s.taskTypes[i];
                 int worldX = s.taskWorldX[i];
@@ -354,7 +359,6 @@ public class save1 {
         // Refresh visuals
         try {
             if (gp.player != null) {
-                gp.player.getPlayerImage();
                 gp.player.row = gp.player.worldY / gp.tileSize;
                 gp.player.col = gp.player.worldX / gp.tileSize;
             }
@@ -381,6 +385,8 @@ public class save1 {
                     return new TileSelectTask(gp);
                 case "FuseRepairTask":
                     return new FuseRepairTask(gp);
+                case "PatternSwitchesTask":
+                    return new PatternSwitchesTask(gp);
                 default:
                     System.out.println("  ⚠ Unknown task type: " + taskType);
                     return null;

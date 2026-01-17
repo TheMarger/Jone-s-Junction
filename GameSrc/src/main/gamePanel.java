@@ -138,7 +138,6 @@ public class gamePanel extends JPanel implements Runnable {
 	public player player;
 	public UserInterface ui;
 	public EventHandler eHandler;
-	public saveSystem saveSystem;
 	
 	Thread gameThread;
 	
@@ -213,6 +212,8 @@ public class gamePanel extends JPanel implements Runnable {
 	    player = new player(this, keyH);
 	    ui = new UserInterface(this);
 	    eHandler = new EventHandler(this);
+	    
+	    
 
 	    aSetter.setItem();
 	    aSetter.setNPC();
@@ -248,37 +249,38 @@ public class gamePanel extends JPanel implements Runnable {
 	}
 	
 	public void loadGame(int slot) {
-		if (slot == 1) {
-			if (saves.save1.fileExists()) {
-				saves.save1.loadGame(this);
-				player.updateInventory();
-				ui.showBoxMessage("Game Loaded from Slot 1!");
-				gameState = playState;
-		}
-			else {
-				ui.showBoxMessage("No save file found in Slot 2!");
-			}
-		} else if (slot == 2) {
-			if (saves.save2.fileExists()) {
-				saves.save2.loadGame(this);
-				player.updateInventory();
-				ui.showBoxMessage("Game Loaded from Slot 2!");
-				gameState = playState;
-		}	else {
-				ui.showBoxMessage("No save file found in Slot 2!");
-			}
-		}
-		else if (slot == 3) {
-			if (saves.save3.fileExists()) {
-				saves.save3.loadGame(this);
-				player.updateInventory();				ui.showBoxMessage("Game Loaded from Slot 3!");
-				gameState = playState;
-			}else {
-				ui.showBoxMessage("No save file found in Slot 2!");
-			}
-		}
-	    
-}
+	    if (slot == 1) {
+	        if (saves.save1.fileExists()) {
+	            saves.save1.loadGame(this);
+	            player.updateInventory();
+	            // DON'T call player.setDefaultValues() here!
+	            ui.showBoxMessage("Game Loaded from Slot 1!");
+	            gameState = playState;
+	        } else {
+	            ui.showBoxMessage("No save file found in Slot 1!");
+	        }
+	    } else if (slot == 2) {
+	        if (saves.save2.fileExists()) {
+	            saves.save2.loadGame(this);
+	            player.updateInventory();
+	            // DON'T call player.setDefaultValues() here!
+	            ui.showBoxMessage("Game Loaded from Slot 2!");
+	            gameState = playState;
+	        } else {
+	            ui.showBoxMessage("No save file found in Slot 2!");
+	        }
+	    } else if (slot == 3) {
+	        if (saves.save3.fileExists()) {
+	            saves.save3.loadGame(this);
+	            player.updateInventory();
+	            // DON'T call player.setDefaultValues() here!
+	            ui.showBoxMessage("Game Loaded from Slot 3!");
+	            gameState = playState;
+	        } else {
+	            ui.showBoxMessage("No save file found in Slot 3!");
+	        }
+	    }
+	}
 
 
 	public void startGameThread() {
@@ -362,12 +364,19 @@ public class gamePanel extends JPanel implements Runnable {
 	    player.clearInventory();
 	    player.setDefaultValues();
 	    tileM.resetMap();
+	    
+	    if (player.level == 1) {
+	        tileM.loadMap("/maps/Level1Map.txt");
+	    } else if (player.level == 2) {
+	        tileM.loadMap("/maps/Level2Map.txt");
+	    } else if (player.level == 3) {
+	        tileM.loadMap("/maps/Level3Map.txt");
+	    } else if (player.level == 4) {
+	        tileM.loadMap("/maps/Level4Map.txt");
+	    }
 
 	    // Respawn items / NPCs but **do not create a new gamePanel**
-	    aSetter.setItem();
-	    aSetter.setNPC();
-	    aSetter.setGaurds();
-	    aSetter.setTasks();
+	    aSetter.setAll();
 	    
 	    ui.levelFinished = false;
 	    ui.slotRow = -1;

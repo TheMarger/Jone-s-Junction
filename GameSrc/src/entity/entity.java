@@ -35,7 +35,7 @@ public class entity {
 	
 	public Rectangle solidArea;
 	public int solidAreaDefaultX, solidAreaDefaultY;
-	public boolean collisionOn = false;
+	public boolean collisionOn = true; // does it have collisions
 	
 	String[] dialogues = new String[20];
 	private int dialogueIndex = 0;
@@ -63,7 +63,6 @@ public class entity {
 	
 	public void update() {
 		setAction();
-		collisionOn = false;
 		gp.cChecker.checkItem(this, false);
 		
 		if (isMoving == false) {
@@ -91,9 +90,9 @@ public class entity {
 		}
 		// MOVEMENT
 	        if (dx != 0 || dy != 0) {
-	
+	        	
 	            for (int step = 0; step < speed; step++) {
-	                if (dx != 0) {
+	                if (dx != 0 && collisionOn) {
 	                    boolean hitPlayerX = gp.cChecker.checkPlayer(this, dx, 0);
 	                    int collidedTileX = gp.cChecker.getCollidingTile(this, dx, 0);
 	                    int collidedNpcX = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
@@ -105,9 +104,11 @@ public class entity {
 	                    } else if (collidedTileX == -1 && collidedNpcX == 999 && collidedGuardX == 999) {
 	                        worldX += dx;
 	                    }
+	                } else if (!collisionOn) {
+	                	worldX += dx;
 	                }
 	
-	                if (dy != 0) {
+	                if (dy != 0 && collisionOn) {
 	                    boolean hitPlayerY = gp.cChecker.checkPlayer(this, 0, dy);
 	                    int collidedTileY = gp.cChecker.getCollidingTile(this, 0, dy);
 	                    int collidedNpcY = gp.cChecker.checkEntity(this, gp.npc, 0, dy);
@@ -119,6 +120,8 @@ public class entity {
 	                    } else if (collidedTileY == -1 && collidedNpcY == 999 && collidedGuardY == 999) {
 	                        worldY += dy;
 	                    }
+	                } else if (!collisionOn) {
+	                	worldY += dy;
 	                }
 	
 	            }

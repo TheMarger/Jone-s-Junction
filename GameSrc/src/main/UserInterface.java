@@ -602,9 +602,9 @@ public class UserInterface {
 
         // Global Escape handler: if the player presses Escape while in a task, abort and reset
         if (gp.gameState == gp.taskState && gp.keyH.escapePressed) {
+        	gp.gameState = gp.playState;
             gp.keyH.escapePressed = false;
             resetAllTaskState();
-            gp.gameState = gp.playState;
             return; // stop drawing task UI this frame
         }
 
@@ -1142,6 +1142,9 @@ public class UserInterface {
         			uiLeft = false;
         		}
         		else if (uiConfirm) {
+        			gp.level = 1;
+        			gp.resetGame(false);
+        			System.out.println(gp.level);
         			gp.gameState = gp.playState;
         			gp.speedRunTimerFrames = 0;
         			gp.playMusic(0);

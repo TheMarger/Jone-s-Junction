@@ -145,7 +145,8 @@ public class keyHandler implements KeyListener {
             
             if (code == KeyEvent.VK_M) {
 				refreshPressed = true;
-				gp.uTool.refreshMap();
+				//gp.uTool.refreshMap();
+				gp.player.collisionOn = !gp.player.collisionOn;
 			}
             
             if (code ==KeyEvent.VK_T) {
