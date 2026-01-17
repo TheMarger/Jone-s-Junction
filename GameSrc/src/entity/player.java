@@ -169,6 +169,7 @@ public class player extends entity {
         level = gp.level;
         stamina = maxStamina;
         tasksComplete = true;
+        collisionOn = true;
         
         getPlayerImage(); // load images for current skin
     }
@@ -281,7 +282,7 @@ public class player extends entity {
         if (dx != 0 || dy != 0) {
             for (int step = 0; step < speed; step++) {
                 // try X
-                if (dx != 0) {
+                if (dx != 0 && collisionOn) {
                     int tile = gp.cChecker.getCollidingTile(this, dx, 0);
                     int npcIndex = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
                     int taskIndex = gp.cChecker.checkTask(this, gp.tasks, dx, 0);
@@ -294,9 +295,9 @@ public class player extends entity {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interactNPC(npcIndex);
                         break; // stop movement this frame
-                    } else if (tile == 211 || tile == 212) {
+                    } else if (((tile == 211 || tile == 212) && (level == 1 || level == 3)) || ((tile == 204 || tile == 205) && level == 2)) {
                         gp.ui.showInteract();
-                        if (keyH.interactPressed) interact("exitVan");
+                        if (keyH.interactPressed) interact("exit");
                         break;
                     } else if (taskIndex != 999) {
 						gp.ui.showInteract();
@@ -307,10 +308,12 @@ public class player extends entity {
 					} else {
                         break;
                     }
+                }  else if (!collisionOn) {
+                	worldX += dx;
                 }
 
                 // try Y
-                if (dy != 0) {
+                if (dy != 0 && collisionOn) {
                     int tile = gp.cChecker.getCollidingTile(this, 0, dy);
                     int npcIndex = gp.cChecker.checkEntity(this, gp.npc, 0, dy);
                     int taskIndex = gp.cChecker.checkTask(this, gp.tasks, 0, dy);
@@ -322,11 +325,12 @@ public class player extends entity {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interactNPC(npcIndex);
                         break;
-                    } else if (tile == 211 || tile == 212) {
+                    } else if(((tile == 211 || tile == 212) && (level == 1 || level == 3)) || ((tile == 204 || tile == 205) && level == 2)) {
                         gp.ui.showInteract();
-                        if (keyH.interactPressed) interact("exitVan");
+                        if (keyH.interactPressed) interact("exit");
                         break;
-                    } else if (taskIndex != 999) {
+                    }
+                    else if (taskIndex != 999) {
                     	gp.ui.showInteract();
                     	curTaskIndex = taskIndex;
                     	curTaskName = gp.tasks[taskIndex].getName();
@@ -335,6 +339,8 @@ public class player extends entity {
                     } else {
                         break;
                     }
+                } else if (!collisionOn) {
+                	worldY += dy;
                 }
             }
 
@@ -480,7 +486,7 @@ public class player extends entity {
 	        lastPlayerCol = playerCol;
 	        lastPlayerRow = playerRow;
 	    }
-        if ("exitVan".equals(item)) {
+        if ("exit".equals(item)) {
         	if (tasksComplete) {
         		levelUp();
         		gp.stopMusic();
@@ -496,21 +502,34 @@ public class player extends entity {
     }
     
     public void levelUp() {
-    	switch (level) {
-    		case 1:
-    		unlockSkin(5); // unlock BillyGoat skin
-    		break;
-    	}
-    	setDefaultValues();
-    	gp.ui.levelFinished = true;
-		gp.level++;
-    	
-	}
+        switch (level) {
+            case 1 -> unlockSkin(5); // unlock BillyGoat skin
+            case 2 -> unlockSkin(6);
+            case 3 -> unlockSkin(2);
+            case 4 -> unlockSkin(3);
+        }
+        
+        // reset position/stats manually
+        worldX = gp.tileSize * 6;
+        worldY = gp.tileSize * 16;
+        row = worldY / gp.tileSize;
+        col = worldX / gp.tileSize;
+        stamina = maxStamina;
+        speed = walkSpeed;
+        direction = "down";
+        
+        gp.ui.levelFinished = true;
+        gp.level++;
+        level = gp.level;
+    }
     
     public void setDialogues() {
     	switch (gp.level) {
     	case 1:
 			dialogues[0] = "Gaurd: Payload delivery to the warehouse \n Attendant: All clear, you may proceed.\n\n\nCompleted Level 1!\n You have unlocked the BillyGoat skin.";
+			dialogues[1] = "Gaurd: Anyone seen my blue keys? \n Billy Goat: Idk man, jone's gonna be mad if he finds out though.\n\n\nCompleted Level 2!\n You have unlocked the Marv skin.";
+			dialogues[2] = "Gaurd: It's too hot for this job man \n Marv: Whatever man, just drive.\n\n\nCompleted Level 3!\n You have unlocked the Old Timer skin.";
+			dialogues[3] = "Gaurd: HEY GET BACK HERE? \n Jone: get back to code commenting!\n\n\nCompleted Level 4!\n You have unlocked the Froseph skin.";
 			break;    		
     	}
 
