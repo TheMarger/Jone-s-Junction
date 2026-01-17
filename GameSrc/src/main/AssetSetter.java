@@ -34,10 +34,10 @@ public class AssetSetter {
 	};
 	
 	int[][][] ItemLocations = new int[][][] {
-		// yellow key, key, green key, flashlight, blue key, pebble, can, tray, apple, bread, protein bar
+		// yellow key, red key, green key, flashlight, blue key, pebble, can, tray, apple, bread, protein bar
 		
 		// Level 1 Items
-		{ {62,2550}, {1563,1715}, {2434,1015}, {1921,893} },
+		{ {2879,2138}, {1535,1714}, {67,2234}, {2691,2598}, {1455,2826}, {2560,1968}, {1404,1836}, {1404,1836}, {2304,2524}, {1220,1700}, {1728,1112} },
 		// Level 2 Tasks
 		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} },
 		// Level 3 Tasks
