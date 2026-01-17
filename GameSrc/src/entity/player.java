@@ -173,9 +173,6 @@ public class player extends entity {
         getPlayerImage(); // load images for current skin
     }
 
-
-
-
     public void getPlayerImage() {
 
         if (gp == null || gp.skins == null) return;

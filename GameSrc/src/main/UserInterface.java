@@ -1,8 +1,16 @@
 package main; // package this class belongs to
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
@@ -10,13 +18,18 @@ import java.text.DecimalFormat;
 
 import javax.imageio.ImageIO;
 
-import entity.player;
+import Item.Flashlight;
+import Item.Food;
+import Item.Item;
+import Item.Key;
+import Item.Throwable;
+import Item.blueKey;
+import Item.greenKey;
+import Item.redKey;
 import saves.save1;
 import saves.save2;
 import saves.save3;
 import task.Task;
-import Item.*;
-import Item.Throwable;
 
 public class UserInterface {
 
@@ -25,7 +38,7 @@ public class UserInterface {
     Font arial_40;
     BufferedImage keyImage, greenKeyImage, redKeyImage, torchImage, blueKeyImage;
     BufferedImage skinPreview;
-
+    
     // messages / UI
     public boolean messageOn = false;
     public boolean boxMessageOn = false;
@@ -624,7 +637,6 @@ public class UserInterface {
                     case "Cooking Task" -> drawCookingTask();
                     case "Fuse Repair Task" -> drawFuseRepairTask();
                     case "Logic Panel Task" -> drawLogicPanelTask();
-                    // other task types fall back to math or can be added
                     default -> drawMathTask();
                 }
             } else {
@@ -4875,7 +4887,7 @@ public class UserInterface {
         g2.drawRoundRect(barX, barY, textWidth, barH, barH, barH);
     }
     
- // ==================== DRAW COOKING TASK (Add to UserInterface.java) ====================
+ // ==================== DRAW COOKING TASK = ====================
     public void drawCookingTask() {
 
         // ==================== RENDERING SETUP ====================
@@ -5228,6 +5240,7 @@ public class UserInterface {
     }
 
     private void resetAllTaskState() {
+
         // Math
         taskGenerated = false;
         playerInput = "";
@@ -5698,6 +5711,11 @@ public class UserInterface {
             e.printStackTrace();
         }
     }
+    
+    public int getTaskCooldownFrames() {
+        return taskCooldownFrames;
+    }
+
 
 
 
