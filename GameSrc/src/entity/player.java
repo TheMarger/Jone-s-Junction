@@ -3,6 +3,7 @@ package entity;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
@@ -36,6 +37,8 @@ public class player extends entity {
     public String equippedSkin;
     public int curTaskIndex;
     public String curTaskName;
+    
+    public boolean tasksComplete;
 
  	
     public boolean hasKey;
@@ -95,7 +98,10 @@ public class player extends entity {
     }
     
     public void setItems() {
-    	//inventory.add(new Flashlight(gp));
+    	inventory.add(new greenKey(gp));
+    	inventory.add(new redKey(gp));
+    	inventory.add(new blueKey(gp));
+    	updateInventory();
     }
 
     
@@ -162,40 +168,54 @@ public class player extends entity {
         direction = "down";
         level = gp.level;
         stamina = maxStamina;
+        tasksComplete = true;
         
         getPlayerImage(); // load images for current skin
     }
 
-
-
-
     public void getPlayerImage() {
+
         if (gp == null || gp.skins == null) return;
 
-        String[] paths = gp.skins[equippedSkinIndex][2]; // paths for all frames
+        String[] paths = gp.skins[equippedSkinIndex][2];
 
+        // index 0 is assumed to be a safe idle / fallback frame
+        BufferedImage fallback = loadAndScale(paths[0]);
+
+        // Up
+        up1 = loadAndScaleSafe(paths, 1, fallback);
+        up2 = loadAndScaleSafe(paths, 2, fallback);
+
+        // Down
+        down1 = loadAndScaleSafe(paths, 3, fallback);
+        down2 = loadAndScaleSafe(paths, 4, fallback);
+
+        // Right
+        right1 = loadAndScaleSafe(paths, 5, fallback);
+        right2 = loadAndScaleSafe(paths, 6, fallback);
+
+        // Left
+        left1 = loadAndScaleSafe(paths, 7, fallback);
+        left2 = loadAndScaleSafe(paths, 8, fallback);
+    }
+    
+    private BufferedImage loadAndScale(String path) {
         try {
-            // Up frames
-            up1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[1])), gp.tileSize, gp.tileSize);
-            up2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[2])), gp.tileSize, gp.tileSize);
-
-            // Down frames
-            down1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[3])), gp.tileSize, gp.tileSize);
-            down2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[4])), gp.tileSize, gp.tileSize);
-
-            // right frames
-            right1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[5])), gp.tileSize, gp.tileSize);
-            right2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[6])), gp.tileSize, gp.tileSize);
-
-            // left frames
-            left1 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[7])), gp.tileSize, gp.tileSize);
-            left2 = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream(paths[8])), gp.tileSize, gp.tileSize);
-
+            BufferedImage img = ImageIO.read(getClass().getResourceAsStream(path));
+            return gp.uTool.scaleImage(img, gp.tileSize, gp.tileSize);
         } catch (Exception e) {
-            e.printStackTrace();
+            return null;
         }
     }
 
+    private BufferedImage loadAndScaleSafe(String[] paths, int index, BufferedImage fallback) {
+        if (index < 0 || index >= paths.length || paths[index] == null) {
+            return fallback;
+        }
+
+        BufferedImage img = loadAndScale(paths[index]);
+        return (img != null) ? img : fallback;
+    }
    
   
     public void update() {
@@ -461,11 +481,16 @@ public class player extends entity {
 	        lastPlayerRow = playerRow;
 	    }
         if ("exitVan".equals(item)) {
-        	levelUp();
-			gp.stopMusic();
-			gp.playSoundEffect(2);
-			gp.gameState = gp.dialogueState;
-			speak();
+        	if (tasksComplete) {
+        		levelUp();
+        		gp.stopMusic();
+    			gp.playSoundEffect(2);
+    			gp.gameState = gp.dialogueState;
+    			speak();
+        	} else {
+        		gp.ui.showBoxMessage("Tasks Incomplete!");
+        	}
+        	
 		}
 
     }
@@ -476,6 +501,7 @@ public class player extends entity {
     		unlockSkin(5); // unlock BillyGoat skin
     		break;
     	}
+    	setDefaultValues();
     	gp.ui.levelFinished = true;
 		gp.level++;
     	

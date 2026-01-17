@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 import Item.*;
 import gaurd.*;
 import task.ButtonTask;
@@ -11,11 +13,13 @@ import task.RiddleTask;
 import task.Task;
 import task.TileSelectTask;
 import task.VaultSequenceTask;
+import task.PatternSwitchesTask;
 import entity.*;
 
 public class AssetSetter {
 
 	gamePanel gp;
+	java.util.Random random = new java.util.Random();
 	
 	public AssetSetter(gamePanel gp) {
 		this.gp = gp;
@@ -34,10 +38,11 @@ public class AssetSetter {
 	};
 	
 	int[][][] ItemLocations = new int[][][] {
-		// yellow key, red key, green key, flashlight, blue key, pebble, can, tray, apple, bread, protein bar
+		//     0        1       2          3          4        5      6     7    8       9       10
+		// yellow key, key, green key, flashlight, blue key, pebble, can, tray, apple, bread, protein bar
 		
 		// Level 1 Items
-		{ {2879,2138}, {1535,1714}, {67,2234}, {2691,2598}, {1455,2826}, {2560,1968}, {1404,1836}, {1404,1836}, {2304,2524}, {1220,1700}, {1728,1112} },
+		{   {2879,2138}, {1535,1714}, {67,2234}, {2691,2598}, {1455,2826}, {2560,1968}, {1404,1836}, {1404,1836}, {2299,2603}, {1220,1700}, {1728,1112} },
 		// Level 2 Tasks
 		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} },
 		// Level 3 Tasks
@@ -46,6 +51,7 @@ public class AssetSetter {
 		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} }
 		
 	};
+	
 	
 	int[][][] NPCLocations = new int[][][] {	
 		// Billy Goat, Old Man Jone
@@ -62,7 +68,7 @@ public class AssetSetter {
 	
 	int[][][] GaurdLocations = new int[][][] {		
 		// Level 1 Items
-		{ {62,2550}, {1563,1715}, {2434,1015}, {1921,893} },
+		{ {1860,672}, {1834,883}, {762,2523}, {66,2251}, {1222,1703}, {2298,2535}, {2690,2619}, {2874,2143}, {2314,1711}, {450,2039}, {1726,2147} },
 		// Level 2 Tasks
 		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} },
 		// Level 3 Tasks
@@ -71,6 +77,7 @@ public class AssetSetter {
 		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} }
 		
 	};
+
 	
 	
 	public void setAll() {
@@ -94,100 +101,141 @@ public class AssetSetter {
 	    item.worldY = worldY;
 	    gp.items[slot] = item;
 	}
+	
+	public void setThrowable() {
+
+	    // ==================== HOW MANY TO SPAWN ====================
+	    int amount = 0;
+	    switch (gp.level) {
+	        case 1 -> amount = random.nextInt(2, 4); // 2–3
+	        case 2 -> amount = random.nextInt(3, 5); // 3–4
+	        case 3 -> amount = random.nextInt(4, 6); // 4–5
+	        case 4 -> amount = random.nextInt(5, 7); // 5–6
+	    }
+
+	    int levelIndex = gp.level - 1;
+	    int[][] levelLocations = ItemLocations[levelIndex];
+
+	    // ==================== AVAILABLE THROWABLE INDICES ====================
+	    ArrayList<Integer> availableIndices = new ArrayList<>();
+	    if (levelLocations.length > 5) availableIndices.add(5); // Pebble
+	    if (levelLocations.length > 6) availableIndices.add(6); // Can
+	    if (levelLocations.length > 7) availableIndices.add(7); // Tray
+
+	    // ==================== SPAWN THROWABLES ====================
+	    for (int i = 0; i < amount && !availableIndices.isEmpty(); i++) {
+
+	        int slot = gp.getEmptyItemSlot();
+	        if (slot == -1) break;
+
+	        // Pick random throwable index (no reuse)
+	        int idx = random.nextInt(availableIndices.size());
+	        int itemIndex = availableIndices.remove(idx);
+
+	        Item throwable;
+	        switch (itemIndex) {
+	            case 5 -> throwable = new Pebble(gp);
+	            case 6 -> throwable = new Can(gp);
+	            default -> throwable = new Tray(gp);
+	        }
+
+	        // Set position from predefined list
+	        throwable.worldX = levelLocations[itemIndex][0];
+	        throwable.worldY = levelLocations[itemIndex][1];
+
+	        gp.items[slot] = throwable;
+	    }
+	}
+
+
 
 	
 	public void setItem() {
+
+	    // ==================== THROWABLES FIRST ====================
+	    setThrowable();
+
+	    int levelIndex = gp.level - 1;
+	    int[][] levelLocations = ItemLocations[levelIndex];
 	    int slot;
 
+	    // ==================== ITEM KIT (NON-THROWABLES) ====================
+
+	    // 0 → Yellow Key
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 0) {
 	        Item it = new redKey(gp);
-	        it.worldX = gp.tileSize * 6;
-	        it.worldY = gp.tileSize * 17;
+	        it.worldX = levelLocations[0][0];
+	        it.worldY = levelLocations[0][1];
 	        gp.items[slot] = it;
 	    }
 
+	    // 1 → Key
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 1) {
 	        Item it = new Key(gp);
-	        it.worldX = gp.tileSize * 7;
-	        it.worldY = gp.tileSize * 21;
+	        it.worldX = levelLocations[1][0];
+	        it.worldY = levelLocations[1][1];
 	        gp.items[slot] = it;
 	    }
 
+	    // 2 → Green Key
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 2) {
 	        Item it = new greenKey(gp);
-	        it.worldX = gp.tileSize * 12;
-	        it.worldY = gp.tileSize * 19;
+	        it.worldX = levelLocations[2][0];
+	        it.worldY = levelLocations[2][1];
 	        gp.items[slot] = it;
 	    }
 
+	    // 3 → Flashlight
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 3) {
 	        Item it = new Flashlight(gp);
-	        it.worldX = gp.tileSize * 8;
-	        it.worldY = gp.tileSize * 20;
+	        it.worldX = levelLocations[3][0];
+	        it.worldY = levelLocations[3][1];
 	        gp.items[slot] = it;
 	    }
 
+	    // 4 → Blue Key
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 4) {
 	        Item it = new blueKey(gp);
-	        it.worldX = gp.tileSize * 14;
-	        it.worldY = gp.tileSize * 16;
+	        it.worldX = levelLocations[4][0];
+	        it.worldY = levelLocations[4][1];
 	        gp.items[slot] = it;
 	    }
-	    
+
+	    // ==================== CONSUMABLES ====================
+
+	    // 8 → Apple
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
-	        Item it = new Pebble(gp);
-	        it.worldX = gp.tileSize * 14;
-	        it.worldY = gp.tileSize * 19;
-	        gp.items[slot] = it;
-	    }
-	    
-	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
-	        Item it = new Can(gp);
-	        it.worldX = gp.tileSize * 10;
-	        it.worldY = gp.tileSize * 20;
-	        gp.items[slot] = it;
-	    }
-	    
-	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
-	        Item it = new Tray(gp);
-	        it.worldX = gp.tileSize * 11;
-	        it.worldY = gp.tileSize * 20;
-	        gp.items[slot] = it;
-	    }
-	    
-	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 8) {
 	        Item it = new Apple(gp);
-	        it.worldX = gp.tileSize * 12;
-	        it.worldY = gp.tileSize * 20;
+	        it.worldX = levelLocations[8][0];
+	        it.worldY = levelLocations[8][1];
 	        gp.items[slot] = it;
 	    }
-	    
+
+	    // 9 → Bread
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 9) {
 	        Item it = new Bread(gp);
-	        it.worldX = gp.tileSize * 13;
-	        it.worldY = gp.tileSize * 20;
+	        it.worldX = levelLocations[9][0];
+	        it.worldY = levelLocations[9][1];
 	        gp.items[slot] = it;
 	    }
-	    
+
+	    // 10 → Protein Bar
 	    slot = gp.getEmptyItemSlot();
-	    if (slot != -1) {
+	    if (slot != -1 && levelLocations.length > 10) {
 	        Item it = new ProteinBar(gp);
-	        it.worldX = gp.tileSize * 14;
-	        it.worldY = gp.tileSize * 20;
+	        it.worldX = levelLocations[10][0];
+	        it.worldY = levelLocations[10][1];
 	        gp.items[slot] = it;
 	    }
-	    
 	}
+
 
 	
 	public void setNPC() {
@@ -255,7 +303,7 @@ public class AssetSetter {
         else if (gp.level == 3) tasksToAdd = 6;
         else if (gp.level >= 4) tasksToAdd = 8;
 
-        java.util.Random random = new java.util.Random();
+    
 
         for (int i = 0; i < tasksToAdd; i++) {
 
@@ -271,7 +319,8 @@ public class AssetSetter {
 						(choice == 4 && t instanceof LogicPanelTask) ||
 						(choice == 5 && t instanceof RiddleTask) ||
 						(choice == 6 && t instanceof FuseRepairTask) ||
-						(choice == 7 && t instanceof TileSelectTask)) {
+						(choice == 7 && t instanceof TileSelectTask) ||
+						(choice == 8 && t instanceof PatternSwitchesTask)) {
 						alreadyAssigned = true;
 						break;
 					}
@@ -307,7 +356,7 @@ public class AssetSetter {
 				task = new TileSelectTask(gp);
 			}
 			else if (choice == 7) {
-				task = new LogicPanelTask(gp);
+				task = new PatternSwitchesTask(gp);
 			} 
 			else if (choice == 8) {
 				task = new FuseRepairTask(gp);
