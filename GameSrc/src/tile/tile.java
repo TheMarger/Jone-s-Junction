@@ -1,5 +1,5 @@
 /*
- * Name: Christina
+ * Name: Christina Heaven
  * Course Code: ICS4U0
  * Date: 1/19/2026
  * Description: Tile class that represents a single tile in the game.
