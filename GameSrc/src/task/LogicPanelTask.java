@@ -1,20 +1,45 @@
-package task;
+/*
+Name: Sukhmanpreet, Rafay, Jeevan, Christina, Samir
+Course: ICS4U0
+Assignment Title: Jone's Junction
+File: LogicPanelTask.java
+Program Description:
+Logic panel task class. Extends the Task parent class. Presents the player with a
+logic-based panel puzzle that must be solved to unlock the panel. Successfully
+solving the logic puzzle completes the task and allows the player to progress
+through the game.
+*/
 
-import javax.imageio.ImageIO;
+package task; // Specifies that this class belongs to the task package
 
-import main.gamePanel;
+import javax.imageio.ImageIO; // Used to load image files for the task icon
 
-public class LogicPanelTask extends Task {
+import main.gamePanel; // Imports the main game panel to access game settings and utilities
 
-	public LogicPanelTask(gamePanel gp) {
-		super(gp);
-		name = "Logic Panel Task";
-		description = "Solve the logic puzzle to unlock the panel!";
-		try {
-			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/tasks/logicPanel.png")), gp.tileSize, gp.tileSize);
-		} catch (Exception e) {
-			e.printStackTrace();
+public class LogicPanelTask extends Task { // LogicPanelTask child class that extends the Task parent class
+
+	public LogicPanelTask(gamePanel gp) { // Constructor called when a LogicPanelTask object is created
+		
+		super(gp); // Calls the parent Task constructor to initialize shared task variables
+		
+		name = "Logic Panel Task"; // Sets the name of the task
+		
+		description = "Solve the logic puzzle to unlock the panel!"; // Sets the task description shown to the player
+		
+		try { // Attempts to load and scale the task image
+			
+			image = gp.uTool.scaleImage( // Scales the image to match the game's tile size
+				ImageIO.read( // Reads the image from the resources folder
+					getClass().getResourceAsStream("/tasks/logicPanel.png")
+				),
+				gp.tileSize, // Image width equals one tile
+				gp.tileSize  // Image height equals one tile
+			);
+			
+		} catch (Exception e) { // Handles errors if the image fails to load
+			
+			e.printStackTrace(); // Prints error details to help with debugging
+			
 		}
 	}
-
 }

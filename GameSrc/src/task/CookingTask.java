@@ -1,19 +1,30 @@
-package task;
+/*
+Name: Sukhmanpreet, Rafay, Jeevan, Christina, Samir
+Course: ICS4U0
+Assignment Title: Jone's Junction
+File: CookingTask.java
+Program Description:
+Cooking task class. Extends the Task parent class. Presents the player with
+a trivia question chosen from a pool of cooking based questions. Selecting the correct
+answer completes the task. Used as one of tasks to progress through levels.
+*/
 
-import javax.imageio.ImageIO;
+package task; // package
 
-import main.gamePanel;
+import javax.imageio.ImageIO; // image loading
 
-public class CookingTask extends Task {
+import main.gamePanel; // game panel
 
-	public CookingTask(gamePanel gp) {
-		super(gp);
-		name = "Cooking Task";
-		description = "Prepare a delicious meal by following the recipe!";
-		try {
-			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/tasks/cookingTask.png")), gp.tileSize, gp.tileSize);
-		} catch (Exception e) {
-			e.printStackTrace();
+public class CookingTask extends Task { // cooking task child class of Task
+
+	public CookingTask(gamePanel gp) { // constructor
+		super(gp); // call parent constructor
+		name = "Cooking Task"; // task name
+		description = "Prepare a delicious meal by following the recipe!"; // task description
+		try { // load and scale cooking task image
+			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/tasks/cookingTask.png")), gp.tileSize, gp.tileSize); 
+		} catch (Exception e) { // handle image load error
+			e.printStackTrace(); // print error
 		}
 	}
 }
