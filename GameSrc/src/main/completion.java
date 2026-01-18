@@ -233,7 +233,7 @@ public class completion {
         g2.setComposite(old);
     }
 
-    // Draw the scrolling credits
+    // Draws the scrolling credits
     private void drawCredits(Graphics2D g2) {
         g2.setFont(new Font("Arial", Font.BOLD, 24));
         g2.setColor(Color.white);
