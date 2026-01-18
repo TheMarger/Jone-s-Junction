@@ -1562,7 +1562,12 @@ public class UserInterface { // main UI class for in-game overlays and tasks
 
                 "Failing\n" +
                 "Failing tasks causes a cooldown\n" +
-                "Getting caught may lead to death or reset"
+                "Getting caught may lead to death or reset" +
+                
+				"Main Idea\n" +
+				"Find blue door areas and have completed all your tasks\n" +
+				"If so, then you can progress to next level, reach level 4 to beat game" +
+				"if in speed run you will recieve only a certain time to reach each endpoint"
             };
 
             // body region (below title, above footer)

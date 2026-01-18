@@ -23,8 +23,8 @@ public class Tray extends Throwable { // Tray class extends Throwable base class
         super(gp); // Call to superclass constructor
         
         name = "Tray"; // Set the item name
-        allowedRadiusTiles = 3; // Maximum distance (in tiles) item can be thrown
-        throwSoundIndex = 7; // Sound effect index when item is thrown
+        allowedRadiusTiles = 15; // Maximum distance (in tiles) item can be thrown
+        throwSoundIndex = 10; // Sound effect index when item is thrown
         sizeX = 48; // Width of the item sprite in pixels
         sizeY = 32; // Height of the item sprite in pixels
 

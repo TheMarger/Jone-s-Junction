@@ -23,7 +23,7 @@ public class Pebble extends Throwable { // Pebble class extends Throwable base c
         super(gp); // Call to superclass constructor
 
         name = "Pebble"; // Set item name
-        allowedRadiusTiles = 6; // Maximum distance (in tiles) player can throw/interact with item
+        allowedRadiusTiles = 5; // Maximum distance (in tiles) player can throw/interact with item
         throwSoundIndex = 3; // Sound effect index when item is thrown
         sizeX = 28; // Width of the item sprite in pixels
         sizeY = 28; // Height of the item sprite in pixels

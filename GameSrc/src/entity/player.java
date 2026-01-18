@@ -224,7 +224,7 @@ public class player extends entity { // Class declaration: player extends base c
 
         // Speeds for different movement types
         walkSpeed = 4; // Walk speed in pixels per frame
-        sprintSpeed = 16; // Sprint speed in pixels per frame
+        sprintSpeed = 8; // Sprint speed in pixels per frame
         crouchSpeed = 2; // Crouch speed in pixels per frame
         
         speed = walkSpeed; // Current speed starts as walking

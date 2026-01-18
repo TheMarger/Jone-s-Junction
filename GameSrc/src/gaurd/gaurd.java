@@ -1,5 +1,5 @@
 /*
-Names: Sukhmanpreet Gill, Christina Heaven, Rafay Salman, Samir Bhagat, Jeevan Dhillon
+Names: Sukhmanpreet Gill
 Course: ICS4U
 Assignment: Jone's Junction
 Due date: January 18, 2026

@@ -23,7 +23,7 @@ public class Can extends Throwable { // Can class extends Throwable base class
         super(gp); // Call to superclass constructor
 
         name = "Can"; // Set item name
-        allowedRadiusTiles = 4; // Maximum distance (in tiles) player can throw/interact with item
+        allowedRadiusTiles = 10; // Maximum distance (in tiles) player can throw/interact with item
         throwSoundIndex = 5; // Sound effect index when item is thrown
         sizeX = 28; // Width of the item sprite in pixels
         sizeY = 28; // Height of the item sprite in pixels

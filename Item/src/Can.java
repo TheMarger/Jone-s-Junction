@@ -1,7 +1,7 @@
 
 public class Can extends Throwable {
 
-    private static final int DefaultThrowRadius = 5;
+    private static final int DefaultThrowRadius = 10;
     private static final int DefaultSoundValue = 5;
     private static final int DefaultSoundArea = 10;
 
