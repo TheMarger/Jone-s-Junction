@@ -34,7 +34,7 @@ public class AssetSetter { // Declares the public AssetSetter class
     public int appleRespawnTimer = -1; // Timer for apple respawn, -1 means not waiting to respawn
     public int breadRespawnX, breadRespawnY;  // Stores the X and Y coordinates where bread was picked up
     public int appleRespawnX, appleRespawnY; // Stores the X and Y coordinates where apple was picked up
-    public static final int RESPAWN_TIME = 600; // Constant defining respawn time (600 frames = 10 seconds at 60 FPS)
+    public static final int RESPAWN_TIME = 3600; // Constant defining respawn time (600 frames = 10 seconds at 60 FPS)
 
 	gamePanel gp; // Reference to the main gamePanel object
 	java.util.Random random = new java.util.Random(); // Creates a Random object for generating random numbers
