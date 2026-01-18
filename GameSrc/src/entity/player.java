@@ -233,7 +233,7 @@ public class player extends entity { // Class declaration: player extends base c
         level = gp.level; // Sync with current level from gp
         stamina = maxStamina; // Reset stamina to max
         
-        tasksComplete = true; // Initialize tasksComplete (may be adjusted later)
+        tasksComplete = false; // Initialize tasksComplete (may be adjusted later)
         collisionOn = true; // Player collisions are enabled by default
         
         getPlayerImage(); // Load images for current skin
