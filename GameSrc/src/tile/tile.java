@@ -1,58 +1,61 @@
-package tile;
-
 /*
- Christina Heaven
- Tile class
- Description: This class represents a single tile in the game.
- Each tile has an image and can be solid/not solid.
- 
- Used for: Building maps and handling collision logic
+ * Name: Christina
+ * Course Code: ICS4U0
+ * Date: 1/19/2026
+ * Description: Tile class that represents a single tile in the game.
+ *              Each tile has an image, position, and collision property.
+ *              Used for building maps and handling collision logic.
+ * 
  */
-import java.awt.image.BufferedImage;
 
-public class tile {
+package tile; // Declares the package name for this class
 
-    private int x;  // tile column
-    private int y;  // tile row
+import java.awt.image.BufferedImage; // Imports BufferedImage for storing tile graphics
 
-    public boolean collision = false; //tile solidity
-    public BufferedImage image; //tile image
-    private int num; 
+public class tile { // Defines the tile class for map tiles
 
-    //Constructor used by TileManager, for the looks and solidity
+    private int x;  // Stores the tile's column position in the grid
+    private int y;  // Stores the tile's row position in the grid
+
+    public boolean collision = false; // Indicates if the tile blocks movement (true = solid)
+    public BufferedImage image; // Stores the visual image for this tile
+    private int num; // Stores the tile type/ID number
+
+    // Constructor used by TileManager to create tile types with appearance and solidity
     public tile(int num, BufferedImage image, boolean collision) {
-        this.image = image;
-        this.collision = collision;
-        this.num = num;
-        this.x = -1;   
-        this.y = -1;  
+        this.image = image; // Assigns the tile's image
+        this.collision = collision; // Sets whether the tile is solid
+        this.num = num; // Stores the tile type number
+        this.x = -1; // Sets x to -1 (indicates no specific grid position yet)
+        this.y = -1; // Sets y to -1 (indicates no specific grid position yet)
     }
 
-    // Constructor used, for the placing of the tiles
+    // Constructor used for placing tiles at specific positions on the map
     public tile(int x, int y, BufferedImage image, boolean collision) {
-        this.x = x;
-        this.y = y;
-        this.image = image;
-        this.collision = collision;
-    }
-    
-    public int getX() {
-		return x;
-	}
-    public int getY() {
-    	return y;
+        this.x = x; // Sets the tile's column position
+        this.y = y; // Sets the tile's row position
+        this.image = image; // Assigns the tile's image
+        this.collision = collision; // Sets whether the tile is solid
     }
 
-    public boolean isSolid() { 
-    	return collision; 
-    	}
+    public int getX() { // Returns the tile's column position
+		return x; // Returns the x coordinate
+	}
     
-    public BufferedImage getImage() { 
-    	return image; 
-    	}
-    public int getNum() {
-		return num;
+    public int getY() { // Returns the tile's row position
+    	return y; // Returns the y coordinate
+    }
+
+    public boolean isSolid() { // Checks if the tile is solid (blocks movement)
+    	return collision; // Returns true if tile has collision, false otherwise
+    }
+
+    public BufferedImage getImage() { // Returns the tile's image
+    	return image; // Returns the BufferedImage for this tile
+    }
+    
+    public int getNum() { // Returns the tile's type number/ID
+		return num; // Returns the tile number
 	}
 
 }
-
