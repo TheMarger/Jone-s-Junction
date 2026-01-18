@@ -4387,7 +4387,7 @@ public class UserInterface { // main UI class for in-game overlays and tasks
         }
 
         // ==================== TITLE SECTION ====================
-        String title = "⚡ Fuse Repair"; // title text
+        String title = "Fuse Repair"; // title text
         Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.90f); // title font
         g2.setFont(titleFont); // set title font
 
@@ -4402,7 +4402,7 @@ public class UserInterface { // main UI class for in-game overlays and tasks
         g2.drawString(title, panelX + pad, titleY); // draw title
 
         // ==================== DIVIDER LINE ====================
-        int dividerY = titleY + (int)(gp.tileSize * 0.4); // divider Y
+        int dividerY = titleY + (int)(gp.tileSize * 0.2); // divider Y
         g2.setStroke(new BasicStroke(1.5f)); // stroke
         g2.setColor(new Color(60, 180, 255, 60)); // faint blue divider color
         g2.drawLine(panelX + pad, dividerY, panelX + panelW - pad, dividerY); // draw divider
@@ -4454,7 +4454,7 @@ public class UserInterface { // main UI class for in-game overlays and tasks
 
         if (fuseTimerFrames <= 0) { // time expired
             handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, 
-                "Time's up! Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds"); // fail
+                "Sytem Fried! Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds"); // fail
             return; // exit
         }
 
@@ -4468,7 +4468,7 @@ public class UserInterface { // main UI class for in-game overlays and tasks
                            new Color(180, 220, 180); // color code by urgency
 
         g2.setColor(timerColor); // set color
-        String timeText = "⏱ " + timeSeconds + "s"; // formatted time
+        String timeText = timeSeconds + "s"; // formatted time
         int tW = g2.getFontMetrics().stringWidth(timeText); // width
         g2.drawString(timeText, panelX + panelW - pad - tW, titleY); // draw time at top right
 
@@ -4507,7 +4507,12 @@ public class UserInterface { // main UI class for in-game overlays and tasks
         g2.setColor(progressColor); // set color
 
         String progressText = "Connections: " + fuseConnectionsMade + " / 9"; // progress label
-        g2.drawString(progressText, panelX + pad, titleY); // draw progress left-aligned
+        
+        //Moves the progress to the right
+        FontMetrics pfm = g2.getFontMetrics();
+        int offsetLeft = (int)(gp.tileSize * 0.9); 
+        int progressX = panelX + panelW - pad - pfm.stringWidth(progressText) - offsetLeft;
+        g2.drawString(progressText, progressX, titleY);
 
         // ==================== NODE LAYOUT ====================
         int nodeSize = (int)(gp.tileSize * 0.6); // diameter of node
