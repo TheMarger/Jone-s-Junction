@@ -3986,7 +3986,7 @@ public class UserInterface { // main UI class for in-game overlays and tasks
         }
 
         // ==================== TITLE SECTION ====================
-        String title = "⚙ Logic Panel"; // title text
+        String title = "Logic Panel"; // title text
         Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.90f); // title font
         g2.setFont(titleFont); // set title font
 
@@ -4061,7 +4061,7 @@ public class UserInterface { // main UI class for in-game overlays and tasks
                            new Color(180, 220, 180); // color code based on urgency
 
         g2.setColor(timerColor); // set color
-        String timeText = "⏱ " + timeSeconds + "s"; // formatted time string
+        String timeText = timeSeconds + "s"; // formatted time string
         int tW = g2.getFontMetrics().stringWidth(timeText); // text width
         g2.drawString(timeText, panelX + panelW - pad - tW, titleY); // draw time right-aligned
 
@@ -4105,12 +4105,19 @@ public class UserInterface { // main UI class for in-game overlays and tasks
         g2.setColor(progressColor); // set color
 
         String progressText = "Answered: " + answeredCount + " / 6"; // progress text
-        g2.drawString(progressText, panelX + pad, titleY); // draw progress at left
+        
+        FontMetrics pfm = g2.getFontMetrics();
+        
+        //Shifts to the right
+        int offsetLeft = (int)(gp.tileSize * 0.8);
 
+        int progressX = panelX + panelW - pad - pfm.stringWidth(progressText) - offsetLeft;
+        g2.drawString(progressText, progressX, titleY);
+        
         // ==================== STATEMENT ROWS ====================
         int rowHeight = (int)(gp.tileSize * 1.1); // height per statement row
         int rowGap = (int)(gp.tileSize * 0.1); // gap between rows
-        int startY = dividerY + (int)(gp.tileSize * 0.5); // Y start for first row
+        int startY = dividerY + (int)(gp.tileSize * 0.2); // Y start for first row
 
         Font statementFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.30f); // statement font
         g2.setFont(statementFont); // set font
