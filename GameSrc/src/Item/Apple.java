@@ -1,21 +1,40 @@
-package Item;
+/*
+Name: Rafay, Jeevan
+Course: ICS4U0
+Assignment Title: Jone's Junction
+Date: 1/19/2026
+File: Apple.java
+Program Description:
+Apple class. Represents a consumable food item in the game.
+Stores item name, allowed interaction radius, sound effect index
+for throwing, sprite size, and the amount of health/stamina it restores.
+Loads the item image from resources and scales it to the desired size.
+*/
 
-import main.gamePanel;
+package Item; // Package declaration for all item-related classes
 
-public class Apple extends Food {
-	
-	public Apple(gamePanel gp) {
-		super(gp);
-		name = "Apple";
-		allowedRadiusTiles = 5;     
-		throwSoundIndex = 3;         
-		sizeX = 24;
-		sizeY = 24;
-		restoreValue = 0.25f;
-		 try {
-			image = gp.uTool.scaleImage(javax.imageio.ImageIO.read(getClass().getResourceAsStream("/items/Apple.png")), sizeX, sizeY);
-		} catch (java.io.IOException e) {
-			e.printStackTrace();
-		}
-	}
+import main.gamePanel; // Import game panel for context and access to utility tools
+
+public class Apple extends Food { // Apple class extends Food base class
+
+    public Apple(gamePanel gp) { // Constructor receives reference to game panel
+        super(gp); // Call to superclass constructor
+        
+        name = "Apple"; // Set the item name
+        allowedRadiusTiles = 5; // Maximum distance (in tiles) player can use/interact with item
+        throwSoundIndex = 3; // Sound effect index when item is thrown
+        sizeX = 24; // Width of the item sprite in pixels
+        sizeY = 24; // Height of the item sprite in pixels
+        restoreValue = 0.25f; // Amount of stamina/health restored when consumed
+
+        try { // Load and scale the item image
+            image = gp.uTool.scaleImage(
+                        javax.imageio.ImageIO.read(getClass().getResourceAsStream("/items/Apple.png")), 
+                        sizeX, 
+                        sizeY
+                    ); // Read image from resources and scale
+        } catch (java.io.IOException e) { // Handle exceptions if image fails to load
+            e.printStackTrace(); // Print error for debugging
+        }
+    }
 }

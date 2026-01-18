@@ -1,258 +1,251 @@
-package main;
+/*
+Name: Christina
+Course: ICS4U0
+Assignment Title: Jone's Junction
+Date: 1/19/2026
+File: completion.java
+Program Description:
+completion class. Handles the end-game sequence, including fade-in/out 
+transitions, display of two ending images, and scrolling credits. 
+Controls timing, fade speed, and rendering of images and text, allowing 
+the player to experience a cinematic ending before returning to the title screen.
+*/
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
+package main; // Package for main game classes
+
+import java.awt.*; // Import AWT for graphics and fonts
+import java.awt.image.BufferedImage; // Import for image handling
+import javax.imageio.ImageIO; // Import for reading images
 
 public class completion {
 
-	  gamePanel gp;
-	  
-	//The different parts of the ending
-	  private enum Phase {
-		    FadeOut1,
-		    FadeIn1,
-		    Hold1,
-		    FadeOut2,
-		    FadeIn2,
-		    Hold2,
-		    Credits
-		}
+    gamePanel gp; // Reference to main game panel
 
-	    
-	    private Phase phase = Phase.FadeOut1;
-	    
-	 //Fade control (0 = transparent, 1 = fully black)
-	    private float fadeT = 0f;
+    // Enum representing the different phases of the ending sequence
+    private enum Phase {
+        FadeOut1, // Fade out to black before first image
+        FadeIn1,  // Fade in first image
+        Hold1,    // Hold first image on screen
+        FadeOut2, // Fade out to black before second image
+        FadeIn2,  // Fade in second image
+        Hold2,    // Hold second image on screen
+        Credits   // Scroll credits
+    }
 
-	    //Timers (counts frames)
-	    private int timer = 0;
+    private Phase phase = Phase.FadeOut1; // Current phase of ending sequence
 
-	    //Images
-	    private BufferedImage img1;
-	    private BufferedImage img2;
+    private float fadeT = 0f; // Fade overlay transparency (0 = transparent, 1 = fully black)
+    private int timer = 0; // Timer for holding images (counts frames)
 
-	    //Credits
-	    private String[] creditsLines = {
-	    	    "JONE'S JUNCTION",
-	    	    "",
-	    	    "Thanks for playing:)",
-	    	    "",
-	    	    "Created by:",
-	    	    "The Best Team",
-	    	    "",
-	    	    "Project Management:",
-	    	    "Sukhmanpreet Singh",
-	    	    "Sukhmanpreet Gill",
-	    	    "Rafay Salman",
-	    	    "Christina Heaven",
-	    	    "Samir Bhagat",
-	    	    "Jeevan Dhillon",
-	    	    "",
-	    	    "Programming:",
-	    	    "Team B",
-	    	    "",
-	    	    "UI & Interactions:",
-	    	    "Rafay Salman",
-	    	    "",
-	    	    "Save System & Game Progress:",
-	    	    "Samir Bhagat",
-	    	    "",
-	    	    "Items & Player Mechanics:",
-	    	    "Jeevan Dhillon",
-	    	    "",
-	    	    "AI & Guard Behavior:",
-	    	    "Sukhmanpreet Gill",
-	    	    "",
-	    	    "Art / Pixel Design:",
-	    	    "Christina Heaven",
-	    	    "",
-	    	    "Tasks:",
-	    	    "Rafay Salman",
-	    	    "Sukhmanpreet Singh",
-	    	    "Sukhmanpreet Gill",
-	    	    "Samir Bhagat",
-	    	    "Christina Heaven",
-	    	    "Jeevan Dhillon",
-	    	    "",
-	    	    "Special Thanks:",
-	    	    "Mr. Jones",
-	    	    "Class of 2026",
-	    	    "",
-	    	    "THE END"
-	    	};
+    private BufferedImage img1; // First ending image
+    private BufferedImage img2; // Second ending image
 
+    // Array storing lines for credits display
+    private String[] creditsLines = {
+        "JONE'S JUNCTION",
+        "",
+        "Thanks for playing:)",
+        "",
+        "Created by:",
+        "The Best Team",
+        "",
+        "Project Management:",
+        "Sukhmanpreet Singh",
+        "Sukhmanpreet Gill",
+        "Rafay Salman",
+        "Christina Heaven",
+        "Samir Bhagat",
+        "Jeevan Dhillon",
+        "",
+        "Programming:",
+        "Team B",
+        "",
+        "UI & Interactions:",
+        "Rafay Salman",
+        "",
+        "Save System & Game Progress:",
+        "Samir Bhagat",
+        "",
+        "Items & Player Mechanics:",
+        "Jeevan Dhillon",
+        "",
+        "AI & Guard Behavior:",
+        "Sukhmanpreet Gill",
+        "",
+        "Art / Pixel Design:",
+        "Christina Heaven",
+        "",
+        "Tasks:",
+        "Rafay Salman",
+        "Sukhmanpreet Singh",
+        "Sukhmanpreet Gill",
+        "Samir Bhagat",
+        "Christina Heaven",
+        "Jeevan Dhillon",
+        "",
+        "Special Thanks:",
+        "Mr. Jones",
+        "Class of 2026",
+        "",
+        "THE END"
+    };
 
-	    private int creditsY; //Where credits start drawing (& move up)
+    private int creditsY; // Vertical position for starting credits scroll
 
-	    //Speeds
-	    private float fadeSpeed = 0.007f; //Per frame
-	    private int showFramesImage1 = 180; //3 seconds at 60fps
-	    private int showFramesImage2 = 180;
+    private float fadeSpeed = 0.007f; // Speed of fade per frame
+    private int showFramesImage1 = 180; // Duration to hold first image (3 seconds at 60fps)
+    private int showFramesImage2 = 180; // Duration to hold second image
 
-	    public completion(gamePanel gp) {
-	        this.gp = gp;
+    public completion(gamePanel gp) { // Constructor receives game panel
+        this.gp = gp;
 
-	        try {
-	            img1 = ImageIO.read(getClass().getResourceAsStream("/ending/1.png"));
-	            img2 = ImageIO.read(getClass().getResourceAsStream("/ending/2.png"));
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+        try { // Load ending images from resources
+            img1 = ImageIO.read(getClass().getResourceAsStream("/ending/1.png"));
+            img2 = ImageIO.read(getClass().getResourceAsStream("/ending/2.png"));
+        } catch (Exception e) { // Handle exceptions in loading images
+            e.printStackTrace();
+        }
 
-	        reset();
-	    }
+        reset(); // Initialize phase, timer, fade, and credits position
+    }
 
-	    public void reset() {
-	        phase = Phase.FadeOut1;
-	        fadeT = 0f;
-	        timer = 0;
-	        creditsY = gp.screenHeight + 50;
-	    }
+    // Reset ending sequence variables
+    public void reset() {
+        phase = Phase.FadeOut1;
+        fadeT = 0f;
+        timer = 0;
+        creditsY = gp.screenHeight + 50; // Start credits below screen
+    }
 
+    // Called once when player triggers the ending
+    public void start() {
+        reset();
+        gp.gameState = gp.completionState; // Switch game into completion mode
+    }
 
-	    //Call this once when player interacts with helicopter
-	    public void start() {
-	        reset();
-	        //Switch the game into "completion mode"
-	        gp.gameState = gp.completionState;
-	    }
+    // Update per-frame logic for the ending sequence
+    public void update() {
+        switch (phase) {
+            case FadeOut1: // Fade to black before first image
+                fadeT += fadeSpeed;
+                if (fadeT >= 1f) {
+                    fadeT = 1f;
+                    phase = Phase.FadeIn1; // Transition to reveal first image
+                }
+                break;
 
-	    public void update() {
+            case FadeIn1: // Fade in first image
+                fadeT -= fadeSpeed;
+                if (fadeT <= 0f) {
+                    fadeT = 0f;
+                    phase = Phase.Hold1;
+                    timer = 0;
+                }
+                break;
 
-	        switch (phase) {
+            case Hold1: // Hold first image
+                timer++;
+                if (timer >= showFramesImage1) {
+                    phase = Phase.FadeOut2;
+                    fadeT = 0f;
+                }
+                break;
 
-	            //Fade to black before image 1
-	            case FadeOut1:
-	                fadeT += fadeSpeed;// 0 to 1
-	                if (fadeT >= 1f) {
-	                    fadeT = 1f;
-	                    phase = Phase.FadeIn1;//Reveal image 1
-	                }
-	                break;
+            case FadeOut2: // Fade to black before second image
+                fadeT += fadeSpeed;
+                if (fadeT >= 1f) {
+                    fadeT = 1f;
+                    phase = Phase.FadeIn2; // Reveal second image
+                }
+                break;
 
-	            //Reveal image 1, fade from black
-	            case FadeIn1:
-	                fadeT -= fadeSpeed;// 0 to 1
-	                if (fadeT <= 0f) {
-	                    fadeT = 0f;
-	                    phase = Phase.Hold1;
-	                    timer = 0;
-	                }
-	                break;
+            case FadeIn2: // Fade in second image
+                fadeT -= fadeSpeed;
+                if (fadeT <= 0f) {
+                    fadeT = 0f;
+                    phase = Phase.Hold2;
+                    timer = 0;
+                }
+                break;
 
-	            //Hold image 1 on screen
-	            case Hold1:
-	                timer++;
-	                if (timer >= showFramesImage1) {
-	                    phase = Phase.FadeOut2;
-	                    fadeT = 0f;//Start fade out again
-	                }
-	                break;
+            case Hold2: // Hold second image
+                timer++;
+                if (timer >= showFramesImage2) {
+                    phase = Phase.Credits;
+                    fadeT = 0f; // No overlay during credits
+                }
+                break;
 
-	            //Fade to black before image 2
-	            case FadeOut2:
-	                fadeT += fadeSpeed;//0 to 1
-	                if (fadeT >= 1f) {
-	                    fadeT = 1f;
-	                    phase = Phase.FadeIn2;//Next reveal image 2
-	                }
-	                break;
+            case Credits: // Scroll credits upward
+                creditsY -= 1; // Move credits up one pixel per frame
+                int creditsHeight = creditsLines.length * 30; // Total height of all lines
+                if (creditsY + creditsHeight < 0) { // When all credits have scrolled off screen
+                    gp.gameState = gp.titleState; // Return to title screen
+                }
+                break;
+        }
+    }
 
-	            //Reveal image 2, fade from black
-	            case FadeIn2:
-	                fadeT -= fadeSpeed;//1 to 0
-	                if (fadeT <= 0f) {
-	                    fadeT = 0f;
-	                    phase = Phase.Hold2;
-	                    timer = 0;
-	                }
-	                break;
+    // Draw the current ending frame
+    public void draw(Graphics2D g2) {
+        g2.setColor(Color.black); // Clear background
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
 
-	            //Hold image 2
-	            case Hold2:
-	                timer++;
-	                if (timer >= showFramesImage2) {
-	                    phase = Phase.Credits;
-	                    fadeT = 0f;//No overlay during credits
-	                }
-	                break;
+        // Draw first image if in FadeIn1 or Hold1 phase
+        if (phase == Phase.FadeIn1 || phase == Phase.Hold1) {
+            drawFullScreenImage(g2, img1);
+        }
+        // FadeOut2 uses previous image
+        else if (phase == Phase.FadeOut2) {
+            drawFullScreenImage(g2, img1);
+        }
+        // Draw second image
+        else if (phase == Phase.FadeIn2 || phase == Phase.Hold2) {
+            drawFullScreenImage(g2, img2);
+        }
+        // Draw scrolling credits
+        else if (phase == Phase.Credits) {
+            drawCredits(g2);
+        }
 
-	            //Credits scroll up
-	            case Credits:
-	                creditsY -= 1;
+        // Draw fade overlay for any fading phase
+        if (phase == Phase.FadeOut1 || phase == Phase.FadeIn1 ||
+            phase == Phase.FadeOut2 || phase == Phase.FadeIn2) {
+            drawFadeOverlay(g2, fadeT);
+        }
+    }
 
-	                int creditsHeight = creditsLines.length * 30;
-	                if (creditsY + creditsHeight < 0) {
-	                    gp.gameState = gp.titleState;
-	                }
-	                break;
-	        }
-	    }
+    // Helper method to draw an image fullscreen
+    private void drawFullScreenImage(Graphics2D g2, BufferedImage img) {
+        if (img == null) return;
+        g2.drawImage(img, 0, 0, gp.screenWidth, gp.screenHeight, null);
+    }
 
+    // Helper method to draw a fade overlay with transparency
+    private void drawFadeOverlay(Graphics2D g2, float alpha) {
+        if (alpha < 0f) alpha = 0f;
+        if (alpha > 1f) alpha = 1f;
 
-	    public void draw(Graphics2D g2) {
-	        //Always clear background
-	        g2.setColor(Color.black);
-	        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+        Composite old = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g2.setColor(Color.black);
+        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
+        g2.setComposite(old);
+    }
 
-	        //Only show image 1 AFTER screen is fully black (FadeIn1 + Hold1)
-	        if (phase == Phase.FadeIn1 || phase == Phase.Hold1) {
-	            drawFullScreenImage(g2, img1);
-	        }
+    // Draw the scrolling credits
+    private void drawCredits(Graphics2D g2) {
+        g2.setFont(new Font("Arial", Font.BOLD, 24));
+        g2.setColor(Color.white);
 
-	        //Fade in between images
-	        else if (phase == Phase.FadeOut2) {
-	            drawFullScreenImage(g2, img1);
-	        }
-	        
-	        //Only show image 2 AFTER screen is fully black (FadeIn2 + Hold2)
-	        else if (phase == Phase.FadeIn2 || phase == Phase.Hold2) {
-	            drawFullScreenImage(g2, img2);
-	        }
+        int xCenter = gp.screenWidth / 2;
+        int y = creditsY;
 
-	        //Credits
-	        else if (phase == Phase.Credits) {
-	            drawCredits(g2);
-	        }
-
-	        //Fade overlay for FADE phases 
-	        if (phase == Phase.FadeOut1 || phase == Phase.FadeIn1 ||
-	        	    phase == Phase.FadeOut2 || phase == Phase.FadeIn2) {
-	        	    drawFadeOverlay(g2, fadeT);
-	        	}
-	    }
-
-	    private void drawFullScreenImage(Graphics2D g2, BufferedImage img) {
-	        if (img == null) return;
-	        g2.drawImage(img, 0, 0, gp.screenWidth, gp.screenHeight, null);
-	    }
-
-	    private void drawFadeOverlay(Graphics2D g2, float alpha) {
-	        //Clamp
-	        if (alpha < 0f) alpha = 0f;
-	        if (alpha > 1f) alpha = 1f;
-
-	        Composite old = g2.getComposite();
-	        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-	        g2.setColor(Color.black);
-	        g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
-	        g2.setComposite(old);
-	    }
-
-	    private void drawCredits(Graphics2D g2) {
-	        g2.setFont(new Font("Arial", Font.BOLD, 24));
-	        g2.setColor(Color.white);
-
-	        int xCenter = gp.screenWidth / 2;
-
-	        int y = creditsY;
-	        for (String line : creditsLines) {
-	            int textWidth = g2.getFontMetrics().stringWidth(line);
-	            int x = xCenter - (textWidth / 2);
-	            g2.drawString(line, x, y);
-	            y += 30;
-	        }
-	    }
-	} 
-
+        for (String line : creditsLines) {
+            int textWidth = g2.getFontMetrics().stringWidth(line);
+            int x = xCenter - (textWidth / 2); // Center text horizontally
+            g2.drawString(line, x, y);
+            y += 30; // Line spacing
+        }
+    }
+}

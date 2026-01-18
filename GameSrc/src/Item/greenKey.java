@@ -1,17 +1,31 @@
-package Item;
+/*
+Name: Rafay, Jeevan
+Course: ICS4U0
+Assignment Title: Jone's Junction
+Date: 1/19/2026
+File: greenKey.java
+Program Description:
+greenKey class. Represents a key item in the game used to unlock doors.
+Stores the item name and sprite image. Loads the key image from
+resources and scales it to the appropriate size for display.
+*/
 
-import main.gamePanel;
+package Item; // Package declaration for all item-related classes
 
-public class greenKey extends Key {
-	public greenKey(gamePanel gp) {
-		super(gp);
-		name = "Green Key";
-		try {
-			image = javax.imageio.ImageIO.read(getClass().getResourceAsStream("/items/greenKey.png"));
-			uTool.scaleImage(image, sizeX, sizeY);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		 
-	}
+import main.gamePanel; // Import game panel for context and access to utility tools
+
+public class greenKey extends Key { // greenKey class extends Key base class
+
+    public greenKey(gamePanel gp) { // Constructor receives reference to game panel
+        super(gp); // Call superclass constructor
+        
+        name = "Green Key"; // Set the key name
+        
+        try { // Load and scale the key image
+            image = javax.imageio.ImageIO.read(getClass().getResourceAsStream("/items/greenKey.png")); // Load image from resources
+            uTool.scaleImage(image, sizeX, sizeY); // Scale image to key size
+        } catch (Exception e) { // Handle exceptions if image fails to load
+            e.printStackTrace(); // Print error for debugging
+        }
+    }
 }

@@ -3,6 +3,7 @@ Name: Rafay, Samir
 Course: ICS4U0
 Assignment Title: Jone's Junction
 File: save1.java
+Date: 1/19/2026
 Program Description:
 Save slot 1 class. Handles saving and loading game state to save1.dat file.
 Stores player position, level, stamina, inventory items, key flags,
