@@ -1,3 +1,14 @@
+/Item/
+/Items/
+/assets/
+/entity/
+/gaurd/
+/main/
+/res/
+/saves/
+/sound/
+/task/
+/tile/
 /Apple.class
 /BreadRoll.class
 /Can.class
@@ -10,7 +21,6 @@
 /GamePanel.class
 /InteractiveAStarDemo$Mode.class
 /InteractiveAStarDemo.class
-/Item/
 /Level.class
 /Main.class
 /MainMenu$1.class
@@ -37,14 +47,8 @@
 /Throwable.class
 /Tile.class
 /TileManager.class
-/entity/
 /game.class
-/gaurd/
 /item.class
 /levelOne.class
-/main/
 /map.class
 /saveSystem.class
-/saves/
-/task/
-/tile/

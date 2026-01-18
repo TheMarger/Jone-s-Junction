@@ -16,7 +16,7 @@ public class Pebble extends Throwable {
         sizeX = 28;
         sizeY = 28;
          try {
-			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/items/Sphere.png")), sizeX, sizeY);
+			image = gp.uTool.scaleImage(ImageIO.read(getClass().getResourceAsStream("/items/pebble.png")), sizeX, sizeY);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

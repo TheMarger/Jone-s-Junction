@@ -1142,7 +1142,7 @@ public class UserInterface {
         			uiLeft = false;
         		}
         		else if (uiConfirm) {
-        			gp.level = 1;
+        			gp.level = 3;
         			gp.resetGame(false);
         			System.out.println(gp.level);
         			gp.gameState = gp.playState;
