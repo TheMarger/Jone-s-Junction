@@ -53,7 +53,8 @@ public class player extends entity {
     
 
     public String equppedSkin; 
- //Skin/character selection storage used by the title character screen
+    
+    //Skin/character selection storage used by the title character screen
     public boolean[] unlockedSkins; //Tracks which skins the player owns
     public int equippedSkinIndex = 0; //Which skin is currently used
     public int currentSkinIndex = 0; //Used for selecting skin menu

@@ -145,6 +145,8 @@ public class gamePanel extends JPanel implements Runnable { // Declares gamePane
 	public int speedRunTimerFrames = 0; // Counter tracking elapsed frames in speedrun mode
 	public boolean speedRunLost = false; // Flag indicating if speedrun timer has expired
 		
+	public final int completionState = 6;  //Game state for the ending screen 
+
 	public TileManager tileM; // Manager object for loading and rendering map tiles
 	public UtilityTool uTool; // Utility object for helper functions like hitbox drawing
 	public keyHandler keyH; // Handler object for processing keyboard input
@@ -153,7 +155,8 @@ public class gamePanel extends JPanel implements Runnable { // Declares gamePane
 	public player player; // The player character object
 	public UserInterface ui; // UI object for rendering HUD, menus, and dialogs
 	public EventHandler eHandler; // Handler object for tile-based events
-	
+	public completion completionScreen; //Object that controls what happens when the game ends
+
 	Thread gameThread; // Thread object for running the game loop
 	
 	
@@ -227,6 +230,8 @@ public class gamePanel extends JPanel implements Runnable { // Declares gamePane
 	    player = new player(this, keyH); // Creates player object with references to gamePanel and keyboard handler
 	    ui = new UserInterface(this); // Creates UI object and passes reference to this gamePanel
 	    eHandler = new EventHandler(this); // Creates event handler and passes reference to this gamePanel
+
+	    completionScreen = new completion(this);  //Sets up the completion screen that runs when the player finishes the game
 
 	    aSetter.setItem(); // Places all items in the world
 	    aSetter.setNPC(); // Places all NPCs in the world
@@ -378,6 +383,9 @@ public class gamePanel extends JPanel implements Runnable { // Declares gamePane
 	    if (gameState == taskState) { // Checks if game is in task UI state
 	        // Task UI open; gameplay paused except UI
 	    }
+	    if (gameState == completionState) {
+		    completionScreen.update(); //Runs the ending animation when the game is finished
+		}
 	}
 	
 	public void triggerSoundForGuards(int worldX, int worldY, int radiusTiles) { // Notify guards about a sound event at a specific world position
@@ -448,7 +456,11 @@ public class gamePanel extends JPanel implements Runnable { // Declares gamePane
 		//Title screen
 		if (gameState == titleState) { // Checks if game is on title screen
 			ui.draw(g2); // Draws title screen UI only
-		} else { // If not on title screen
+		} 
+		else if (gameState == completionState) {
+	        completionScreen.draw(g2); //Displays the ending animation when the game is finished
+	    }
+		else { // If not on title screen
 			// Draw tiles
 			tileM.draw(g2); // Draws all map tiles
 			
