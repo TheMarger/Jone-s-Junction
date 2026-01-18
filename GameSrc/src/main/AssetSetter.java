@@ -50,9 +50,9 @@ public class AssetSetter { // Declares the public AssetSetter class
 		// Level 2 Tasks
 		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} }, // Six task locations for level 2
 		// Level 3 Tasks
-		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26} }, // Six task locations for level 3
+		{ {1670,73}, {114,2221}, {2694,2573}, {2754,1089}, {2942,297}, {198,689} }, // Six task locations for level 3
 		// Level 4 Tasks
-		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} } // Eight task locations for level 4
+		{ {769,1272}, {1529,2232}, {2045,2172}, {2373,1212}, {2449,560}, {2937,296}, {1093,500}, {181,2164} } // Eight task locations for level 4
 	};
 	
 	int[][][] ItemLocations = new int[][][] { // Three-dimensional array storing item locations for each level
@@ -83,19 +83,6 @@ public class AssetSetter { // Declares the public AssetSetter class
 		{ {2166,1911}, {187,1963}} // Two NPC locations for level 4
 		
 	};
-	
-	int[][][] GaurdLocations = new int[][][] {	// Three-dimensional array storing guard locations for each level (currently unused)
-		// Level 1 Items
-		{ {1860,672}, {1834,883}, {762,2523}, {66,2251}, {1222,1703}, {2298,2535}, {2690,2619}, {2874,2143}, {2314,1711}, {450,2039}, {1726,2147} }, // Eleven guard locations for level 1
-		// Level 2 Tasks
-		{ {2948,1019}, {2431,124}, {311,1905}, {930,2765}, {2811,3049}, {958,825} }, // Six guard locations for level 2
-		// Level 3 Tasks
-		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26} }, // Six guard locations for level 3
-		// Level 4 Tasks
-		{ {10,15}, {12,18}, {14,20}, {16,22}, {18,24}, {20,26}, {22,28}, {24,30} } // Eight guard locations for level 4
-		
-	};
-
 	
 	
 	public void setAll() { // Method to initialize all game assets at once

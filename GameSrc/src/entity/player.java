@@ -199,9 +199,16 @@ public class player extends entity {
     //Sets starting position, stats, and skin info
     public void setDefaultValues() {
     	
-    	//Starting world position (in pixels)
-        worldX = gp.tileSize * 6;
-        worldY = gp.tileSize * 16;
+        
+        if (gp.level != 4) {
+        	//Starting world position (in pixels)
+            worldX = gp.tileSize * 6;
+            worldY = gp.tileSize * 16;
+        } else {
+        	worldX = 571;
+            worldY = 1093;
+        }
+        	
         
         //Converts to row/col on tile grid
         row = worldY / gp.tileSize;
