@@ -2275,7 +2275,7 @@ public class UserInterface {
         Font instrFont = g2.getFont().deriveFont(Font.PLAIN, gp.tileSize * 0.35f);
         g2.setFont(instrFont);
         g2.setColor(new Color(200, 200, 200));
-        String instr = "Solve the equation below (give INTEGER answer)";
+        String instr = "Solve the equation below (NO BEDMAS)";
         g2.drawString(instr, innerX, innerY + (int)(gp.tileSize * 1.6f));
 
         // divider
