@@ -4935,7 +4935,7 @@ public class UserInterface {
             g2.setFont(cooldownFont);
             g2.setColor(new Color(240, 100, 100));
             
-            String locked = "Tasks locked. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
+            String locked = "Food burnt. Try again in " + ((taskCooldownFrames + 59) / 60) + " s";
             int lx = panelX + (panelW - g2.getFontMetrics().stringWidth(locked)) / 2;
             int ly = panelY + panelH / 2 + g2.getFontMetrics().getAscent() / 2;
             g2.drawString(locked, lx, ly);
@@ -4957,7 +4957,7 @@ public class UserInterface {
         }
 
         // ==================== TITLE SECTION ====================
-        String title = "🍳 Cooking Quiz";
+        String title = "Cooking Quiz";
         Font titleFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.90f);
         g2.setFont(titleFont);
         
@@ -5008,7 +5008,7 @@ public class UserInterface {
         
         if (cookingTimerFrames <= 0 && !cookingAnswerSubmitted) {
             handleTaskFailed(DEFAULT_TASK_COOLDOWN_SECONDS, 
-                "Time's up! Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
+                "You burnt the food! Try again in " + DEFAULT_TASK_COOLDOWN_SECONDS + " seconds");
             return;
         }
 
@@ -5022,7 +5022,7 @@ public class UserInterface {
                            new Color(180, 220, 180);
         
         g2.setColor(timerColor);
-        String timeText = "⏱ " + timeSeconds + "s";
+        String timeText = timeSeconds + "s";
         int tW = g2.getFontMetrics().stringWidth(timeText);
         g2.drawString(timeText, panelX + panelW - pad - tW, titleY);
 
@@ -5071,7 +5071,7 @@ public class UserInterface {
         }
 
         // ==================== ANSWER OPTIONS ====================
-        int optionsY = qY + (int)(gp.tileSize * 0.3);
+        int optionsY = qY + (int)(gp.tileSize * 0.0);
         int optionH = (int)(gp.tileSize * 0.8);
         int optionGap = (int)(gp.tileSize * 0.2);
 
@@ -5097,7 +5097,7 @@ public class UserInterface {
             } else if (showResult && isSelected && !isCorrect) {
                 bgColor = new Color(120, 40, 40, 200); // Red for wrong selection
             } else if (isSelected && !showResult) {
-                bgColor = new Color(80, 100, 150, 200); // Blue for current selection
+                bgColor = new Color(245, 215, 160, 200); // Blue for current selection
             } else {
                 bgColor = new Color(50, 50, 55, 200); // Default gray
             }
@@ -5138,7 +5138,7 @@ public class UserInterface {
             if (showResult && isCorrect) {
                 g2.setFont(g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.5f));
                 g2.setColor(new Color(120, 220, 140));
-                g2.drawString("✓", optX + optW - (int)(gp.tileSize * 0.6), textY);
+                g2.drawString(":)", optX + optW - (int)(gp.tileSize * 0.6), textY);
             }
         }
 
@@ -5187,7 +5187,7 @@ public class UserInterface {
             Font feedbackFont = g2.getFont().deriveFont(Font.BOLD, gp.tileSize * 0.55f);
             g2.setFont(feedbackFont);
             
-            String feedback = cookingAnswerCorrect ? "✓ Correct!" : "✗ Incorrect";
+            String feedback = cookingAnswerCorrect ? "Correct!" : "Incorrect";
             Color feedbackColor = cookingAnswerCorrect ? 
                 new Color(120, 220, 140) : new Color(240, 120, 120);
             
