@@ -5080,6 +5080,7 @@ public class UserInterface {
 
         String[] optionLabels = {"A", "B", "C", "D"};
         
+        g2.setFont(optionFont);
         for (int i = 0; i < 4; i++) {
             int optY = optionsY + i * (optionH + optionGap);
             int optX = panelX + pad;
@@ -5159,6 +5160,7 @@ public class UserInterface {
             if (gp.mouseClicked) {
                 gp.mouseClicked = false;
                 
+                g2.setFont(optionFont);
                 for (int i = 0; i < 4; i++) {
                     int optY = optionsY + i * (optionH + optionGap);
                     int optX = panelX + pad;
