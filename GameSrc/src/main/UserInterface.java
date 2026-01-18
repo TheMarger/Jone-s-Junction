@@ -1876,7 +1876,7 @@ public class UserInterface {
             case 1 -> maxTimeSeconds = 300;
             case 2 -> maxTimeSeconds = 360;
             case 3 -> maxTimeSeconds = 420;
-            case 4 -> maxTimeSeconds = 10;
+            case 4 -> maxTimeSeconds = 480;
         }
 
         int maxFrames = maxTimeSeconds * 60;
