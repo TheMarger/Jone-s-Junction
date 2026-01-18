@@ -39,8 +39,15 @@ public class player extends entity {
     public String curTaskName;
     
     public boolean tasksComplete;
+    
+    private long lastFootstepTime = 0; // Timestamp (ms) of the last footstep sound played
 
- 	
+    private long footstepInterval = 200; // Minimum interval between footsteps in milliseconds
+
+    public int noiseValue = 0; // Loudness value of the player's current action (used to rank sounds)
+
+    public int noiseRadiusTiles = 0; // Radius in tiles that the current noise can be heard by guards
+
     public boolean hasKey;
     public boolean hasBlueKey;
     public boolean hasRedKey;
@@ -166,7 +173,7 @@ public class player extends entity {
         direction = "down";
         level = gp.level;
         stamina = maxStamina;
-        tasksComplete = false;
+        tasksComplete = true;
         collisionOn = true;
         
         getPlayerImage(); // load images for current skin
@@ -228,9 +235,19 @@ public class player extends entity {
         if (keyH.rightPressed) { dx =  1; direction = "right"; }
 
         // ---------- speed / stamina ----------
-        if (keyH.sprintPressed && stamina > 0) sprint();
-        else if (keyH.crouchPressed) crouch();
-        else walk();
+        if (keyH.sprintPressed && stamina > 0) {
+            sprint();
+            noiseValue = 3;
+            noiseRadiusTiles = 6;
+        } else if (keyH.crouchPressed) {
+            crouch();
+            noiseValue = 0;
+            noiseRadiusTiles = 0;
+        } else {
+            walk();
+            noiseValue = 1;
+            noiseRadiusTiles = 2;
+        }
 
         // ---------- torch (hold-to-light) ----------
         if (keyH.interactPressed && hasFlashlight && gp.ui.selectedItem instanceof Flashlight) {
@@ -247,28 +264,28 @@ public class player extends entity {
             lastPlayerCol = -1;
             lastPlayerRow = -1;
         }
+        
         if (gp.keyH.throwJustPressed && gp.ui.selectedItem instanceof Throwable) {
             interactThrow((Throwable) gp.ui.selectedItem);
             gp.keyH.throwJustPressed = false; // consume the press
         }
         
         if (gp.keyH.interactPressed && gp.ui.selectedItem instanceof Food) {
-			// find index of selected food in inventory
-			int foodIndex = -1;
-			for (int i = 0; i < inventory.size(); i++) {
-				if (inventory.get(i) == gp.ui.selectedItem) {
-					foodIndex = i;
-					break;
-				}
-			}
-			consumeItem(foodIndex);
-			gp.keyH.interactPressed = false; // consume the press
-		}
+            // find index of selected food in inventory
+            int foodIndex = -1;
+            for (int i = 0; i < inventory.size(); i++) {
+                if (inventory.get(i) == gp.ui.selectedItem) {
+                    foodIndex = i;
+                    break;
+                }
+            }
+            consumeItem(foodIndex);
+            gp.keyH.interactPressed = false; // consume the press
+        }
         
-		// ---------- update inventory items ----------
-        
+        // ---------- update inventory items ----------
         for (Item item : inventory) {
-                item.update();
+            item.update();
         }
 
         // ---------- clear interact prompt for this frame ----------
@@ -298,16 +315,17 @@ public class player extends entity {
                         if (keyH.interactPressed) interact("exit");
                         break;
                     } else if (taskIndex != 999) {
-						gp.ui.showInteract();
-						curTaskIndex = taskIndex;
-						curTaskName = gp.tasks[taskIndex].getName();
-						if (keyH.interactPressed) interactTask(curTaskName);
-						break;
-					} else {
+                        gp.ui.showInteract();
+                        curTaskIndex = taskIndex;
+                        curTaskName = gp.tasks[taskIndex].getName();
+                        if (keyH.interactPressed) interactTask(curTaskName);
+                        break;
+                    } else {
                         break;
                     }
-                }  else if (!collisionOn) {
-                	worldX += dx;
+                } else if (!collisionOn) {
+                    worldX += dx;
+                    moved = true;
                 }
 
                 // try Y
@@ -323,22 +341,22 @@ public class player extends entity {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interactNPC(npcIndex);
                         break;
-                    } else if(((tile == 211 || tile == 212) && (level == 1 || level == 3)) || ((tile == 204 || tile == 205) && level == 2)) {
+                    } else if (((tile == 211 || tile == 212) && (level == 1 || level == 3)) || ((tile == 204 || tile == 205) && level == 2)) {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interact("exit");
                         break;
-                    }
-                    else if (taskIndex != 999) {
-                    	gp.ui.showInteract();
-                    	curTaskIndex = taskIndex;
-                    	curTaskName = gp.tasks[taskIndex].getName();
-                    	if (keyH.interactPressed) interactTask(curTaskName);
-                    	break;
+                    } else if (taskIndex != 999) {
+                        gp.ui.showInteract();
+                        curTaskIndex = taskIndex;
+                        curTaskName = gp.tasks[taskIndex].getName();
+                        if (keyH.interactPressed) interactTask(curTaskName);
+                        break;
                     } else {
                         break;
                     }
                 } else if (!collisionOn) {
-                	worldY += dy;
+                    worldY += dy;
+                    moved = true;
                 }
             }
 
@@ -374,16 +392,16 @@ public class player extends entity {
                 gp.ui.showInteract();
                 if (keyH.interactPressed) interact("exitVan");
             } else if (taskIndex != 999) {
-				gp.ui.showInteract();
-				curTaskIndex = taskIndex;
-				curTaskName = gp.tasks[taskIndex].getName();
-				if (keyH.interactPressed) interactTask(curTaskName);
-			}
+                gp.ui.showInteract();
+                curTaskIndex = taskIndex;
+                curTaskName = gp.tasks[taskIndex].getName();
+                if (keyH.interactPressed) interactTask(curTaskName);
+            }
 
             // pick up items while standing
             int itemIndex = gp.cChecker.checkItem(this, true);
             if (itemIndex != 999) {
-            	pickUpItem(itemIndex);
+                pickUpItem(itemIndex);
             }
             
             standCounter++;
@@ -393,7 +411,16 @@ public class player extends entity {
             }
         }
 
-        // ---------- GUARd HITBOX CHECK (precise overlap only) ----------
+        // ---------- sound trigger for guards ----------
+        if (moved && noiseValue > 0) {
+            long now = System.currentTimeMillis();
+            if (now - lastFootstepTime >= footstepInterval) {
+                gp.triggerSoundForGuards(worldX, worldY, noiseRadiusTiles);
+                lastFootstepTime = now;
+            }
+        }
+
+        // ---------- GUARD HITBOX CHECK (precise overlap only) ----------
         // build player hitbox at current world position (do NOT mutate solidArea)
         Rectangle playerBox = new Rectangle(
             worldX + solidArea.x,
@@ -418,7 +445,6 @@ public class player extends entity {
             }
         }
     }
-
 
 
     // modular interact method - only handles "torch" here
@@ -729,83 +755,74 @@ public class player extends entity {
         }
     }
     
-    public void throwItem(Throwable throwable, int targetCol, int targetRow) {
-        if (throwable == null) return;
-        if (targetCol < 0 || targetRow < 0) return;
+    public void throwItem(Throwable throwable, int targetCol, int targetRow) { // Throws a throwable item to a target tile if valid
 
-        // check target bounds
-        if (targetCol >= gp.maxWorldCol || targetRow >= gp.maxWorldRow) {
-            gp.ui.showMessage("Invalid target");
-            return;
+        if (throwable == null) return; // Nothing to throw, exit early
+        if (targetCol < 0 || targetRow < 0) return; // Invalid negative target coordinates, exit early
+
+        if (targetCol >= gp.maxWorldCol || targetRow >= gp.maxWorldRow) { // Target outside map bounds
+            gp.ui.showMessage("Invalid target"); // Inform player
+            return; // Abort throw
         }
 
-        // ensure target within allowed radius
-        int playerCol = worldX / gp.tileSize;
-        int playerRow = worldY / gp.tileSize;
-        int dx = targetCol - playerCol;
-        int dy = targetRow - playerRow;
-        double dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist > throwable.getAllowedRadiusTiles() + 0.0001) {
-            gp.ui.showMessage("Target out of range");
-            return;
+        int playerCol = worldX / gp.tileSize; // Player's current column on the tile grid
+        int playerRow = worldY / gp.tileSize; // Player's current row on the tile grid
+        int dx = targetCol - playerCol; // Column difference to target
+        int dy = targetRow - playerRow; // Row difference to target
+        double dist = Math.sqrt(dx*dx + dy*dy); // Euclidean distance in tiles to target
+        if (dist > throwable.getAllowedRadiusTiles() + 0.0001) { // If target is beyond allowed throw radius
+            gp.ui.showMessage("Target out of range"); // Inform player
+            return; // Abort throw
         }
 
-        // find the throwable instance in the player's inventory
-        int invIndex = -1;
-        for (int i = 0; i < inventory.size(); i++) {
-            Item it = inventory.get(i);
-            if (it == throwable || (it.getName() != null && it.getName().equals(throwable.getName()))) {
-                invIndex = i;
-                break;
+        int invIndex = -1; // Inventory index of the throwable to remove
+        for (int i = 0; i < inventory.size(); i++) { // Search inventory for the matching item
+            Item it = inventory.get(i); // Current inventory item
+            if (it == throwable || (it.getName() != null && it.getName().equals(throwable.getName()))) { // Match by reference or name
+                invIndex = i; // Save index
+                break; // Stop searching
             }
         }
 
-        if (invIndex == -1) {
-            gp.ui.showMessage("No throwable in inventory");
-            return;
+        if (invIndex == -1) { // If no matching item found in inventory
+            gp.ui.showMessage("No throwable in inventory"); // Inform player
+            return; // Abort throw
         }
 
-        // find an empty world slot to place the thrown item
-        int worldSlot = gp.getEmptyItemSlot();
-        if (worldSlot == -1) {
-            gp.ui.showMessage("World is full, can't throw");
-            return;
+        int worldSlot = gp.getEmptyItemSlot(); // Find an empty slot in the world item array
+        if (worldSlot == -1) { // If world has no free slot
+            gp.ui.showMessage("World is full, can't throw"); // Inform player
+            return; // Abort throw
         }
 
-        // prepare the item to place in the world (we reuse the same Item instance)
-        Item toPlace = inventory.get(invIndex);
+        Item toPlace = inventory.get(invIndex); // The actual item instance to place in the world
 
-        // set placement coordinates (top-left of tile)
-        toPlace.worldX = targetCol * gp.tileSize;
-        toPlace.worldY = targetRow * gp.tileSize;
+        toPlace.worldX = targetCol * gp.tileSize; // Convert target column to world X and assign
+        toPlace.worldY = targetRow * gp.tileSize; // Convert target row to world Y and assign
 
-        // prevent immediate re-pickup
-        toPlace.pickupDelay = 60;
+        toPlace.pickupDelay = 60; // Prevent immediate pickup for a short time (frames)
 
-        // if the item supports throwDelay, set it
-        try {
-            throwable.throwDelay = 60;
-            if (toPlace instanceof Throwable) ((Throwable) toPlace).throwDelay = 60;
-        } catch (Exception ignored) {}
+        try { // Best-effort: set throwDelay on the throwable instance(s)
+            throwable.throwDelay = 60; // Set throw delay on the passed throwable reference
+            if (toPlace instanceof Throwable) ((Throwable) toPlace).throwDelay = 60; // Also set on the placed item if it implements Throwable
+        } catch (Exception ignored) {} // Ignore any reflection/type errors silently
 
-        // put item into world and remove from inventory
-        gp.items[worldSlot] = toPlace;
-        inventory.remove(invIndex);
+        gp.items[worldSlot] = toPlace; // Place the item into the world's item array
+        inventory.remove(invIndex); // Remove the item from the player's inventory
 
-        // update player flags for common throwable types
-        String name = toPlace.getName();
-        if (name != null) {
-            if (name.equalsIgnoreCase("Pebble")) hasPebble = false;
+        gp.triggerSoundForGuards(toPlace.worldX, toPlace.worldY, throwable.getAllowedRadiusTiles()); // Notify guards of the sound at the throw location
+
+        String name = toPlace.getName(); // Get the placed item's name
+        if (name != null) { // If name exists
+            if (name.equalsIgnoreCase("Pebble")) hasPebble = false; // Clear player's pebble flag if a pebble was thrown
         }
 
-        // close throw UI and clear selection
-        gp.ui.showThrowRadius = false;
-        gp.ui.activeThrowable = null;
-        gp.selectedThrowCol = -1;
-        gp.selectedThrowRow = -1;
+        gp.ui.showThrowRadius = false; // Hide throw radius UI
+        gp.ui.activeThrowable = null; // Clear active throwable UI reference
+        gp.selectedThrowCol = -1; // Reset selected throw column
+        gp.selectedThrowRow = -1; // Reset selected throw row
 
-        // small feedback sound
-        try { gp.playSoundEffect(6); } catch (Exception ignored) {}
+        try { gp.playSoundEffect(6); } catch (Exception ignored) {} // Play throw sound effect (best-effort)
     }
     
     public void consumeItem(int index) {
@@ -929,6 +946,15 @@ public class player extends entity {
 
      gp.playSoundEffect(6);
     }
+    
+    public Rectangle getHitbox() { // Returns the entity's collision box positioned in world coordinates
+        return new Rectangle( // Create and return a new Rectangle instance (safe copy for callers)
+            worldX + solidArea.x, // X position: entity world X plus local solidArea X offset
+            worldY + solidArea.y, // Y position: entity world Y plus local solidArea Y offset
+            solidArea.width,      // Width: use the configured solidArea width
+            solidArea.height      // Height: use the configured solidArea height
+        ); // End Rectangle construction
+    } // End getHitbox
 
 
 

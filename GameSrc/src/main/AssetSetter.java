@@ -275,15 +275,157 @@ public class AssetSetter {
 		
 	}
 	
-	public void setGaurds() {
-		gp.gaurds[0] = new gaurd(gp);
-		gp.gaurds[0].worldX = gp.tileSize * 8;
-		gp.gaurds[0].worldY = gp.tileSize * 19;
-		
-		gp.gaurds[1] = new gaurd(gp);
-		gp.gaurds[1].worldX = gp.tileSize * 8;
-		gp.gaurds[1].worldY = gp.tileSize * 21;
-		
+	public void setGaurds() { // Declares the setGaurds method, allows it to take no parameters, and makes it return nothing (void)
+
+	    if (gp.player.level == 1) // If the player is currently on level 1, this code runs
+	    {
+	        gp.gaurds[0] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 0
+	        gp.gaurds[0].worldX = gp.tileSize * 8; // Sets guard 0's world X coordinate to tile 8 (in pixels)
+	        gp.gaurds[0].worldY = gp.tileSize * 19; // Sets guard 0's world Y coordinate to tile 19 (in pixels)
+	        gp.gaurds[0].spawnTileX = gp.gaurds[0].worldX / gp.tileSize; // Records guard 0's spawn tile X based on its world X
+	        gp.gaurds[0].spawnTileY = gp.gaurds[0].worldY / gp.tileSize; // Records guard 0's spawn tile Y based on its world Y
+	        gp.gaurds[0].setPatrolRouteFromSpawn(true, 4, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 0's patrol route from its spawn with given parameters
+
+	        gp.gaurds[1] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 1
+	        gp.gaurds[1].worldX = gp.tileSize * 30; // Sets guard 1's world X coordinate to tile 30 (in pixels)
+	        gp.gaurds[1].worldY = gp.tileSize * 20; // Sets guard 1's world Y coordinate to tile 20 (in pixels)
+	        gp.gaurds[1].spawnTileX = gp.gaurds[1].worldX / gp.tileSize; // Records guard 1's spawn tile X based on its world X
+	        gp.gaurds[1].spawnTileY = gp.gaurds[1].worldY / gp.tileSize; // Records guard 1's spawn tile Y based on its world Y
+	        gp.gaurds[1].setPatrolRouteFromSpawn(false, 3, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 1's patrol route from its spawn with given parameters
+
+	        gp.gaurds[2] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 2
+	        gp.gaurds[2].worldX = gp.tileSize * 15; // Sets guard 2's world X coordinate to tile 15 (in pixels)
+	        gp.gaurds[2].worldY = gp.tileSize * 33; // Sets guard 2's world Y coordinate to tile 33 (in pixels)
+	        gp.gaurds[2].spawnTileX = gp.gaurds[2].worldX / gp.tileSize; // Records guard 2's spawn tile X based on its world X
+	        gp.gaurds[2].spawnTileY = gp.gaurds[2].worldY / gp.tileSize; // Records guard 2's spawn tile Y based on its world Y
+	        gp.gaurds[2].setPatrolRouteFromSpawn(false, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 2's patrol route from its spawn with given parameters
+
+	        gp.gaurds[3] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 3
+	        gp.gaurds[3].worldX = gp.tileSize * 31; // Sets guard 3's world X coordinate to tile 31 (in pixels)
+	        gp.gaurds[3].worldY = gp.tileSize * 34; // Sets guard 3's world Y coordinate to tile 34 (in pixels)
+	        gp.gaurds[3].spawnTileX = gp.gaurds[3].worldX / gp.tileSize; // Records guard 3's spawn tile X based on its world X
+	        gp.gaurds[3].spawnTileY = gp.gaurds[3].worldY / gp.tileSize; // Records guard 3's spawn tile Y based on its world Y
+	        gp.gaurds[3].setPatrolRouteFromSpawn(false, 7, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 3's patrol route from its spawn with given parameters
+
+	    }
+	    else if (gp.player.level == 2) // If the player is currently on level 2, this code runs
+	    {
+	        gp.gaurds[0] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 0
+	        gp.gaurds[0].worldX = gp.tileSize * 19; // Sets guard 0's world X coordinate to tile 19 (in pixels)
+	        gp.gaurds[0].worldY = gp.tileSize * 35; // Sets guard 0's world Y coordinate to tile 35 (in pixels)
+	        gp.gaurds[0].spawnTileX = gp.gaurds[0].worldX / gp.tileSize; // Records guard 0's spawn tile X based on its world X
+	        gp.gaurds[0].spawnTileY = gp.gaurds[0].worldY / gp.tileSize; // Records guard 0's spawn tile Y based on its world Y
+	        gp.gaurds[0].setPatrolRouteFromSpawn(true, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 0's patrol route from its spawn with given parameters
+
+	        gp.gaurds[1] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 1
+	        gp.gaurds[1].worldX = gp.tileSize * 39; // Sets guard 1's world X coordinate to tile 39 (in pixels)
+	        gp.gaurds[1].worldY = gp.tileSize * 10; // Sets guard 1's world Y coordinate to tile 10 (in pixels)
+	        gp.gaurds[1].spawnTileX = gp.gaurds[1].worldX / gp.tileSize; // Records guard 1's spawn tile X based on its world X
+	        gp.gaurds[1].spawnTileY = gp.gaurds[1].worldY / gp.tileSize; // Records guard 1's spawn tile Y based on its world Y
+	        gp.gaurds[1].setPatrolRouteFromSpawn(false, 4, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 1's patrol route from its spawn with given parameters
+
+	        gp.gaurds[2] = new RectangularGuard(gp); // Creates a RectangularGuard instance and stores it in the guards array at index 2
+	        gp.gaurds[2].worldX = gp.tileSize * 15; // Sets guard 2's world X coordinate to tile 15 (in pixels)
+	        gp.gaurds[2].worldY = gp.tileSize * 26; // Sets guard 2's world Y coordinate to tile 26 (in pixels)
+	        gp.gaurds[2].spawnTileX = gp.gaurds[2].worldX / gp.tileSize; // Records guard 2's spawn tile X based on its world X
+	        gp.gaurds[2].spawnTileY = gp.gaurds[2].worldY / gp.tileSize; // Records guard 2's spawn tile Y based on its world Y
+	        gp.gaurds[2].setPatrolRouteFromSpawn(false, 8, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 2's patrol route from its spawn with given parameters
+
+	        gp.gaurds[3] = new RectangularGuard(gp); // Creates a RectangularGuard instance and stores it in the guards array at index 3
+	        gp.gaurds[3].worldX = gp.tileSize * 35; // Sets guard 3's world X coordinate to tile 29 (in pixels)
+	        gp.gaurds[3].worldY = gp.tileSize * 27; // Sets guard 3's world Y coordinate to tile 35 (in pixels)
+	        gp.gaurds[3].spawnTileX = gp.gaurds[3].worldX / gp.tileSize; // Records guard 3's spawn tile X based on its world X
+	        gp.gaurds[3].spawnTileY = gp.gaurds[3].worldY / gp.tileSize; // Records guard 3's spawn tile Y based on its world Y
+	        gp.gaurds[3].setPatrolRouteFromSpawn(false, 3, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 3's patrol route from its spawn with given parameters
+	    }
+	    else if (gp.player.level == 3) // If the player is currently on level 3, this code runs
+	    {
+	        gp.gaurds[0] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 0
+	        gp.gaurds[0].worldX = gp.tileSize * 11; // Sets guard 0's world X coordinate to tile 11 (in pixels)
+	        gp.gaurds[0].worldY = gp.tileSize * 26; // Sets guard 0's world Y coordinate to tile 26 (in pixels)
+	        gp.gaurds[0].spawnTileX = gp.gaurds[0].worldX / gp.tileSize; // Records guard 0's spawn tile X based on its world X
+	        gp.gaurds[0].spawnTileY = gp.gaurds[0].worldY / gp.tileSize; // Records guard 0's spawn tile Y based on its world Y
+	        gp.gaurds[0].setPatrolRouteFromSpawn(false, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 0's patrol route from its spawn with given parameters
+
+	        gp.gaurds[1] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 1
+	        gp.gaurds[1].worldX = gp.tileSize * 20; // Sets guard 1's world X coordinate to tile 20 (in pixels)
+	        gp.gaurds[1].worldY = gp.tileSize * 10; // Sets guard 1's world Y coordinate to tile 10 (in pixels)
+	        gp.gaurds[1].spawnTileX = gp.gaurds[1].worldX / gp.tileSize; // Records guard 1's spawn tile X based on its world X
+	        gp.gaurds[1].spawnTileY = gp.gaurds[1].worldY / gp.tileSize; // Records guard 1's spawn tile Y based on its world Y
+	        gp.gaurds[1].setPatrolRouteFromSpawn(true, 4, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 1's patrol route from its spawn with given parameters
+
+	        gp.gaurds[2] = new RectangularGuard(gp); // Creates a RectangularGuard instance and stores it in the guards array at index 2
+	        gp.gaurds[2].worldX = gp.tileSize * 35; // Sets guard 2's world X coordinate to tile 35 (in pixels)
+	        gp.gaurds[2].worldY = gp.tileSize * 28; // Sets guard 2's world Y coordinate to tile 28 (in pixels)
+	        gp.gaurds[2].spawnTileX = gp.gaurds[2].worldX / gp.tileSize; // Records guard 2's spawn tile X based on its world X
+	        gp.gaurds[2].spawnTileY = gp.gaurds[2].worldY / gp.tileSize; // Records guard 2's spawn tile Y based on its world Y
+	        gp.gaurds[2].setPatrolRouteFromSpawn(false, 4, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 2's patrol route from its spawn with given parameters
+
+	        gp.gaurds[3] = new RectangularGuard(gp); // Creates a RectangularGuard instance and stores it in the guards array at index 3
+	        gp.gaurds[3].worldX = gp.tileSize * 35; // Sets guard 3's world X coordinate to tile 35 (in pixels)
+	        gp.gaurds[3].worldY = gp.tileSize * 38; // Sets guard 3's world Y coordinate to tile 38 (in pixels)
+	        gp.gaurds[3].spawnTileX = gp.gaurds[3].worldX / gp.tileSize; // Records guard 3's spawn tile X based on its world X
+	        gp.gaurds[3].spawnTileY = gp.gaurds[3].worldY / gp.tileSize; // Records guard 3's spawn tile Y based on its world Y
+	        gp.gaurds[3].setPatrolRouteFromSpawn(false, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 3's patrol route from its spawn with given parameters
+
+	        gp.gaurds[4] = new NarrowGuard(gp); // Creates a NarrowGuard instance and stores it in the guards array at index 4
+	        gp.gaurds[4].worldX = gp.tileSize * 23; // Sets guard 4's world X coordinate to tile 23 (in pixels)
+	        gp.gaurds[4].worldY = gp.tileSize * 35; // Sets guard 4's world Y coordinate to tile 35 (in pixels)
+	        gp.gaurds[4].spawnTileX = gp.gaurds[4].worldX / gp.tileSize; // Records guard 4's spawn tile X based on its world X
+	        gp.gaurds[4].spawnTileY = gp.gaurds[4].worldY / gp.tileSize; // Records guard 4's spawn tile Y based on its world Y
+	        gp.gaurds[4].setPatrolRouteFromSpawn(false, 3, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 4's patrol route from its spawn with given parameters
+
+	        gp.gaurds[5] = new NarrowGuard(gp); // Creates a NarrowGuard instance and stores it in the guards array at index 5
+	        gp.gaurds[5].worldX = gp.tileSize * 30; // Sets guard 5's world X coordinate to tile 30 (in pixels)
+	        gp.gaurds[5].worldY = gp.tileSize * 13; // Sets guard 5's world Y coordinate to tile 13 (in pixels)
+	        gp.gaurds[5].spawnTileX = gp.gaurds[5].worldX / gp.tileSize; // Records guard 5's spawn tile X based on its world X
+	        gp.gaurds[5].spawnTileY = gp.gaurds[5].worldY / gp.tileSize; // Records guard 5's spawn tile Y based on its world Y
+	        gp.gaurds[5].setPatrolRouteFromSpawn(true, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 5's patrol route from its spawn with given parameters
+	    }
+	    else // For any other player level not explicitly handled above, this default configuration runs
+	    {
+	        gp.gaurds[0] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 0
+	        gp.gaurds[0].worldX = gp.tileSize * 3; // Sets guard 0's world X coordinate to tile 3 (in pixels)
+	        gp.gaurds[0].worldY = gp.tileSize * 3; // Sets guard 0's world Y coordinate to tile 3 (in pixels)
+	        gp.gaurds[0].spawnTileX = gp.gaurds[0].worldX / gp.tileSize; // Records guard 0's spawn tile X based on its world X
+	        gp.gaurds[0].spawnTileY = gp.gaurds[0].worldY / gp.tileSize; // Records guard 0's spawn tile Y based on its world Y
+	        gp.gaurds[0].setPatrolRouteFromSpawn(false, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 0's patrol route from its spawn with given parameters
+
+	        gp.gaurds[1] = new RegularGuard(gp); // Creates a RegularGuard instance and stores it in the guards array at index 1
+	        gp.gaurds[1].worldX = gp.tileSize * 17; // Sets guard 1's world X coordinate to tile 17 (in pixels)
+	        gp.gaurds[1].worldY = gp.tileSize * 15; // Sets guard 1's world Y coordinate to tile 15 (in pixels)
+	        gp.gaurds[1].spawnTileX = gp.gaurds[1].worldX / gp.tileSize; // Records guard 1's spawn tile X based on its world X
+	        gp.gaurds[1].spawnTileY = gp.gaurds[1].worldY / gp.tileSize; // Records guard 1's spawn tile Y based on its world Y
+	        gp.gaurds[1].setPatrolRouteFromSpawn(true, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 1's patrol route from its spawn with given parameters
+
+	        gp.gaurds[2] = new RectangularGuard(gp); // Creates a RectangularGuard instance and stores it in the guards array at index 2
+	        gp.gaurds[2].worldX = gp.tileSize * 26; // Sets guard 2's world X coordinate to tile 26 (in pixels)
+	        gp.gaurds[2].worldY = gp.tileSize * 18; // Sets guard 2's world Y coordinate to tile 18 (in pixels)
+	        gp.gaurds[2].spawnTileX = gp.gaurds[2].worldX / gp.tileSize; // Records guard 2's spawn tile X based on its world X
+	        gp.gaurds[2].spawnTileY = gp.gaurds[2].worldY / gp.tileSize; // Records guard 2's spawn tile Y based on its world Y
+	        gp.gaurds[2].setPatrolRouteFromSpawn(false, 10, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 2's patrol route from its spawn with given parameters
+
+	        gp.gaurds[3] = new RectangularGuard(gp); // Creates a RectangularGuard instance and stores it in the guards array at index 3
+	        gp.gaurds[3].worldX = gp.tileSize * 12; // Sets guard 3's world X coordinate to tile 12 (in pixels)
+	        gp.gaurds[3].worldY = gp.tileSize * 28; // Sets guard 3's world Y coordinate to tile 28 (in pixels)
+	        gp.gaurds[3].spawnTileX = gp.gaurds[3].worldX / gp.tileSize; // Records guard 3's spawn tile X based on its world X
+	        gp.gaurds[3].spawnTileY = gp.gaurds[3].worldY / gp.tileSize; // Records guard 3's spawn tile Y based on its world Y
+	        gp.gaurds[3].setPatrolRouteFromSpawn(false, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 3's patrol route from its spawn with given parameters
+
+	        gp.gaurds[4] = new NarrowGuard(gp); // Creates a NarrowGuard instance and stores it in the guards array at index 4
+	        gp.gaurds[4].worldX = gp.tileSize * 39; // Sets guard 4's world X coordinate to tile 39 (in pixels)
+	        gp.gaurds[4].worldY = gp.tileSize * 32; // Sets guard 4's world Y coordinate to tile 32 (in pixels)
+	        gp.gaurds[4].spawnTileX = gp.gaurds[4].worldX / gp.tileSize; // Records guard 4's spawn tile X based on its world X
+	        gp.gaurds[4].spawnTileY = gp.gaurds[4].worldY / gp.tileSize; // Records guard 4's spawn tile Y based on its world Y
+	        gp.gaurds[4].setPatrolRouteFromSpawn(false, 7, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 4's patrol route from its spawn with given parameters
+
+	        gp.gaurds[5] = new NarrowGuard(gp); // Creates a NarrowGuard instance and stores it in the guards array at index 5
+	        gp.gaurds[5].worldX = gp.tileSize * 24; // Sets guard 5's world X coordinate to tile 24 (in pixels)
+	        gp.gaurds[5].worldY = gp.tileSize * 12; // Sets guard 5's world Y coordinate to tile 12 (in pixels)
+	        gp.gaurds[5].spawnTileX = gp.gaurds[5].worldX / gp.tileSize; // Records guard 5's spawn tile X based on its world X
+	        gp.gaurds[5].spawnTileY = gp.gaurds[5].worldY / gp.tileSize; // Records guard 5's spawn tile Y based on its world Y
+	        gp.gaurds[5].setPatrolRouteFromSpawn(true, 5, gp.maxWorldCol, gp.maxWorldRow); // Initializes guard 5's patrol route from its spawn with given parameters
+	    }
 	}
 	
 	public void setTasks() {

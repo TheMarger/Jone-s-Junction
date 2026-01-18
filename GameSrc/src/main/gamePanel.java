@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 
 import entity.entity;
 import entity.player;
+import gaurd.gaurd;
 import task.Task;
 import tile.TileManager;
 
@@ -114,7 +115,7 @@ public class gamePanel extends JPanel implements Runnable {
 	
 	public Item items[] = new Item[20]; // max objects on map
 	public entity npc[] = new entity[10];
-	public entity gaurds[] = new entity[20];
+	public gaurd gaurds[] = new gaurd[20];
 	Sound music = new Sound();
 	Sound soundEffect = new Sound();
 
@@ -212,8 +213,6 @@ public class gamePanel extends JPanel implements Runnable {
 	    player = new player(this, keyH);
 	    ui = new UserInterface(this);
 	    eHandler = new EventHandler(this);
-	    
-	    
 
 	    aSetter.setItem();
 	    aSetter.setNPC();
@@ -318,45 +317,72 @@ public class gamePanel extends JPanel implements Runnable {
 		}
 	}
 	
-	public void update() {
-		if (gameState == playState) {
-			// Player
-			player.update();
-			
-			// NPCs
-			for (int i = 0; i < npc.length; i++) {
-				if (npc[i] != null) {
-					npc[i].update();
-				}
-			}
-			// Gaurds
-			for (int i = 0; i < gaurds.length; i++) {
-				if (gaurds[i] != null) {
-					gaurds[i].update();
-				}
-			}
-			// Items
-			for (int i = 0; i < items.length; i++) {			
-				if (items[i] != null) {
-					items[i].update();
-				}
-			}
-			
-			
-		}
-		if (gameState == pauseState) {
-	
-		}
-		if (gameState == dialogueState) {
-			
-		}
-		if (gameState == deathState) {
-			
-		}
-		if (gameState == taskState) {
-			
-		}
+	public void update() { // Main game loop update; runs once per frame
+
+	    if (gameState == playState) { // Only update gameplay entities when the game is in active play mode
+
+	        // Player
+	        player.update(); // Update the player first so all other systems react to the player's new state
+
+	        // NPCs
+	        for (int i = 0; i < npc.length; i++) { // Loop through all NPC slots
+	            if (npc[i] != null) { // Skip empty NPC slots
+	                npc[i].update(); // Update this NPC's behavior and movement
+	            }
+	        }
+
+	        // Guards
+	        for (int i = 0; i < gaurds.length; i++) { // Loop through all guard slots
+	            if (gaurds[i] != null) { // Skip empty guard slots
+	                gaurds[i].update(); // Update guard AI, movement, LOS, sound detection, etc.
+	            }
+	        }
+
+	        // Items
+	        for (int i = 0; i < items.length; i++) { // Loop through all world item slots
+	            if (items[i] != null) { // Skip empty item slots
+	                items[i].update(); // Update item timers (pickupDelay, throwDelay, animations)
+	            }
+	        }
+	    }
+
+	    if (gameState == pauseState) { 
+	        // Game is paused; no updates needed
+	    }
+
+	    if (gameState == dialogueState) { 
+	        // Dialogue mode; gameplay entities are frozen
+	    }
+
+	    if (gameState == deathState) { 
+	        // Player death screen; no gameplay updates
+	    }
+
+	    if (gameState == taskState) { 
+	        // Task UI open; gameplay paused except UI
+	    }
 	}
+	
+	public void triggerSoundForGuards(int worldX, int worldY, int radiusTiles) { // Notify guards about a sound event at a specific world position
+
+	    int radiusPixels = radiusTiles * tileSize; // Convert the sound radius from tiles to pixels for distance comparison
+
+	    for (int i = 0; i < gaurds.length; i++) { // Loop through every guard in the game
+	        if (gaurds[i] == null) continue; // Skip empty guard slots
+
+	        int dx = gaurds[i].worldX - worldX; // Horizontal distance between guard and sound source
+	        int dy = gaurds[i].worldY - worldY; // Vertical distance between guard and sound source
+	        int dist = (int)Math.sqrt(dx + dy); // Euclidean distance from guard to sound source
+
+	        if (dist <= radiusPixels) { // Guard is within hearing range
+
+	            if (gaurds[i].hasLineOfSound(worldX, worldY)) { // Check if nothing blocks the sound between guard and source
+	                gaurds[i].hearSound(worldX, worldY); // Alert the guard so it can react to the sound
+	            }
+	        }
+	    }
+	} 
+
 	
 	public void resetGame(boolean restartFromTitle) {
 	    // Clear world objects, reset player, map, etc.

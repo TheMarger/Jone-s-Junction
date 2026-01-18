@@ -11,7 +11,7 @@ import main.gamePanel;
 
 public class entity {
 	
-	gamePanel gp;
+	public gamePanel gp;
 	
 	public String name;
 	public int actionCounter = 0;
@@ -25,6 +25,11 @@ public class entity {
 	public float stamina;
 	public float staminaRegen;        // stamina points regenerated per second
 	public float sprintStaminaCost;   // stamina points lost per second
+	
+	
+	public int spawnX; // The entity's original world X position (in pixels or tiles depending on usage) if u dont have this add it 
+
+	public int spawnY; // The entity's original world Y position, used for resets/teleports if you dont have this add it 
 	
 	public boolean isMoving;
 	public BufferedImage up1, up2, down1, down2, left1, left2, right1, right2;
@@ -48,8 +53,14 @@ public class entity {
 		solidAreaDefaultY = solidArea.y;
 	}
 	
-	public void setAction() {
-		
+	public void setAction() { // Placeholder method for subclasses to override with their own behavior logic
+	    // Intentionally empty; base entities have no default action
+	}
+	public void hearSound(int x, int y) { // Called when a sound event occurs; subclasses override to react to it
+	    // Intentionally empty in the base Entity class
+	}
+	public boolean hasLineOfSound(int sx, int sy) { // Checks whether this entity has a clear path to the sound source
+	    return false; // Base entities do not process sound; guards override this with real logic
 	}
 	
 	public void speak() {
@@ -61,79 +72,87 @@ public class entity {
 	}
 	
 	
-	public void update() {
-		setAction();
-		gp.cChecker.checkItem(this, false);
-		
-		if (isMoving == false) {
-			return;
-		} else {
-			int dx=0; int dy=0;
-			
-			switch (direction) {
-			case "up":
-				dy = -1;
-				break;
-			case "down":
-				dy = 1;
-				break;
-			case "left":
-				dx = -1;
-				break;
-			case "right":
-				dx = 1;
-				break;
-			default:
-				dx = 0;
-				dy = 0;
-				break;
-		}
-		// MOVEMENT
-	        if (dx != 0 || dy != 0) {
-	        	
-	            for (int step = 0; step < speed; step++) {
-	                if (dx != 0 && collisionOn) {
-	                    boolean hitPlayerX = gp.cChecker.checkPlayer(this, dx, 0);
-	                    int collidedTileX = gp.cChecker.getCollidingTile(this, dx, 0);
-	                    int collidedNpcX = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
-	                    int collidedGuardX = gp.cChecker.checkEntity(this, gp.gaurds, dx, 0);
-	
-	                    if (hitPlayerX) {
-	                        System.out.println("Player killed by guard");
-	                        gp.eHandler.playerDied();
-	                    } else if (collidedTileX == -1 && collidedNpcX == 999 && collidedGuardX == 999) {
-	                        worldX += dx;
-	                    }
-	                } else if (!collisionOn) {
-	                	worldX += dx;
-	                }
-	
-	                if (dy != 0 && collisionOn) {
-	                    boolean hitPlayerY = gp.cChecker.checkPlayer(this, 0, dy);
-	                    int collidedTileY = gp.cChecker.getCollidingTile(this, 0, dy);
-	                    int collidedNpcY = gp.cChecker.checkEntity(this, gp.npc, 0, dy);
-	                    int collidedGuardY = gp.cChecker.checkEntity(this, gp.gaurds, 0, dy);
-	
-	                    if (hitPlayerY) {
-	                        System.out.println("Player killed by guard");
-	                        gp.eHandler.playerDied();
-	                    } else if (collidedTileY == -1 && collidedNpcY == 999 && collidedGuardY == 999) {
-	                        worldY += dy;
-	                    }
-	                } else if (!collisionOn) {
-	                	worldY += dy;
-	                }
-	
-	            }
-	
-	            spriteCounter++;
-	            if (spriteCounter > 19 - (1.5 * speed)) {
-	                spriteNum = (spriteNum == 1) ? 2 : 1;
-	                spriteCounter = 0;
-	            }
+	public void update() { // Main per-frame update for this entity (NPC/guard/etc.)
+	    setAction(); // Let the subclass decide its behavior for this frame (movement, AI, etc.)
+	    gp.cChecker.checkItem(this, false); // Check for item collisions (false = do not pick up, just detect)
+	    
+	    if (isMoving == false) { // If this entity is not currently moving
+	        return; // Skip movement logic entirely
+	    } else { // Otherwise, movement is active
+	        int dx = 0; // Horizontal movement delta (-1, 0, 1)
+	        int dy = 0; // Vertical movement delta (-1, 0, 1)
+	        
+	        switch (direction) { // Determine movement direction based on current facing
+	            case "up": // Entity is facing upward
+	                dy = -1; // Move upward by -1 pixel per step
+	                break;
+	            case "down": // Entity is facing downward
+	                dy = 1; // Move downward by +1 pixel per step
+	                break;
+	            case "left": // Entity is facing left
+	                dx = -1; // Move left by -1 pixel per step
+	                break;
+	            case "right": // Entity is facing right
+	                dx = 1; // Move right by +1 pixel per step
+	                break;
+	            default: // Unknown or invalid direction
+	                dx = 0; // No horizontal movement
+	                dy = 0; // No vertical movement
+	                break;
 	        }
-		}	
-	}
+	        
+	        // ---------- MOVEMENT ----------
+	        if (dx != 0 || dy != 0) { // Only process movement if there is a non-zero direction
+	            for (int step = 0; step < speed; step++) { // Move one pixel at a time for accurate collision detection
+	                
+	                // try X (horizontal movement)
+	                if (dx != 0 && collisionOn) { // If attempting horizontal movement AND collision detection is enabled
+	                    boolean hitPlayerX = gp.cChecker.checkPlayer(this, dx, 0); // Check if moving horizontally would hit the player
+	                    int collidedTileX = gp.cChecker.getCollidingTile(this, dx, 0); // Check if moving horizontally would hit a solid tile
+	                    int collidedNpcX = gp.cChecker.checkEntity(this, gp.npc, dx, 0); // Check if moving horizontally would hit an NPC
+	                    int collidedGuardX = gp.cChecker.checkEntity(this, gp.gaurds, dx, 0); // Check if moving horizontally would hit another guard
+	                    
+	                    if (hitPlayerX) { // If entity would touch the player horizontally
+	                        System.out.println("Player killed by guard"); // Debug message to console
+	                        gp.eHandler.playerDied(); // Trigger player death event/sequence
+	                    } else if (collidedTileX == -1 && collidedNpcX == 999 && collidedGuardX == 999) { // If no collisions detected (-1 and 999 indicate "no collision")
+	                        worldX += dx; // Apply horizontal movement (move entity along X axis)
+	                    }
+	                    // If any collision occurred (other than player), do nothing (entity stays in place)
+	                } else if (!collisionOn) { // If collision detection is disabled
+	                    worldX += dx; // Apply horizontal movement unconditionally
+	                }
+	                
+	                // try Y (vertical movement)
+	                if (dy != 0 && collisionOn) { // If attempting vertical movement AND collision detection is enabled
+	                    boolean hitPlayerY = gp.cChecker.checkPlayer(this, 0, dy); // Check if moving vertically would hit the player
+	                    int collidedTileY = gp.cChecker.getCollidingTile(this, 0, dy); // Check if moving vertically would hit a solid tile
+	                    int collidedNpcY = gp.cChecker.checkEntity(this, gp.npc, 0, dy); // Check if moving vertically would hit an NPC
+	                    int collidedGuardY = gp.cChecker.checkEntity(this, gp.gaurds, 0, dy); // Check if moving vertically would hit another guard
+	                    
+	                    if (hitPlayerY) { // If entity would touch the player vertically
+	                        System.out.println("Player killed by guard"); // Debug message to console
+	                        gp.eHandler.playerDied(); // Trigger player death event/sequence
+	                    } else if (collidedTileY == -1 && collidedNpcY == 999 && collidedGuardY == 999) { // If no collisions detected (-1 and 999 indicate "no collision")
+	                        worldY += dy; // Apply vertical movement (move entity along Y axis)
+	                    }
+	                    // If any collision occurred (other than player), do nothing (entity stays in place)
+	                } else if (!collisionOn) { // If collision detection is disabled
+	                    worldY += dy; // Apply vertical movement unconditionally
+	                }
+	                
+	            } // End per-pixel movement loop
+	            
+	            // ---------- ANIMATION ----------
+	            spriteCounter++; // Increment animation counter each frame that entity moves
+	            if (spriteCounter > 19 - (1.5 * speed)) { // Check if enough time has passed to flip sprite (faster movement = faster animation)
+	                spriteNum = (spriteNum == 1) ? 2 : 1; // Toggle between sprite frame 1 and frame 2 for walking animation
+	                spriteCounter = 0; // Reset animation counter to start timing next frame flip
+	            }
+	        } // End movement check
+	    } // End isMoving check
+	} // End update method
+	
 	 public BufferedImage setup(String imagePath) {
 	    	UtilityTool uTool = new UtilityTool(gp);
 	    	BufferedImage image = null;
