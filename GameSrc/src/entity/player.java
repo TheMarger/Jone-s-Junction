@@ -1,3 +1,16 @@
+/*
+Names: Sukhmanpreet, Rafay, Jeevan, Christina, Samir
+Course: ICS4U0
+Assignment: Jones Junction
+File Name: player.java
+
+Description:
+This class controls the main player character.
+It handles movement, stamina (walk/sprint/crouch), collision checks,
+inventory (pick up/drop/use items), interacting with NPCs and tasks,
+and drawing the player to the screen.
+*/
+
 package entity;
 
 import java.awt.Color;
@@ -19,25 +32,38 @@ import tile.TileManager;
 
 public class player extends entity {
 
-    keyHandler keyH;
+    keyHandler keyH; //Reads keyboard input
 
+    //Where the player is drawn on the screen ( Center of the screen)
     private final int screenX;
     private final int screenY;
+    
+    //Player position in the world grid 
     public int row;
     public int col;
-
+    
+    //Inventory. Stores items the player is carrying 
     public ArrayList<Item> inventory = new ArrayList<>();
+    
+    //Tasks List. Store tasks for the specific level
 	public ArrayList<Task> tasksList = new ArrayList<>(); 
+	
+	//Max number of items the player can hold
     public final int INVENTORY_SIZE = 3;
-    public String equppedSkin;
- // basic character/skin storage used by the title character screen
-    public boolean[] unlockedSkins;
-    public int equippedSkinIndex = 0;
-    public int currentSkinIndex = 0;
-    public String equippedSkin;
-    public int curTaskIndex;
+    
+
+    public String equppedSkin; 
+ //Skin/character selection storage used by the title character screen
+    public boolean[] unlockedSkins; //Tracks which skins the player owns
+    public int equippedSkinIndex = 0; //Which skin is currently used
+    public int currentSkinIndex = 0; //Used for selecting skin menu
+    public String equippedSkin; //Stores skin names/path
+    
+    //Current task info when standing near a task
+    public int curTaskIndex; 
     public String curTaskName;
     
+    //Used to decide if player can leave the level
     public boolean tasksComplete;
     
     private long lastFootstepTime = 0; // Timestamp (ms) of the last footstep sound played
@@ -48,6 +74,7 @@ public class player extends entity {
 
     public int noiseRadiusTiles = 0; // Radius in tiles that the current noise can be heard by guards
 
+ //Item Checks (quick booleans to check if the player has something)
     public boolean hasKey;
     public boolean hasBlueKey;
     public boolean hasRedKey;
@@ -58,14 +85,19 @@ public class player extends entity {
     public boolean hasApple;
     public boolean hasBread;
     public boolean hasProteinBar;
-    int standCounter = 0;
-    // torch ownership + last lit tile position
+    
+    //Used to reset the animation when standing still
+    int standCounter = 0; 
+    
+    //Flashlight system
     public static boolean hasFlashlight = false;          // set true when player picks up a Torch item
     int lastPlayerCol = -1;            // column of the tile that was last used to light
     int lastPlayerRow = -1;            // row of the tile that was last used to light
     
+    //Player life state (used for dying or game over logic)
     public boolean isAlive;
 
+    //Getters for screen position
     public int getScreenX() {
         return screenX;
     }
@@ -74,14 +106,17 @@ public class player extends entity {
         return screenY;
     }
 
+    //Sets up the player when the game starts
     public player(gamePanel gp, keyHandler keyH) {
-    	super(gp);
+    	super(gp); //Call the parent class (entity) constructor first
     	
-        this.keyH = keyH;
+        this.keyH = keyH; //Save the key handler for input checks
 
+        //Center the player on the screen (camera view)
         screenX = gp.screenWidth / 2 - (gp.tileSize / 2);
         screenY = gp.screenHeight / 2 - (gp.tileSize / 2);
 
+     //Create a collision box inside the player sprite
         solidArea = new Rectangle();
         solidArea.x = gp.tileSize / 3;
         solidArea.y = gp.tileSize / 3;
@@ -89,103 +124,125 @@ public class player extends entity {
         solidAreaDefaultY = solidArea.y;
         solidArea.width = 22;
         solidArea.height = 22;
+        
+        //Stamina settings
         maxStamina = 100f;
         stamina = maxStamina;
-        staminaRegen = 5f;       // e.g. 5 stamina per second
-        sprintStaminaCost = 20f; // 10 stamina per second while sprinting
+        staminaRegen = 5f;       //Stamina regained per second
+        sprintStaminaCost = 20f; // Stamina drained per second while sprinting
+        
+        //Load the equipped skin from gamePanel
         equippedSkinIndex = gp.equippedSkinIndex;
         equippedSkin = gp.equippedSkin;
         
-        isAlive = true;
+        isAlive = true; //Player starts alive
 
+     //Set starting values and load images and default content
         setDefaultValues();
         getPlayerImage();
         setItems();
         setDialogues();
     }
     
+    //Gives the player starting items (for testing)
     public void setItems() {
     	inventory.add(new blueKey(gp));
     	updateInventory();
     }
 
-    
+    //Clears all items from inventory 
     public void clearInventory() {
     	inventory.clear();
     			
     }
     
+    //Equip a skin if it exists and is unlocked
     public void equipSkin(int index) {
-        if (index < 0 || index >= gp.skins.length) return;
-        if (!unlockedSkins[index]) return;
+        if (index < 0 || index >= gp.skins.length) return; //Invalid index
+        if (!unlockedSkins[index]) return; //Skin not unlocked
 
+        //Save equipped skin into gamePanel so other screens know it
         gp.equippedSkinIndex = index;
-        gp.equippedSkin = gp.skins[index][0][0]; // optional, just store name
+        gp.equippedSkin = gp.skins[index][0][0]; //Stores name
 
+        //Update player fields 
         equippedSkinIndex = index;
         equippedSkin = gp.equippedSkin;
 
-        getPlayerImage();
+        getPlayerImage();  //Reload player images using the new skin paths
     }
 
-
+    //Unlock a skin, after finishing a level
     public void unlockSkin(int index) {
         if (index < 0 || index >= unlockedSkins.length) return;
         System.out.println("trying to unlock skin: " + gp.skins[index][0][0]);
-        unlockedSkins[index] = true;
-        gp.skins[index][1][0] = "unlocked";
+        unlockedSkins[index] = true; //Mark as unlocked
+        gp.skins[index][1][0] = "unlocked"; //Update skins array
     }
 
 
-    
+    //Add an item if inventory has space
     public void addItem(Item item) {
 		if (inventory.size() < INVENTORY_SIZE) {
 			inventory.add(item);
 		}
 	}
     
+    //Remove item by index (only if index is valid)
     public void removeItem(int index) {
 		if (index >= 0 && index < inventory.size()) {
 			inventory.remove(index);
 		}
     }
 
+    //Sets starting position, stats, and skin info
     public void setDefaultValues() {
+    	
+    	//Starting world position (in pixels)
         worldX = gp.tileSize * 6;
         worldY = gp.tileSize * 16;
+        
+        //Converts to row/col on tile grid
         row = worldY / gp.tileSize;
         col = worldX / gp.tileSize;
 
-        // unlock skins
+        //Unlock skins
         unlockedSkins = new boolean[gp.skins.length];
         for (int i = 0; i < gp.skins.length; i++) {
             unlockedSkins[i] = gp.skins[i][1][0].equalsIgnoreCase("unlocked");
         }
 
-        // instead of resetting to 0, use the skin stored in gamePanel
+        //Instead of resetting to 0, use the skin stored in gamePanel
         equippedSkinIndex = gp.equippedSkinIndex;
         equippedSkin = gp.equippedSkin;
 
+        //Speeds for different movement types
         walkSpeed = 4;
         sprintSpeed = 16;
         crouchSpeed = 2;
-        speed = walkSpeed;
-        direction = "down";
-        level = gp.level;
-        stamina = maxStamina;
-        tasksComplete = true;
-        collisionOn = true;
         
-        getPlayerImage(); // load images for current skin
+        speed = walkSpeed; //Current speed starts as walking
+        
+        direction = "down";  //Starting direction
+        level = gp.level; //Sync with current level
+        stamina = maxStamina;
+        
+        tasksComplete = true; //...
+        collisionOn = true; //Player collision is active
+        
+        getPlayerImage(); //Load images for current skin
     }
 
+    //Loads all player sprites based on which skin is equipped
     public void getPlayerImage() {
 
+    	//This makes sure gp and skins exist
         if (gp == null || gp.skins == null) return;
 
+        //Each skin list of image paths
         String[] paths = gp.skins[equippedSkinIndex][2];
 
-        // index 0 is assumed to be a safe idle / fallback frame
+        //Index 0 is assumed to be a safe idle / fallback frame
         BufferedImage fallback = loadAndScale(paths[0]);
 
         // Up
@@ -205,15 +262,17 @@ public class player extends entity {
         left2 = loadAndScaleSafe(paths, 8, fallback);
     }
     
+    //Loads one image and scales it to tile size
     private BufferedImage loadAndScale(String path) {
         try {
             BufferedImage img = ImageIO.read(getClass().getResourceAsStream(path));
             return gp.uTool.scaleImage(img, gp.tileSize, gp.tileSize);
         } catch (Exception e) {
-            return null;
+            return null; //If image fails to load, return null
         }
     }
 
+    //If index is invalid or image missing, return fallback
     private BufferedImage loadAndScaleSafe(String[] paths, int index, BufferedImage fallback) {
         if (index < 0 || index >= paths.length || paths[index] == null) {
             return fallback;
@@ -223,10 +282,11 @@ public class player extends entity {
         return (img != null) ? img : fallback;
     }
    
-  
+    //Handles input, movement, collisions, interactions, sounds, and guard overlap.
     public void update() {
-        int dx = 0;
-        int dy = 0;
+    	
+        int dx = 0; //Movement in x direction for this frame
+        int dy = 0; //Movement in y direction for this frame
         
         // ---------- input ----------
         if (keyH.upPressed)    { dy = -1; direction = "up"; }
@@ -249,11 +309,11 @@ public class player extends entity {
             noiseRadiusTiles = 2;
         }
 
-        // ---------- torch (hold-to-light) ----------
+        // ---------- Flashlight lighting ----------
         if (keyH.interactPressed && hasFlashlight && gp.ui.selectedItem instanceof Flashlight) {
             interact("torch");
         } else if (lastPlayerCol != -1) {
-            // turn off previously lit tiles when not holding interact
+            //Turn off previously lit tiles when not holding interact
             for (int c = lastPlayerCol - 1; c <= lastPlayerCol + 1; c++) {
                 for (int r = lastPlayerRow - 1; r <= lastPlayerRow + 1; r++) {
                     if (c >= 0 && c < gp.maxWorldCol && r >= 0 && r < gp.maxWorldRow) {
@@ -265,14 +325,17 @@ public class player extends entity {
             lastPlayerRow = -1;
         }
         
+        // ---------- Throwing items ----------
         if (gp.keyH.throwJustPressed && gp.ui.selectedItem instanceof Throwable) {
             interactThrow((Throwable) gp.ui.selectedItem);
             gp.keyH.throwJustPressed = false; // consume the press
         }
         
+        // ---------- Eating food ----------
         if (gp.keyH.interactPressed && gp.ui.selectedItem instanceof Food) {
-            // find index of selected food in inventory
+            //Find index of selected food in inventory
             int foodIndex = -1;
+            //Search inventory for the selected food object
             for (int i = 0; i < inventory.size(); i++) {
                 if (inventory.get(i) == gp.ui.selectedItem) {
                     foodIndex = i;
@@ -296,12 +359,12 @@ public class player extends entity {
         // ---------- movement + collision checks ----------
         if (dx != 0 || dy != 0) {
             for (int step = 0; step < speed; step++) {
-                // try X
+                //Try X
                 if (dx != 0 && collisionOn) {
                     int tile = gp.cChecker.getCollidingTile(this, dx, 0);
                     int npcIndex = gp.cChecker.checkEntity(this, gp.npc, dx, 0);
                     int taskIndex = gp.cChecker.checkTask(this, gp.tasks, dx, 0);
-                    // treat guards as non-blocking here (we'll check hitboxes separately)
+                    //Treat guards as non-blocking here (we'll check hitboxes separately)
                     if (tile == -1 && npcIndex == 999 && taskIndex == 999) {
                         worldX += dx;
                         col = worldX / gp.tileSize;
@@ -309,7 +372,7 @@ public class player extends entity {
                     } else if (npcIndex != 999) {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interactNPC(npcIndex);
-                        break; // stop movement this frame
+                        break; //Stop movement this frame
                     } else if (((tile == 211 || tile == 212) && (level == 1 || level == 3)) || ((tile == 204 || tile == 205) && level == 2)) {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interact("exit");
