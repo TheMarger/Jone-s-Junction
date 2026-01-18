@@ -17,6 +17,13 @@ import task.PatternSwitchesTask;
 import entity.*;
 
 public class AssetSetter {
+	
+	// Respawn timers for food items (60 FPS * 60 seconds = 3600 frames)
+    public int breadRespawnTimer = -1;  // -1 means not waiting to respawn
+    public int appleRespawnTimer = -1;
+    public int breadRespawnX, breadRespawnY;  // Store pickup location
+    public int appleRespawnX, appleRespawnY;
+    public static final int RESPAWN_TIME = 600; // 3600; // 1 minute at 60 FPS
 
 	gamePanel gp;
 	java.util.Random random = new java.util.Random();
@@ -112,6 +119,8 @@ public class AssetSetter {
 	        case 3 -> amount = random.nextInt(4, 6); // 4–5
 	        case 4 -> amount = random.nextInt(5, 7); // 5–6
 	    }
+	    
+	    if (gp.level > 4) return;
 
 	    int levelIndex = gp.level - 1;
 	    int[][] levelLocations = ItemLocations[levelIndex];
@@ -151,7 +160,7 @@ public class AssetSetter {
 
 	    // ==================== THROWABLES FIRST ====================
 	    setThrowable();
-
+	    if (gp.level > 4) return;
 	    int levelIndex = gp.level - 1;
 	    int[][] levelLocations = ItemLocations[levelIndex];
 	    int slot;
@@ -429,6 +438,8 @@ public class AssetSetter {
 	}
 	
 	public void setTasks() {
+		
+		if (gp.level > 4) return;
 
         gp.player.tasksList.clear(); // clear existing tasks
         for (int i = 0; i < gp.tasks.length; i++) {
@@ -532,4 +543,54 @@ public class AssetSetter {
             }
         }
     }
+	
+	 // Call this when bread is picked up - pass the item's location
+    public void startBreadRespawn(int x, int y) {
+        breadRespawnX = x;
+        breadRespawnY = y;
+        breadRespawnTimer = RESPAWN_TIME;
+    }
+
+    // Call this when apple is picked up - pass the item's location
+    public void startAppleRespawn(int x, int y) {
+        appleRespawnX = x;
+        appleRespawnY = y;
+        appleRespawnTimer = RESPAWN_TIME;
+    }
+
+	
+	// Called every frame from gamePanel.update() to handle food respawns
+    public void updateRespawns() {
+        // Bread respawn timer
+        if (breadRespawnTimer > 0) {
+            breadRespawnTimer--;
+        } else if (breadRespawnTimer == 0) {
+            int slot = gp.getEmptyItemSlot();
+            if (slot != -1) {
+                Item it = new Bread(gp);
+                it.worldX = breadRespawnX;
+                it.worldY = breadRespawnY;
+                gp.items[slot] = it;
+            }
+            breadRespawnTimer = -1;
+        }
+
+        // Apple respawn timer
+        if (appleRespawnTimer > 0) {
+            appleRespawnTimer--;
+        } else if (appleRespawnTimer == 0) {
+            int slot = gp.getEmptyItemSlot();
+            if (slot != -1) {
+                Item it = new Apple(gp);
+                it.worldX = appleRespawnX;
+                it.worldY = appleRespawnY;
+                gp.items[slot] = it;
+            }
+            appleRespawnTimer = -1;
+        }
+    }
+	
+	public void update() {
+		updateRespawns();
+	}
 }

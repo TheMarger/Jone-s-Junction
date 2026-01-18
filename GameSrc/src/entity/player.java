@@ -341,10 +341,16 @@ public class player extends entity {
                         gp.ui.showInteract();
                         if (keyH.interactPressed) interactNPC(npcIndex);
                         break;
-                    } else if (((tile == 211 || tile == 212) && (level == 1 || level == 3)) || ((tile == 204 || tile == 205) && level == 2)) {
-                        gp.ui.showInteract();
-                        if (keyH.interactPressed) interact("exit");
-                        break;
+                    } else if (
+                    	    (level == 1 || level == 3) && (tile == 211 || tile == 212) ||
+                    	    level == 2 && (tile == 204 || tile == 205) ||
+                    	    level == 4 && (tile == 472 || tile == 473 || tile == 474 || tile == 475)
+                    	) {
+                    	    gp.ui.showInteract();
+                    	    if (keyH.interactPressed) {
+                    	        interact("exit");
+                    	    }
+                    	    break;
                     } else if (taskIndex != 999) {
                         gp.ui.showInteract();
                         curTaskIndex = taskIndex;
@@ -512,10 +518,10 @@ public class player extends entity {
 	    }
         if ("exit".equals(item)) {
         	if (tasksComplete) {
-        		levelUp();
         		gp.stopMusic();
     			gp.playSoundEffect(2);
     			gp.gameState = gp.dialogueState;
+    			levelUp();
     			speak();
         	} else {
         		gp.ui.showBoxMessage("Tasks Incomplete!");
@@ -541,10 +547,10 @@ public class player extends entity {
         stamina = maxStamina;
         speed = walkSpeed;
         direction = "down";
-        
         gp.ui.levelFinished = true;
-        gp.level++;
-        level = gp.level;
+		gp.level++;
+		level = gp.level;
+        
     }
     
     public void setDialogues() {
@@ -553,7 +559,8 @@ public class player extends entity {
 			dialogues[0] = "Gaurd: Payload delivery to the warehouse \n Attendant: All clear, you may proceed.\n\n\nCompleted Level 1!\n You have unlocked the BillyGoat skin.";
 			dialogues[1] = "Gaurd: Anyone seen my blue keys? \n Billy Goat: Idk man, jone's gonna be mad if he finds out though.\n\n\nCompleted Level 2!\n You have unlocked the Marv skin.";
 			dialogues[2] = "Gaurd: It's too hot for this job man \n Marv: Whatever man, just drive.\n\n\nCompleted Level 3!\n You have unlocked the Old Timer skin.";
-			dialogues[3] = "Gaurd: HEY GET BACK HERE? \n Jone: get back to code commenting!\n\n\nCompleted Level 4!\n You have unlocked the Froseph skin.";
+			dialogues[3] = "Jone: HEY GET BACK HERE! \nyou still have to serve 5 more decades of code commenting\n\n\nCompleted Level 4!\n You have unlocked the Froseph skin.";
+			dialogues[4] = "YOUVE ESCAPED! GAME OVER.\n\n\n Credits: \nRafay, Christina, Sukhmanpreet, Jeevan, Samir";
 			break;    		
     	}
 
@@ -714,10 +721,12 @@ public class player extends entity {
             	break;
             case "Apple":
             	hasApple = true;
+                gp.aSetter.startAppleRespawn(item.worldX, item.worldY);
 				gp.playSoundEffect(3);
 				break;
 			case "Bread":
 				hasBread = true;
+				gp.aSetter.startBreadRespawn(item.worldX, item.worldY);
 				gp.playSoundEffect(3);
 				break;
 			case "Protein Bar":

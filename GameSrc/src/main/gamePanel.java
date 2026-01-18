@@ -37,6 +37,7 @@ public class gamePanel extends JPanel implements Runnable {
 	public int equippedSkinIndex = 0; // default
 	public String equippedSkin; // optional, just for readability
 	public int level = 1;
+	public int startLevel = 1;
 	// mouse / selection state 
 	public int mouseX = 0, mouseY = 0;                  // last mouse coordinates on screen
 	public int hoveredTileCol = -1, hoveredTileRow = -1; // tile currently under mouse
@@ -317,12 +318,15 @@ public class gamePanel extends JPanel implements Runnable {
 		}
 	}
 	
+	
+	
 	public void update() { // Main game loop update; runs once per frame
 
 	    if (gameState == playState) { // Only update gameplay entities when the game is in active play mode
 
 	        // Player
 	        player.update(); // Update the player first so all other systems react to the player's new state
+	        aSetter.update(); // update any spawns
 
 	        // NPCs
 	        for (int i = 0; i < npc.length; i++) { // Loop through all NPC slots

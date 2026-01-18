@@ -164,7 +164,12 @@ public class keyHandler implements KeyListener {
         if (gp.gameState == gp.dialogueState) {
             if (code == KeyEvent.VK_ENTER) {
             	if (gp.ui.levelFinished) {
-            		gp.resetGame(false);
+            		if (gp.level != 5) {
+            			gp.resetGame(false);
+            		} else {
+            			gp.level = gp.startLevel;
+            			gp.resetGame(true);
+            		}
             	} else {
 	                enterPressed = true;   // simple boolean — draw() will handle the logic
 	                upPressed = true;  // prevent stuck key issue
@@ -175,7 +180,7 @@ public class keyHandler implements KeyListener {
             }
             if (code == KeyEvent.VK_ESCAPE) {
             	if (gp.ui.levelFinished) {
-            		return; // ignore during level complete
+            		return;
             	} else {
 	                escapePressed = true;  // draw() will handle cancel behavior
 	                upPressed = false;
