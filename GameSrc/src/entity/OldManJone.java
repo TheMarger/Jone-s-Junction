@@ -39,12 +39,13 @@ public class OldManJone extends entity { // Class declaration, extends base enti
         right2 = setup("/npcs/oldman_right_2"); // Right walking sprite 2
     }
 
-    public void setDialogues() { // Initialize dialogue lines for interaction
-        dialogues[0] = "Hello there young adventurer!"; // Greeting dialogue
-        dialogues[1] = "Be careful in the forest."; // Warning about forest
-        dialogues[2] = "Monsters have been seen around."; // Caution about monsters
-        dialogues[3] = "Take this torch to light your way."; // Gives advice or item
-    }
+    public void setDialogues() {
+		dialogues[0] = "Psst. Hey, you. Yes you. I know who you are. And I know what you’re planning.";
+		dialogues[1] = "Yeah, I know who you are. And I know what you’re planning.";
+		dialogues[2] = "Not everyone running this place agrees with what’s happening here";
+		dialogues[3] = "My brother has gone too far, he calls it order I call it control.";
+		dialogues[4] = "I can't open the doors for you. But I can make sure the locks aren't as tight as they should be.";
+	}
 
     public void speak() { // Trigger dialogue when player interacts
         super.speak(); // Call base entity speak method
