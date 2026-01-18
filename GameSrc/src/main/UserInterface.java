@@ -972,43 +972,74 @@ public class UserInterface {
         if (titleScreenState == 0) {
             if (uiUp) { // up navigation pressed
                 commandNum--; // move selection up
-                if (commandNum < 0) commandNum = 5; // wrap around top->bottom
+                if (commandNum < 0) commandNum = 4; // wrap around top->bottom
                 uiUp = false; // consume the input (edge-trigger)
             }
             if (uiDown) { // down navigation pressed
                 commandNum++; // move selection down
-                if (commandNum > 5) commandNum = 0; // wrap bottom->top
+                if (commandNum > 4) commandNum = 0; // wrap bottom->top
                 uiDown = false; // consume
             }
             if (uiConfirm) { // user activated the currently selected menu entry
                 switch (commandNum) {
-                    case 0: // NEW GAME: switch to play state
-                        titleScreenState = 5;
-                        break;
-                    case 1: // LOAD GAME: show load sub-screen
-                        titleScreenState = 1;
+                    case 0: // LOAD GAME: show load sub-screen
+                        titleScreenState = 7;
                         commandNum = 0; // reset local command index for sub-screen
                         break;
-                    case 2: // CHARACTERS: show character selection sub-screen
+                    case 1: // CHARACTERS: show character selection sub-screen
                         titleScreenState = 2;
                         commandNum = 0;
                         gp.player.currentSkinIndex = gp.player.equippedSkinIndex; // start on equipped skin
                         break;
-                    case 3: // KEYBINDINGS: show keybinds sub-screen
+                    case 2: // KEYBINDINGS: show keybinds sub-screen
                         titleScreenState = 3;
                         commandNum = 0;
                         keybindSelectedIndex = 0; // select first action
                         awaitingKeybind = false; // ensure not in awaiting mode
                         break;
-                    case 4: // INSTRUCTIONS: show instructions screen
+                    case 3: // INSTRUCTIONS: show instructions screen
                     	titleScreenState = 4;
                     	commandNum = 0;
                     	keybindSelectedIndex = 0;
                     	awaitingKeybind = false;
                         break;
-                    case 5: // EXIT: close the game
+                    case 4: // EXIT: close the game
 						System.exit(0);
 						break;
+                }
+                uiConfirm = false; // consume confirm
+            }
+            if (uiBack) { // back/cancel pressed on main screen — nothing to go back to
+                uiBack = false; // just consume it
+            }
+            return; // done handling main menu input
+        }
+        
+        if (titleScreenState == 7) {
+        	if (uiUp) { // up navigation pressed
+                commandNum--; // move selection up
+                if (commandNum < 0) commandNum = 3; // wrap around top->bottom
+                uiUp = false; // consume the input (edge-trigger)
+            }
+            if (uiDown) { // down navigation pressed
+                commandNum++; // move selection down
+                if (commandNum > 3) commandNum = 0; // wrap bottom->top
+                uiDown = false; // consume
+            }
+            if (uiConfirm) { // user activated the currently selected menu entry
+                switch (commandNum) {
+                    case 0: // LOAD GAME: show load sub-screen
+                        titleScreenState = 5;
+                        commandNum = 0; // reset local command index for sub-screen
+                        break;
+                    case 1: // CHARACTERS: show character selection sub-screen
+                        titleScreenState = 1;
+                        commandNum = 0;
+                        break;
+                    case 2: // KEYBINDINGS: show keybinds sub-screen
+                        titleScreenState = 0;
+                        commandNum = 0;
+                        break;
                 }
                 uiConfirm = false; // consume confirm
             }
@@ -1295,7 +1326,7 @@ public class UserInterface {
             g2.drawString(text, x, y); // draw title
 
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F)); // menu font
-            String[] menu = { "NEW GAME", "LOAD GAME", "CHARACTERS", "KEYBINDINGS", "INSTRUCTIONS", "EXIT" }; // menu labels
+            String[] menu = { "PLAY", "CHARACTERS", "KEYBINDINGS", "INSTRUCTIONS", "EXIT" }; // menu labels
             int localY = y; // local Y cursor for menu
             for (int i = 0; i < menu.length; i++) {
                 text = menu[i]; // menu item text
@@ -1312,7 +1343,39 @@ public class UserInterface {
                 }
             }
             g2.setColor(Color.white); // reset color
-        } else if (titleScreenState == 1) { // LOAD screen
+        } else if (titleScreenState == 7) {
+        	 g2.setColor(new Color(0, 0, 0)); // black background
+             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight); // fill entire screen
+             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 96F)); // large bold title font
+             String text = "Jone's Junction"; // title text
+             int x = getXforCenteredText(text); // compute X so text is centered
+             int y = gp.tileSize * 3; // baseline Y for title
+             g2.setColor(Color.gray); // shadow color
+             g2.drawString(text, x + 5, y + 5); // draw shadow slightly offset
+             g2.setColor(Color.white); // main title color
+             g2.drawString(text, x, y); // draw title
+
+             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F)); // menu font
+             String[] menu = { "NEW GAME", "LOAD GAME", "BACK" }; // menu labels
+             int localY = y; // local Y cursor for menu
+             for (int i = 0; i < menu.length; i++) {
+                 text = menu[i]; // menu item text
+                 x = getXforCenteredText(text); // center the item
+                 localY += gp.tileSize * (i == 0 ? 3 : 1); // spacing (first item sits lower)
+                 if (commandNum == i) { // highlighted item
+                     g2.setColor(Color.gray); // dim text color for selected item (style choice)
+                     g2.drawString(text, x, localY); // draw text
+                     g2.setColor(Color.white); // arrow color
+                     g2.drawString(">", x - gp.tileSize, localY); // draw selector arrow on left
+                 } else {
+                     g2.setColor(Color.white); // normal color
+                     g2.drawString(text, x, localY); // draw non-selected item
+                 }
+             }
+             g2.setColor(Color.white); // reset color
+        }
+        
+        else if (titleScreenState == 1) { // LOAD screen
             g2.setColor(Color.black); // background
             g2.fillRect(0, 0, gp.screenWidth, gp.screenHeight);
             g2.setFont(g2.getFont().deriveFont(Font.BOLD, 48F));

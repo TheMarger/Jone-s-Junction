@@ -182,6 +182,7 @@ public class keyHandler implements KeyListener { // Declares keyHandler class th
             		} else { // If on final level
             			gp.level = gp.startLevel; // Resets level to starting level
             			gp.resetGame(true); // Resets game and returns to title screen
+            			gp.gameState = gp.completionState;
             		}
             	} else { // If not level completion dialogue
 	                enterPressed = true;   // Sets enter pressed flag (simple boolean — draw() will handle the logic)
