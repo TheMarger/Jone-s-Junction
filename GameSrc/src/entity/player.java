@@ -147,8 +147,7 @@ public class player extends entity { // Class declaration: player extends base c
     
     // Gives the player starting items (for testing)
     public void setItems() { // Adds default items to inventory
-    	inventory.add(new blueKey(gp)); // Add a blue key to inventory
-    	updateInventory(); // Update item flags and tile unlocking based on inventory
+    	// empty
     }
 
     // Clears all items from inventory
