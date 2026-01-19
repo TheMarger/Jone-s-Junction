@@ -70,15 +70,15 @@ public class gaurd extends entity { // Declares the gaurd class which extends th
         getImage(); // Load guard sprites
     }
 
-    public void getImage() { // Loads sprite frames for each direction
-        up1 = setup("/gaurds/Gaurd-1"); // First up-facing sprite
-        up2 = setup("/gaurds/Gaurd-2"); // Second up-facing sprite
-        down1 = setup("/gaurds/Gaurd-1"); // First down-facing sprite (reused)
-        down2 = setup("/gaurds/Gaurd-2"); // Second down-facing sprite (reused)
-        left1 = setup("/gaurds/Gaurd-1"); // First left-facing sprite (reused)
-        left2 = setup("/gaurds/Gaurd-2"); // Second left-facing sprite (reused)
-        right1 = setup("/gaurds/Gaurd-1"); // First right-facing sprite (reused)
-        right2 = setup("/gaurds/Gaurd-2"); // Second right-facing sprite (reused)
+   public void getImage() { // Loads sprite frames for each direction
+        up1 = setup("/guards/Guard-1"); // First up-facing sprite
+        up2 = setup("/guards/Guard-2"); // Second up-facing sprite
+        down1 = setup("/guards/Guard-3"); // First down-facing sprite (reused)
+        down2 = setup("/guards/Guard-4"); // Second down-facing sprite (reused)
+        left1 = setup("/guards/Guard-7"); // First left-facing sprite (reused)
+        left2 = setup("/guards/Guard-8"); // Second left-facing sprite (reused)
+        right1 = setup("/guards/Guard-5"); // First right-facing sprite (reused)
+        right2 = setup("/guards/Guard-6"); // Second right-facing sprite (reused)
     }
 
     @Override
