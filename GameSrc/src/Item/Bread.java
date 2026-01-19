@@ -25,7 +25,7 @@ public class Bread extends Food { // Bread class extends Food base class
         throwSoundIndex = 3; // Sound effect index when item is thrown
         sizeX = 32; // Width of the item sprite in pixels
         sizeY = 32; // Height of the item sprite in pixels
-        restoreValue = 0.5f; // Amount of stamina/health restored when consumed
+        restoreValue = 0.2f; // Amount of stamina/health restored when consumed
 
         try { // Load and scale the item image
             image = gp.uTool.scaleImage(

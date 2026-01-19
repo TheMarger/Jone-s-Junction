@@ -25,7 +25,7 @@ public class Apple extends Food { // Apple class extends Food base class
         throwSoundIndex = 3; // Sound effect index when item is thrown
         sizeX = 24; // Width of the item sprite in pixels
         sizeY = 24; // Height of the item sprite in pixels
-        restoreValue = 0.25f; // Amount of stamina/health restored when consumed
+        restoreValue = 0.50f; // Amount of stamina/health restored when consumed
 
         try { // Load and scale the item image
             image = gp.uTool.scaleImage(
