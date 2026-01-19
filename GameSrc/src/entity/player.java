@@ -129,7 +129,7 @@ public class player extends entity { // Class declaration: player extends base c
         // Stamina settings
         maxStamina = 100f; // Maximum stamina value
         stamina = maxStamina; // Start with full stamina
-        staminaRegen = 5f;       // Stamina regained per second
+        staminaRegen = 20f;       // Stamina regained per second
         sprintStaminaCost = 20f; // Stamina drained per second while sprinting
         
         // Load the equipped skin from gamePanel
@@ -224,7 +224,7 @@ public class player extends entity { // Class declaration: player extends base c
 
         // Speeds for different movement types
         walkSpeed = 4; // Walk speed in pixels per frame
-        sprintSpeed = 8; // Sprint speed in pixels per frame
+        sprintSpeed = 7; // Sprint speed in pixels per frame (1.5 tiles/sec)
         crouchSpeed = 2; // Crouch speed in pixels per frame
         
         speed = walkSpeed; // Current speed starts as walking
@@ -300,6 +300,12 @@ public class player extends entity { // Class declaration: player extends base c
         if (keyH.rightPressed) { dx =  1; direction = "right"; } // Move/right press sets dx and direction
 
         // ---------- speed / stamina ----------
+        
+        if (!isCrouching) { // check if is crouching, if so alter stamina regen accordingly
+        	staminaRegen = 5f; // 1 bar/5sec
+        } else {
+        	staminaRegen = 8f; // 1 bar/3sec
+        }
         if (keyH.sprintPressed && stamina > 0) { // If sprint key held and stamina available
             sprint(); // Switch to sprint movement mode
             noiseValue = 3; // Louder noise value for sprinting

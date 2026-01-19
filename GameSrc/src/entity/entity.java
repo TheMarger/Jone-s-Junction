@@ -39,6 +39,7 @@ public class entity { // Base class for all game entities (player, NPC, guard, e
     public float stamina; // Current stamina
     public float staminaRegen; // Stamina points regenerated per second
     public float sprintStaminaCost; // Stamina points lost per second when sprinting
+    public boolean isCrouching = false;
     
     public int spawnX; // Original spawn X position for resets or teleports
     public int spawnY; // Original spawn Y position for resets or teleports
@@ -169,6 +170,7 @@ public class entity { // Base class for all game entities (player, NPC, guard, e
     // ---------- MOVEMENT MODES ----------
     public void sprint() { // Sprint logic
         if (stamina > 0f) {
+        	isCrouching = false;
             speed = sprintSpeed; // Increase speed
             stamina -= sprintStaminaCost / 60f; // Subtract stamina per frame
             if (stamina <= 0f) { // If stamina depleted
@@ -181,6 +183,7 @@ public class entity { // Base class for all game entities (player, NPC, guard, e
     }
 
     public void walk() { // Walking logic
+    	isCrouching = false;
         speed = walkSpeed;
         if (stamina < maxStamina) { // Regenerate stamina per frame
             stamina += staminaRegen / 60f;
@@ -190,6 +193,7 @@ public class entity { // Base class for all game entities (player, NPC, guard, e
 
     public void crouch() { // Crouch logic
         speed = crouchSpeed;
+        isCrouching = true;
         if (stamina < maxStamina) { // Regenerate stamina per frame
             stamina += staminaRegen / 60f;
             if (stamina > maxStamina) stamina = maxStamina; // Clamp
